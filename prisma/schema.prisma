@@ -53,6 +53,7 @@ model User {
     image         String?
     accounts      Account[]
     sessions      Session[]
+    hasplan       Boolean @default(false)
 }
 
 model VerificationToken {
@@ -61,4 +62,18 @@ model VerificationToken {
     expires    DateTime
 
     @@unique([identifier, token])
+}
+
+
+
+model WeekPlan {
+    id String @id @default(cuid())
+    date Date @default(now()) 
+    monday
+    tuesday
+    wednesday
+    thursday
+    friday
+    saturday
+    sunday
 }
