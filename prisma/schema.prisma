@@ -68,12 +68,12 @@ model VerificationToken {
 
 model WeekPlan {
     id String @id @default(cuid())
-    date Date @default(now()) 
-    monday
-    tuesday
-    wednesday
-    thursday
-    friday
-    saturday
-    sunday
+    date DateTime @default(now()) 
+    monday String?
+    tuesday String?
+    wednesday String?
+    thursday String?
+    friday String?
+    saturday String?
+    sunday String?
 }

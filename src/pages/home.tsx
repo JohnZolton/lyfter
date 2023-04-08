@@ -13,6 +13,7 @@ import {
 } from "@clerk/nextjs";
 import { userAgent } from "next/server";
 import { userInfo } from "os";
+//@refresh reset
 
 const Home: NextPage = () => {
   const hello = api.example.hello.useQuery({ text: "from tRPC" });
@@ -33,14 +34,14 @@ const Home: NextPage = () => {
             }} />
       </div>
       <main className="text-white text-center flex min-h-screen   flex-col  bg-gradient-to-b from-[#000000] to-[#44454b]">
-      <div>Create/Edit Workout Plan</div>
-      <div> or </div>
-      <div>Begin Workout</div>
-      <br></br>
-      <div>so I need to query database to see if they have a plan made</div>
-      <div>then display current next-workout</div>
-      <div>and have a begin button</div>
-      <div>else: create workout button</div>
+        <CreateWorkout></CreateWorkout>
+        <EditWorkout></EditWorkout>
+        <BeginWorkout></BeginWorkout>
+        <br></br>
+        <div>so I need to query database to see if they have a plan made</div>
+        <div>then display current next-workout</div>
+        <div>and have a begin button</div>
+        <div>else: create workout button</div>
       </main>
         </SignedIn>
         <SignedOut>
@@ -54,3 +55,31 @@ const Home: NextPage = () => {
 };
 
 export default Home;
+
+function CreateWorkout(){
+  return(
+    <div className="object-contain m-2">
+    <button className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400">Create Workout Plan</button>
+    </div>
+  )
+}
+function BeginWorkout(){
+  return(
+    <div className="object-contain m-2">
+    <button className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400">Begin Workout</button>
+    </div>
+  )
+}
+
+function EditWorkout(){
+  return(
+    <div className="object-contain  m-2">
+    <button className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400">Edit Workout Plan</button>
+    </div>
+  )
+}
+function WorkoutForm(){
+  return(
+    <input></input>
+  )
+}
