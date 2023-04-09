@@ -17,6 +17,8 @@ import { userInfo } from "os";
 
 const Home: NextPage = () => {
   const hello = api.example.hello.useQuery({ text: "from tRPC" });
+  const workouts = api.getWorkouts.getAll.useQuery()
+  console.log(workouts.data)
 
   return (
     <>
@@ -34,14 +36,10 @@ const Home: NextPage = () => {
             }} />
       </div>
       <main className="text-white text-center flex min-h-screen   flex-col  bg-gradient-to-b from-[#000000] to-[#44454b]">
-        <CreateWorkout></CreateWorkout>
-        <EditWorkout></EditWorkout>
         <BeginWorkout></BeginWorkout>
         <br></br>
-        <div>so I need to query database to see if they have a plan made</div>
-        <div>then display current next-workout</div>
-        <div>and have a begin button</div>
-        <div>else: create workout button</div>
+        <div>Okay so begin workout - get previous workout, allow selecting prev workout, default</div>
+        <div>default is weekday to weekday, can change if desired</div>
       </main>
         </SignedIn>
         <SignedOut>
