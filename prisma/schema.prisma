@@ -52,7 +52,6 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
-  workouts Workout[] @relation("userWorkouts")
 }
 
 model VerificationToken {
@@ -64,11 +63,10 @@ model VerificationToken {
 }
 
 model Workout {
-  workoutId  Int     @id @default(autoincrement())
+  workoutId  String    @id @default(cuid())
   date       DateTime   @default(now())
   nominalDay String
   userId     String 
-  user User @relation("userWorkouts", fields: [userId], references: [id])
   //maybe add mesocycles and weeks for clumping/display?
   @@index([userId])
 }
@@ -78,8 +76,7 @@ model Exercise {
   description String
   weight      Int
   sets        String
+  workoutId String
 
-  partWorkout Int
-
-  @@index([partWorkout])
+  @@index([workoutId])
 }

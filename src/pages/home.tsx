@@ -17,15 +17,14 @@ import { userInfo } from "os";
 //@refresh reset
 
 const Home: NextPage = () => {
-  const { workouts } = api.getWorkouts.getAllWorkouts.useQuery()
-  const { exercises } = api.getWorkouts.getAllExercises.useQuery()
+  const { data: workouts } = api.getWorkouts.getAllWorkouts.useQuery()
+  const { data: exercises } = api.getWorkouts.getAllExercises.useQuery()
   const user = useUser()
   //if (user.isSignedIn){
     //console.log(user.user.id)
   //}
-  console.log(workouts)
-  console.log(exercises)
-
+  workouts?.forEach((workout) => { console.log(
+    'id: ' + workout.workoutId + ', date: ' + workout.date)})
   return (
     <>
       <Head>
@@ -49,14 +48,13 @@ const Home: NextPage = () => {
         <BeginWorkout></BeginWorkout>
         <br></br>
       <div>
-        <div>
-        { workouts?.map((workout) => (
-          <div>{workout.date}</div>
-        )) }
-        </div>
       <div>
       { exercises?.map((exercise) => (
+      <div id={exercise.exerciseId}>
         <div>{exercise.description}</div>
+        <div>{exercise.weight}</div>
+        <div>{exercise.sets}</div>
+      </div>
       )) }
       </div>
       </div>
