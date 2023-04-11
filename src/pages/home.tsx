@@ -51,15 +51,6 @@ const Home: NextPage = () => {
         <WorkoutUi/>
         <br></br>
       <div>
-      <div>
-      { exercises?.map((exercise) => (
-      <div id={exercise.exerciseId}>
-        <div>{exercise.description}</div>
-        <div>{exercise.weight}</div>
-        <div>{exercise.sets}</div>
-      </div>
-      )) }
-      </div>
       </div>
       </main>
         </SignedIn>
@@ -96,11 +87,11 @@ function BeginWorkout(){
 function WorkoutUi(){
   const [currentExercise, setCurrentExercise] = useState(null)
   const [hasExercise, sethasExercise] = useState(false)
-  let exercise = []
+  let exercises = []
   function handleSetExercise(newExercise){
     setCurrentExercise(newExercise)
     sethasExercise(true)
-    exercise.push(newExercise)
+    exercises.push(newExercise)
     console.log(currentExercise)
   }
 
@@ -108,11 +99,21 @@ function WorkoutUi(){
   <div>
     {(!currentExercise) && <NewExercise onSend={handleSetExercise}/>}
     {currentExercise && <CurrentExercise exercise={currentExercise}/>}
+    <br></br>
+    <br></br>
     <NextExercise/>
+    <br></br>
     <EndWorkout />
   </div>
   )
 }
+
+enum Exercise {
+  description,
+  weight,
+  sets
+}
+
 
 function CurrentExercise({exercise}){
   const [sets, setSets] = useState([])
@@ -130,18 +131,29 @@ function CurrentExercise({exercise}){
 
 
   return(
-    <div>
-      <div>
-        {exercise.description}
+    <div className="">
+      <div className="">
+        <table className="table-auto mx-auto">
+          <thead>
+            <tr>
+              <th>Exercise</th>
+              <th>Weight</th>
+              <th>Sets</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{exercise.description}</td>
+              <td>{exercise.weight}</td>
+              <td>{sets?.join(', ')}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
       <div>
-        {exercise.weight}
       </div>
-      {sets?.map((set, index) => (
-        <div id={index}>{set}</div>
-      ))}
       <form onSubmit={handleNewSet}>
-        <label for="repCount">Reps: </label>
+        <label htmlFor="repCount">Reps: </label>
         <input 
         value={nextSet}
         className="text-black"
