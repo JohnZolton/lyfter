@@ -6,6 +6,7 @@ import {
   ClerkProvider,
   RedirectToOrganizationProfile,
   RedirectToSignIn,
+  useUser,
   SignedIn,
   SignedOut,
   SignInButton,
@@ -16,9 +17,14 @@ import { userInfo } from "os";
 //@refresh reset
 
 const Home: NextPage = () => {
-  const hello = api.example.hello.useQuery({ text: "from tRPC" });
-  const workouts = api.getWorkouts.getAll.useQuery()
-  console.log(workouts.data)
+  const { workouts } = api.getWorkouts.getAllWorkouts.useQuery()
+  const { exercises } = api.getWorkouts.getAllExercises.useQuery()
+  const user = useUser()
+  //if (user.isSignedIn){
+    //console.log(user.user.id)
+  //}
+  console.log(workouts)
+  console.log(exercises)
 
   return (
     <>
@@ -36,10 +42,24 @@ const Home: NextPage = () => {
             }} />
       </div>
       <main className="text-white text-center flex min-h-screen   flex-col  bg-gradient-to-b from-[#000000] to-[#44454b]">
+      <div>
+        hello {user.user?.firstName}
+      </div>
+      <br></br>
         <BeginWorkout></BeginWorkout>
         <br></br>
-        <div>Okay so begin workout - get previous workout, allow selecting prev workout, default</div>
-        <div>default is weekday to weekday, can change if desired</div>
+      <div>
+        <div>
+        { workouts?.map((workout) => (
+          <div>{workout.date}</div>
+        )) }
+        </div>
+      <div>
+      { exercises?.map((exercise) => (
+        <div>{exercise.description}</div>
+      )) }
+      </div>
+      </div>
       </main>
         </SignedIn>
         <SignedOut>
