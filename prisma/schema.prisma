@@ -67,6 +67,7 @@ model Workout {
   date       DateTime   @default(now())
   nominalDay String
   userId     String 
+  description String
   //maybe add mesocycles and weeks for clumping/display?
   @@index([userId])
 }

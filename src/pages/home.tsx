@@ -2,6 +2,7 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { api } from "~/utils/api";
+import { useState, useTransition } from 'react'
 import {
   ClerkProvider,
   RedirectToOrganizationProfile,
@@ -17,14 +18,14 @@ import { userInfo } from "os";
 //@refresh reset
 
 const Home: NextPage = () => {
-  const { data: workouts } = api.getWorkouts.getAllWorkouts.useQuery()
-  const { data: exercises } = api.getWorkouts.getAllExercises.useQuery()
   const user = useUser()
   //if (user.isSignedIn){
     //console.log(user.user.id)
   //}
-  workouts?.forEach((workout) => { console.log(
-    'id: ' + workout.workoutId + ', date: ' + workout.date)})
+  const { data: workouts } = api.getWorkouts.getAllWorkouts.useQuery()
+  const { data: exercises } = api.getWorkouts.getAllExercises.useQuery()
+  //workouts?.forEach((workout) => { console.log(
+    //'id: ' + workout.workoutId + ', date: ' + workout.date)})
   return (
     <>
       <Head>
@@ -46,6 +47,8 @@ const Home: NextPage = () => {
       </div>
       <br></br>
         <BeginWorkout></BeginWorkout>
+        <br></br>
+        <NewExercise/>
         <br></br>
       <div>
       <div>
@@ -80,13 +83,51 @@ function CreateWorkout(){
   )
 }
 function BeginWorkout(){
-  return(
-    <div className="object-contain m-2">
-    <button className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400">Begin Workout</button>
-    </div>
-  )
+  const [inProgress, setinProgress] = useState(false)
+  if (!inProgress){
+    return(
+      <div className="object-contain m-2">
+      <button onClick={() => setinProgress(true)} className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400">Begin Workout</button>
+      </div>
+    )
+  }
 }
 
+function NewExercise(){
+  const [description, setDescription] = useState("")
+  const [weight, setWeight] = useState("")
+
+  const handleSubmit = (event) => {
+    event.preventDefault()
+    console.log("exercise: " + description)
+    console.log("weight: " + weight)
+  }
+  const handleName = (event) => {
+    event.preventDefault()
+    setDescription(event.target.value)
+  }
+  const handleNumber = (event) => {
+    event.preventDefault()
+    setWeight(event.target.value)
+  }
+
+  return(
+    <div>
+      <form onSubmit={handleSubmit}>
+        <div id="exerciseInput">
+          <label>Exercise: </label>
+          <input className="text-black" onChange={handleName} type="text" id="description"></input>
+        </div>
+        <br></br>
+        <div id="weightInput">
+          <label>Weight: </label>
+          <input onChange={handleNumber} className="text-black" type="number" id="weight"></input>
+        </div>
+        <button type="submit">Add</button>
+      </form>
+    </div>
+    )
+}
 function EditWorkout(){
   return(
     <div className="object-contain  m-2">
