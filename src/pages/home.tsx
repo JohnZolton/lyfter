@@ -48,7 +48,7 @@ const Home: NextPage = () => {
       <br></br>
         <BeginWorkout></BeginWorkout>
         <br></br>
-        <NewExercise/>
+        <WorkoutUi/>
         <br></br>
       <div>
       <div>
@@ -93,7 +93,81 @@ function BeginWorkout(){
   }
 }
 
-function NewExercise(){
+function WorkoutUi(){
+  const [currentExercise, setCurrentExercise] = useState(null)
+  const [hasExercise, sethasExercise] = useState(false)
+  let exercise = []
+  function handleSetExercise(newExercise){
+    setCurrentExercise(newExercise)
+    sethasExercise(true)
+    exercise.push(newExercise)
+    console.log(currentExercise)
+  }
+
+  return(
+  <div>
+    {(!currentExercise) && <NewExercise onSend={handleSetExercise}/>}
+    {currentExercise && <CurrentExercise exercise={currentExercise}/>}
+    <NextExercise/>
+    <EndWorkout />
+  </div>
+  )
+}
+
+function CurrentExercise({exercise}){
+  const [sets, setSets] = useState([])
+  const [nextSet, setNextSet] = useState("")
+
+  const handleNewSet = (event) => {
+    event.preventDefault()
+    setSets([...sets, nextSet])
+    setNextSet("")
+  }
+  const handleChange = (event) => {
+    setNextSet(event.target.value)
+    console.log(nextSet)
+  }
+
+
+  return(
+    <div>
+      <div>
+        {exercise.description}
+      </div>
+      <div>
+        {exercise.weight}
+      </div>
+      {sets?.map((set, index) => (
+        <div id={index}>{set}</div>
+      ))}
+      <form onSubmit={handleNewSet}>
+        <label for="repCount">Reps: </label>
+        <input 
+        value={nextSet}
+        className="text-black"
+        onChange={handleChange} id="repCount"type="number"></input>
+        <button type="submit" onSubmit={handleNewSet}>Add</button>
+      </form>
+    </div>
+  )
+}
+
+function NextExercise(){
+  return(
+    <div>
+      <button>Next Exercise</button>
+    </div>
+  )
+}
+function EndWorkout(){
+  return(
+    <div>
+      <button>End Workout</button>
+    </div>
+  )
+}
+
+function NewExercise({ onSend }){
   const [description, setDescription] = useState("")
   const [weight, setWeight] = useState("")
 
@@ -101,13 +175,12 @@ function NewExercise(){
     event.preventDefault()
     console.log("exercise: " + description)
     console.log("weight: " + weight)
+    onSend({"description" : description, "weight": weight})
   }
   const handleName = (event) => {
-    event.preventDefault()
     setDescription(event.target.value)
   }
   const handleNumber = (event) => {
-    event.preventDefault()
     setWeight(event.target.value)
   }
 
