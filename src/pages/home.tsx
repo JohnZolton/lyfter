@@ -86,18 +86,20 @@ function BeginWorkout(){
 function WorkoutUi(){
   const [currentExercise, setCurrentExercise] = useState(null)
   const [hasExercise, sethasExercise] = useState(false)
-  let exercises = []
+  const [exercises, setExercises] = useState([]) // list of exercise enums
+
   function handleSetExercise(newExercise){
     setCurrentExercise(newExercise)
     sethasExercise(true)
-    exercises.push(newExercise)
+    setExercises([...exercises, newExercise])
     console.log(currentExercise)
   }
 
   return(
   <div>
     {(!currentExercise) && <NewExercise onSend={handleSetExercise}/>}
-    {currentExercise && <CurrentExercise exercise={currentExercise}/>}
+    {currentExercise && <ExerciseTable exercises = {exercises}/>}
+    {currentExercise && <CurrentExercise setExercises={setExercises} exercise={currentExercise} exercises={exercises}/>}
     <br></br>
     <NextExercise/>
     <br></br>
@@ -112,25 +114,13 @@ enum Exercise {
   sets
 }
 
-
-function CurrentExercise({exercise}){
-  const [sets, setSets] = useState([])
-  const [nextSet, setNextSet] = useState("")
-
-  const handleNewSet = (event) => {
-    event.preventDefault()
-    setSets([...sets, nextSet])
-    setNextSet("")
-  }
-  const handleChange = (event) => {
-    setNextSet(event.target.value)
-    console.log(nextSet)
+function ExerciseTable({ exercises }){
+  if (!exercises){
+    return (<div></div>)
   }
 
-
-  return(
-    <div className="">
-      <div className="">
+  return (
+    <div>
         <table className="table-auto mx-auto">
           <thead>
             <tr>
@@ -140,20 +130,55 @@ function CurrentExercise({exercise}){
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>{exercise.description}</td>
-              <td>{exercise.weight}</td>
-              <td>{sets?.join(', ')}</td>
-            </tr>
+            {exercises.map((exercise, index) =>(
+              <tr id={index}>
+                <td>{exercise.description}</td>
+                <td>{exercise.weight}</td>
+                <td>{exercise.sets?.join(', ')}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
-      </div>
-      <div>
-      </div>
+    </div>
+  )
+}
+
+function CurrentExercise({exercise, exercises, setExercises}){
+  const [newSet, setNextSet] = useState("")
+
+  const handleNewSet = (event) => {
+    event.preventDefault()
+    const updatedExercises = exercises.map((e)=> {
+      if (e.description === exercise.description){
+        if (e.sets){
+          return {
+            ...e,
+            sets: [...e.sets, newSet],
+          }
+        } else {
+          return {
+            ...e,
+            sets: [newSet],
+          }
+        }
+      } else {
+        return e
+      }
+    })
+    setExercises(updatedExercises)
+    setNextSet("")
+  }
+  const handleChange = (event) => {
+    setNextSet(event.target.value)
+  }
+
+
+  return(
+    <div className="">
       <form onSubmit={handleNewSet}>
         <label htmlFor="repCount">Reps: </label>
         <input 
-        value={nextSet}
+        value={newSet}
         className="text-black"
         onChange={handleChange} id="repCount"type="number"></input>
         <button 
@@ -189,6 +214,8 @@ function NewExercise({ onSend }){
 
   const handleSubmit = (event) => {
     event.preventDefault()
+    const newExercise = { [Exercise.description]: description, [Exercise.weight]: weight, [Exercise.sets]: [] };
+
     console.log("exercise: " + description)
     console.log("weight: " + weight)
     onSend({"description" : description, "weight": weight})
@@ -215,7 +242,7 @@ function NewExercise({ onSend }){
         <br></br>
         <button 
         className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
-        type="submit">Add</button>
+        type="submit">Begin</button>
       </form>
     </div>
     )
