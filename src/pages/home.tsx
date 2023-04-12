@@ -2,7 +2,7 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { api } from "~/utils/api";
-import { useState, useTransition } from 'react'
+import React, { useState, useTransition } from 'react'
 import {
   ClerkProvider,
   RedirectToOrganizationProfile,
@@ -87,42 +87,47 @@ function BeginWorkout(): JSX.Element | null {
 function WorkoutUi(){
   const [currentExercise, setCurrentExercise] = useState<ExerciseData | null>(null)
   const [hasExercise, sethasExercise] = useState(false)
-  const [exercises, setExercises] = useState<ExerciseData[]>([]) // list of exercise enums
+  const [exercises, setWorkoutExercises] = useState<ExerciseData[]>([]) 
 
   function handleSetExercise(newExercise: ExerciseData){
     setCurrentExercise(newExercise)
     sethasExercise(true)
-    setExercises([...exercises, newExercise])
+    setWorkoutExercises( prevState => [...exercises, newExercise])
     console.log(currentExercise)
   }
+  
 
   return(
-  <div>
-    {(!currentExercise) && <NewExercise onSend={handleSetExercise}/>}
-    {currentExercise && <ExerciseTable exercises = {exercises}/>}
-    {currentExercise && <CurrentExercise setExercises={setExercises} exercise={currentExercise} exercises={exercises}/>}
-    <br></br>
-    <NextExercise/>
-    <br></br>
-    <EndWorkout />
-  </div>
+    <div>
+      {(!currentExercise) && <NewExercise onSend={handleSetExercise}/>}
+      {currentExercise && <ExerciseTable exercises = {exercises}/>}
+      {currentExercise && <CurrentExercise 
+          setExercises={setWorkoutExercises} 
+          exercise={currentExercise} 
+          exercises={exercises}
+        />}
+      <br></br>
+      <NextExercise/>
+      <br></br>
+      <EndWorkout />
+    </div>
   )
 }
 
-enum Exercise {
-  description,
-  weight,
-  sets
+interface Exercise {
+  description: string;
+  weight: number,
+  sets: number[] | null;
 }
 
 interface ExerciseData {
   description: string;
   weight: number;
-  sets?: number[];
+  sets?: number[] | null;
 }
 
 interface ExerciseTableProps {
-  exercises: Exercise[];
+  exercises: ExerciseData[];
 }
 
 function ExerciseTable({ exercises }: ExerciseTableProps){
@@ -142,7 +147,7 @@ function ExerciseTable({ exercises }: ExerciseTableProps){
           </thead>
           <tbody>
             {exercises.map((exercise, index) =>(
-              <tr id={String(index)}>
+              <tr key={index}>
                 <td>{exercise.description}</td>
                 <td>{exercise.weight}</td>
                 <td>{exercise.sets?.join(', ')}</td>
@@ -154,22 +159,28 @@ function ExerciseTable({ exercises }: ExerciseTableProps){
   )
 }
 
-function CurrentExercise({exercise, exercises, setExercises}){
+interface CurrentExerciseProps {
+  exercise: ExerciseData;
+  exercises: ExerciseData[];
+  setExercises: React.Dispatch<React.SetStateAction<ExerciseData[]>>;
+}
+
+function CurrentExercise({exercise, exercises, setExercises}: CurrentExerciseProps){
   const [newSet, setNextSet] = useState("")
 
-  const handleNewSet = (event) => {
+  const handleNewSet = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const updatedExercises = exercises.map((e)=> {
       if (e.description === exercise.description){
         if (e.sets){
           return {
             ...e,
-            sets: [...e.sets, newSet],
+            sets: [...e.sets, parseInt(newSet)],
           }
         } else {
           return {
             ...e,
-            sets: [newSet],
+            sets: [parseInt(newSet)],
           }
         }
       } else {
@@ -179,7 +190,7 @@ function CurrentExercise({exercise, exercises, setExercises}){
     setExercises(updatedExercises)
     setNextSet("")
   }
-  const handleChange = (event) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setNextSet(event.target.value)
   }
 
@@ -194,7 +205,7 @@ function CurrentExercise({exercise, exercises, setExercises}){
         onChange={handleChange} id="repCount"type="number"></input>
         <button 
         className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
-        type="submit" onSubmit={handleNewSet}>Add</button>
+        type="submit">Add</button>
       </form>
     </div>
   )
@@ -219,22 +230,30 @@ function EndWorkout(){
   )
 }
 
-function NewExercise({ onSend }){
+interface NewExerciseProps {
+  onSend: (exercise: Exercise) => void;
+}
+
+function NewExercise({ onSend }: NewExerciseProps){
   const [description, setDescription] = useState("")
   const [weight, setWeight] = useState("")
 
-  const handleSubmit = (event) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const newExercise = { [Exercise.description]: description, [Exercise.weight]: weight, [Exercise.sets]: [] };
+    const newExercise = {
+      description: description,
+      weight: parseInt(weight),
+      sets: []
+    };
 
     console.log("exercise: " + description)
     console.log("weight: " + weight)
-    onSend({"description" : description, "weight": weight})
+    onSend(newExercise)
   }
-  const handleName = (event) => {
+  const handleName = (event: React.ChangeEvent<HTMLInputElement>) => {
     setDescription(event.target.value)
   }
-  const handleNumber = (event) => {
+  const handleNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
     setWeight(event.target.value)
   }
 
@@ -263,10 +282,5 @@ function EditWorkout(){
     <div className="object-contain  m-2">
     <button className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400">Edit Workout Plan</button>
     </div>
-  )
-}
-function WorkoutForm(){
-  return(
-    <input></input>
   )
 }
