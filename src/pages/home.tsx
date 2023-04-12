@@ -72,7 +72,7 @@ function CreateWorkout(){
     </div>
   )
 }
-function BeginWorkout(){
+function BeginWorkout(): JSX.Element | null {
   const [inProgress, setinProgress] = useState(false)
   if (!inProgress){
     return(
@@ -81,14 +81,15 @@ function BeginWorkout(){
       </div>
     )
   }
+  return null;
 }
 
 function WorkoutUi(){
-  const [currentExercise, setCurrentExercise] = useState(null)
+  const [currentExercise, setCurrentExercise] = useState<ExerciseData | null>(null)
   const [hasExercise, sethasExercise] = useState(false)
-  const [exercises, setExercises] = useState([]) // list of exercise enums
+  const [exercises, setExercises] = useState<ExerciseData[]>([]) // list of exercise enums
 
-  function handleSetExercise(newExercise){
+  function handleSetExercise(newExercise: ExerciseData){
     setCurrentExercise(newExercise)
     sethasExercise(true)
     setExercises([...exercises, newExercise])
@@ -114,7 +115,17 @@ enum Exercise {
   sets
 }
 
-function ExerciseTable({ exercises }){
+interface ExerciseData {
+  description: string;
+  weight: number;
+  sets?: number[];
+}
+
+interface ExerciseTableProps {
+  exercises: Exercise[];
+}
+
+function ExerciseTable({ exercises }: ExerciseTableProps){
   if (!exercises){
     return (<div></div>)
   }
@@ -131,7 +142,7 @@ function ExerciseTable({ exercises }){
           </thead>
           <tbody>
             {exercises.map((exercise, index) =>(
-              <tr id={index}>
+              <tr id={String(index)}>
                 <td>{exercise.description}</td>
                 <td>{exercise.weight}</td>
                 <td>{exercise.sets?.join(', ')}</td>
