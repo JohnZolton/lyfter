@@ -24,18 +24,26 @@ const Home: NextPage = () => {
     const { data: allWorkouts } = api.getWorkouts.ByUserId.useQuery(
       {userId: user.user.id}
     )
-    //const { data: Exercises } = api.getWorkouts.getExerciseByWorkoutId.useQuery(
-      //{userId: user.user.id}
-    //)
+    console.log(allWorkouts)
+
+    //if (allWorkouts){
+      //allWorkouts?.forEach(workout => {
+        //if (workout){
+          //console.log(workout)
+        //}
+      //})
+    //};
     //const workoutId = allWorkouts?.[0]?.workoutId
-    //console.log(`workoutId: ${workoutId}`)
-
-    //const { data: allExercises } = api.getWorkouts.getExerciseByWorkoutId.useQuery(
-        //{ workoutId: workoutId } 
-    //)
-    //console.log(allExercises)
-
-  }
+    //if (workoutId){
+      //const {data: allExercises} = api.getWorkouts.getExerciseByWorkoutId.useQuery(
+        //{ workoutId: workoutId}
+      //)
+      //console.log(allExercises)
+    //}
+    }
+          
+        
+  
   //const { data: workouts } = api.getWorkouts.getAllWorkouts.useQuery()
   //const { data: exercises } = api.getWorkouts.getAllExercises.useQuery()
   //workouts?.forEach((workout) => { console.log(
@@ -109,6 +117,10 @@ function WorkoutUi(){
     setWorkoutExercises( prevState => [...exercises, newExercise])
     console.log(currentExercise)
   }
+  function handleExerciseChange(exercises: ExerciseData[]){
+    console.log(exercises)
+    setWorkoutExercises(exercises)
+  }
   
 
   return(
@@ -116,12 +128,13 @@ function WorkoutUi(){
       {(!currentExercise) && <NewExercise onSend={handleSetExercise}/>}
       {currentExercise && <ExerciseTable exercises = {exercises}/>}
       {currentExercise && <CurrentExercise 
-          setExercises={setWorkoutExercises} 
+          setExercises={handleExerciseChange} 
           exercise={currentExercise} 
           exercises={exercises}
         />}
       <br></br>
-      <NextExercise/>
+      {currentExercise && <NextExercise exercise = {exercises}/>}
+      
       <br></br>
       <EndWorkout />
     </div>
@@ -176,7 +189,7 @@ function ExerciseTable({ exercises }: ExerciseTableProps){
 interface CurrentExerciseProps {
   exercise: ExerciseData;
   exercises: ExerciseData[];
-  setExercises: React.Dispatch<React.SetStateAction<ExerciseData[]>>;
+  setExercises: Function;
 }
 
 function CurrentExercise({exercise, exercises, setExercises}: CurrentExerciseProps){
@@ -225,11 +238,15 @@ function CurrentExercise({exercise, exercises, setExercises}: CurrentExercisePro
   )
 }
 
-function NextExercise(){
+function NextExercise( {exercise} : {exercise : ExerciseData[]}){
+  function handleNextExercise() {
+    console.log(exercise)
+  }
   return(
     <div>
       <button
       className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
+      onClick={handleNextExercise}
       >Next Exercise</button>
     </div>
   )
