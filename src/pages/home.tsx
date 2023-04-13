@@ -27,13 +27,13 @@ const Home: NextPage = () => {
     //const { data: Exercises } = api.getWorkouts.getExerciseByWorkoutId.useQuery(
       //{userId: user.user.id}
     //)
-    const workoutId = allWorkouts?.[0]?.workoutId
-    console.log(`workoutId: ${workoutId}`)
+    //const workoutId = allWorkouts?.[0]?.workoutId
+    //console.log(`workoutId: ${workoutId}`)
 
-    const { data: allExercises } = api.getWorkouts.getExerciseByWorkoutId.useQuery(
-        { workoutId: workoutId } 
-    )
-    console.log(allExercises)
+    //const { data: allExercises } = api.getWorkouts.getExerciseByWorkoutId.useQuery(
+        //{ workoutId: workoutId } 
+    //)
+    //console.log(allExercises)
 
   }
   //const { data: workouts } = api.getWorkouts.getAllWorkouts.useQuery()
