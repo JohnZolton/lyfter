@@ -189,7 +189,7 @@ function ExerciseTable({ exercises }: ExerciseTableProps){
 interface CurrentExerciseProps {
   exercise: ExerciseData;
   exercises: ExerciseData[];
-  setExercises: Function;
+  setExercises: (exercises: ExerciseData[])=> void;
 }
 
 function CurrentExercise({exercise, exercises, setExercises}: CurrentExerciseProps){
