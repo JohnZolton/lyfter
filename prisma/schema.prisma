@@ -74,6 +74,7 @@ model Workout {
 
 model Exercise {
   exerciseId  String @id @default(cuid())
+  date       DateTime   @default(now())
   description String
   weight      Int
   sets        String

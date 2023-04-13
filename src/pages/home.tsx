@@ -19,11 +19,25 @@ import { userInfo } from "os";
 
 const Home: NextPage = () => {
   const user = useUser()
-  //if (user.isSignedIn){
-    //console.log(user.user.id)
-  //}
-  const { data: workouts } = api.getWorkouts.getAllWorkouts.useQuery()
-  const { data: exercises } = api.getWorkouts.getAllExercises.useQuery()
+  if (user.isSignedIn){
+    console.log(user.user.id)
+    const { data: allWorkouts } = api.getWorkouts.ByUserId.useQuery(
+      {userId: user.user.id}
+    )
+    //const { data: Exercises } = api.getWorkouts.getExerciseByWorkoutId.useQuery(
+      //{userId: user.user.id}
+    //)
+    const workoutId = allWorkouts?.[0]?.workoutId
+    console.log(`workoutId: ${workoutId}`)
+
+    const { data: allExercises } = api.getWorkouts.getExerciseByWorkoutId.useQuery(
+        { workoutId: workoutId } 
+    )
+    console.log(allExercises)
+
+  }
+  //const { data: workouts } = api.getWorkouts.getAllWorkouts.useQuery()
+  //const { data: exercises } = api.getWorkouts.getAllExercises.useQuery()
   //workouts?.forEach((workout) => { console.log(
     //'id: ' + workout.workoutId + ', date: ' + workout.date)})
   return (

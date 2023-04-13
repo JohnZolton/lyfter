@@ -16,12 +16,23 @@ export const getAllWorkouts = createTRPCRouter({
   getAllExercises: publicProcedure.query(({ ctx }) => {
     return ctx.prisma.exercise.findMany();
   }),
-  //getUserWorkouts: publicProcedure.query(({userId: number}) => {
-    //return ctx.prisma.workout.findUnique({
-        //where: {
-            //id: userId
-        //}
-    //});
-  //})
+
+  ByUserId: publicProcedure.input(z.object({
+    userId: z.string(),
+  })).query(({ctx, input}) => ctx.prisma.workout.findMany({
+    where: {
+      userId: input.userId,
+    },
+    orderBy: [{ date: "desc"}]
+  })),
+
+  getExerciseByWorkoutId: publicProcedure.input(z.object({
+    workoutId: z.string(),
+  })).query(({ctx, input}) => ctx.prisma.exercise.findMany({
+    where: {
+      workoutId: input.workoutId,
+    },
+    orderBy: [{ date: "desc"}]
+  }))
 
 });
