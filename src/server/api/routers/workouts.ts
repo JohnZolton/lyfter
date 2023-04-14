@@ -33,6 +33,7 @@ export const getAllWorkouts = createTRPCRouter({
       workoutId: input.workoutId,
     },
     orderBy: [{ date: "desc"}]
-  }))
+  })),
+
 
 });

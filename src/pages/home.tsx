@@ -88,14 +88,14 @@ function CreateWorkout(){
 
 interface BeginWorkoutProps {
   inProgress: boolean;
-  startWorkout: (value: boolean) => void;
+  startWorkout: () => void;
 }
 
 function BeginWorkout({ inProgress, startWorkout}: BeginWorkoutProps): JSX.Element | null {
   if (!inProgress){
     return(
       <div className="object-contain m-2">
-      <button onClick={() => startWorkout(true)} className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400">Begin Workout</button>
+      <button onClick={() => startWorkout} className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400">Begin Workout</button>
       </div>
     )
   }
@@ -119,13 +119,19 @@ function WorkoutUi(){
   }
   function handleNextExercise(){
     // need workout id, and exercises.slice(-1)[0]
+    //write exercise to db
     console.log(exercises.slice(-1)[0])
     setCurrentExercise(null)
+  }
+  function handleStartWorkout(){
+    setWorkoutStarted(true)
+    //write new workout in db + get workout id
+
   }
 
  
   if (!workoutStarted){
-    return <BeginWorkout inProgress={workoutStarted} startWorkout={setWorkoutStarted}></BeginWorkout>
+    return <BeginWorkout inProgress={workoutStarted} startWorkout={handleStartWorkout}></BeginWorkout>
   } 
 
   return(
