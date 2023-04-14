@@ -126,6 +126,10 @@ function WorkoutUi(){
   function handleStartWorkout(){
     setWorkoutStarted(true)
     //write new workout in db + get workout id
+    const newWorkout = api.getWorkouts.newWorkout.useMutation()
+    //const { data: workouts } = api.getWorkouts.getAllWorkouts.useQuery()
+    console.log(newWorkout)
+
 
   }
 
