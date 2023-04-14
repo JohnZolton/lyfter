@@ -15,6 +15,7 @@ import {
 } from "@clerk/nextjs";
 import { userAgent } from "next/server";
 import { userInfo } from "os";
+import { boolean } from "zod";
 //@refresh reset
 
 const Home: NextPage = () => {
@@ -24,26 +25,18 @@ const Home: NextPage = () => {
     const { data: allWorkouts } = api.getWorkouts.ByUserId.useQuery(
       {userId: user.user.id}
     )
-    console.log(allWorkouts)
-
-    //if (allWorkouts){
-      //allWorkouts?.forEach(workout => {
-        //if (workout){
-          //console.log(workout)
-        //}
-      //})
-    //};
+    //const { data: Exercises } = api.getWorkouts.getExerciseByWorkoutId.useQuery(
+      //{userId: user.user.id}
+    //)
     //const workoutId = allWorkouts?.[0]?.workoutId
-    //if (workoutId){
-      //const {data: allExercises} = api.getWorkouts.getExerciseByWorkoutId.useQuery(
-        //{ workoutId: workoutId}
-      //)
-      //console.log(allExercises)
-    //}
-    }
-          
-        
-  
+    //console.log(`workoutId: ${workoutId}`)
+
+    //const { data: allExercises } = api.getWorkouts.getExerciseByWorkoutId.useQuery(
+        //{ workoutId: workoutId } 
+    //)
+    //console.log(allExercises)
+
+  }
   //const { data: workouts } = api.getWorkouts.getAllWorkouts.useQuery()
   //const { data: exercises } = api.getWorkouts.getAllExercises.useQuery()
   //workouts?.forEach((workout) => { console.log(
@@ -65,8 +58,6 @@ const Home: NextPage = () => {
                     }
                   }} />
             </div>
-        <br></br>
-          <BeginWorkout></BeginWorkout>
           <br></br>
           <WorkoutUi/>
           <br></br>
@@ -94,22 +85,31 @@ function CreateWorkout(){
     </div>
   )
 }
-function BeginWorkout(): JSX.Element | null {
-  const [inProgress, setinProgress] = useState(false)
+
+interface BeginWorkoutProps {
+  inProgress: boolean;
+  startWorkout: (value: boolean) => void;
+}
+
+function BeginWorkout({ inProgress, startWorkout}: BeginWorkoutProps): JSX.Element | null {
   if (!inProgress){
     return(
       <div className="object-contain m-2">
-      <button onClick={() => setinProgress(true)} className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400">Begin Workout</button>
+      <button onClick={() => startWorkout(true)} className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400">Begin Workout</button>
       </div>
     )
   }
   return null;
 }
 
+
+
 function WorkoutUi(){
   const [currentExercise, setCurrentExercise] = useState<ExerciseData | null>(null)
   const [hasExercise, sethasExercise] = useState(false)
   const [exercises, setWorkoutExercises] = useState<ExerciseData[]>([]) 
+  const [workoutStarted, setWorkoutStarted] = useState(false)
+  //kinda garbage how current exercise doesn't  get updated with sets
 
   function handleSetExercise(newExercise: ExerciseData){
     setCurrentExercise(newExercise)
@@ -117,24 +117,28 @@ function WorkoutUi(){
     setWorkoutExercises( prevState => [...exercises, newExercise])
     console.log(currentExercise)
   }
-  function handleExerciseChange(exercises: ExerciseData[]){
-    console.log(exercises)
-    setWorkoutExercises(exercises)
+  function handleNextExercise(){
+    // need workout id, and exercises.slice(-1)[0]
+    console.log(exercises.slice(-1)[0])
+    setCurrentExercise(null)
   }
-  
+
+ 
+  if (!workoutStarted){
+    return <BeginWorkout inProgress={workoutStarted} startWorkout={setWorkoutStarted}></BeginWorkout>
+  } 
 
   return(
     <div>
+      {<ExerciseTable exercises = {exercises}/>}
       {(!currentExercise) && <NewExercise onSend={handleSetExercise}/>}
-      {currentExercise && <ExerciseTable exercises = {exercises}/>}
       {currentExercise && <CurrentExercise 
-          setExercises={handleExerciseChange} 
+          setExercises={setWorkoutExercises} 
           exercise={currentExercise} 
           exercises={exercises}
         />}
       <br></br>
-      {currentExercise && <NextExercise exercise = {exercises}/>}
-      
+      {hasExercise && <NextExercise lastExercise={currentExercise!} saveExercise={handleNextExercise}/>}
       <br></br>
       <EndWorkout />
     </div>
@@ -189,7 +193,7 @@ function ExerciseTable({ exercises }: ExerciseTableProps){
 interface CurrentExerciseProps {
   exercise: ExerciseData;
   exercises: ExerciseData[];
-  setExercises: (exercises: ExerciseData[])=> void;
+  setExercises: React.Dispatch<React.SetStateAction<ExerciseData[]>>;
 }
 
 function CurrentExercise({exercise, exercises, setExercises}: CurrentExerciseProps){
@@ -237,20 +241,28 @@ function CurrentExercise({exercise, exercises, setExercises}: CurrentExercisePro
     </div>
   )
 }
+interface NextExerciseProps {
+  lastExercise: ExerciseData;
+  saveExercise: (exercise: ExerciseData) => void;
+}
 
-function NextExercise( {exercise} : {exercise : ExerciseData[]}){
-  function handleNextExercise() {
-    console.log(exercise)
+function NextExercise( { lastExercise, saveExercise}: NextExerciseProps){
+  function handleClick(){
+    saveExercise(lastExercise)
+    console.log("handleclick fired")
   }
+
   return(
     <div>
       <button
+      onClick={handleClick}
       className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
-      onClick={handleNextExercise}
       >Next Exercise</button>
     </div>
   )
 }
+
+
 function EndWorkout(){
   return(
     <div>
