@@ -118,6 +118,7 @@ function WorkoutUi(){
   const [hasExercise, sethasExercise] = useState(false)
   const [exercises, setWorkoutExercises] = useState<ExerciseData[]>([]) 
   const [workoutStarted, setWorkoutStarted] = useState(false)
+  const [workoutId, setWorkoutId] = useState('')
   //kinda garbage how current exercise doesn't  get updated with sets
 
   function handleSetExercise(newExercise: ExerciseData){
@@ -132,13 +133,23 @@ function WorkoutUi(){
     console.log(exercises.slice(-1)[0])
     setCurrentExercise(null)
   }
+  const user = useUser()
 
   const {mutate} = api.getWorkouts.newWorkout.useMutation()
+
   function handleStartWorkout(){
     console.log('handleworkout fired')
     setWorkoutStarted(true)
-    const workout = mutate()
-    //could just query latest workout and be done with it
+    if (user.isSignedIn){
+      mutate()
+      //could just query latest workout and be done with it
+      //const { data: allWorkouts } = api.getWorkouts.ByUserId.useQuery(
+        //{userId: user.user.id}
+      //)
+      //console.log(allWorkouts?.slice(-1)[0])
+      //const latestWorkout = allWorkouts ? allWorkouts.slice(-1)[0] : null;
+      //setWorkoutId(latestWorkout)
+    }
   }
 
 
@@ -217,6 +228,13 @@ interface CurrentExerciseProps {
 
 function CurrentExercise({exercise, exercises, setExercises}: CurrentExerciseProps){
   const [newSet, setNextSet] = useState("")
+  const user = useUser()
+  const {data: workoutid} =  api.getWorkouts.getLatestWorkoutByUserId.useQuery({
+    userId: user.user?.id || ""
+  })
+  if (workoutid && workoutid[0]){
+    console.log(workoutid[0].workoutId)
+  }
 
   const handleNewSet = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
