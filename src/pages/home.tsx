@@ -16,6 +16,8 @@ import {
 import { userAgent } from "next/server";
 import { userInfo } from "os";
 import { boolean } from "zod";
+import type { Workout } from "@prisma/client"
+
 //@refresh reset
 
 const Home: NextPage = () => {
@@ -95,7 +97,7 @@ function BeginWorkout({ inProgress, startWorkout}: BeginWorkoutProps): JSX.Eleme
   if (!inProgress){
     return(
       <div className="object-contain m-2">
-      <button onClick={() => startWorkout} className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400">Begin Workout</button>
+      <button onClick={startWorkout} className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400">Begin Workout</button>
       </div>
     )
   }
@@ -103,6 +105,13 @@ function BeginWorkout({ inProgress, startWorkout}: BeginWorkoutProps): JSX.Eleme
 }
 
 
+interface WorkoutData {
+  workoutId?:  string    ;
+  date?:       string  ;
+  nominalDay?: string;
+  userId?:     string ;
+  description?: string;
+}
 
 function WorkoutUi(){
   const [currentExercise, setCurrentExercise] = useState<ExerciseData | null>(null)
@@ -123,15 +132,15 @@ function WorkoutUi(){
     console.log(exercises.slice(-1)[0])
     setCurrentExercise(null)
   }
+
+  const {mutate} = api.getWorkouts.newWorkout.useMutation()
   function handleStartWorkout(){
+    console.log('handleworkout fired')
     setWorkoutStarted(true)
-    //write new workout in db + get workout id
-    const newWorkout = api.getWorkouts.newWorkout.useMutation()
-    //const { data: workouts } = api.getWorkouts.getAllWorkouts.useQuery()
-    console.log(newWorkout)
-
-
+    const workout = mutate()
+    //could just query latest workout and be done with it
   }
+
 
  
   if (!workoutStarted){

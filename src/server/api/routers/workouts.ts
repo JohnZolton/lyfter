@@ -1,11 +1,13 @@
-import { userAgent } from "next/server";
+import { clerkClient } from "@clerk/nextjs/server";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-
 import {
   createTRPCRouter,
+  privateProcedure,
   publicProcedure,
-  protectedProcedure,
 } from "~/server/api/trpc";
+
+import type { Workout } from "@prisma/client";
 
 export const getAllWorkouts = createTRPCRouter({
 
@@ -35,10 +37,8 @@ export const getAllWorkouts = createTRPCRouter({
     orderBy: [{ date: "desc"}]
   })),
 
-  newWorkout: protectedProcedure.mutation(async ({ ctx }) => {
-    const userId = ctx.session.user.id;
-    console.log(ctx.session)
-    console.log(ctx.session.user)
+  newWorkout: privateProcedure.mutation(async ({ ctx }) => {
+    const userId = ctx.userId;
 
     const workout = await ctx.prisma.workout.create({
       data: {
@@ -47,7 +47,7 @@ export const getAllWorkouts = createTRPCRouter({
         description: 'Leg Day',
       }
     })
-    return {workout}
+    return workout
   })
 
 });
