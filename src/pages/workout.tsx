@@ -15,8 +15,8 @@ import {
 } from "@clerk/nextjs";
 import { userAgent } from "next/server";
 import { userInfo } from "os";
-import { boolean } from "zod";
-import type { User, Workout } from "@prisma/client"
+import { boolean, set } from "zod";
+import type { User, Workout, Exercise } from "@prisma/client"
 import { prisma } from "~/server/db";
 import { start } from "repl";
 
@@ -64,6 +64,7 @@ export default Home
 
 function WorkoutUi(){
     const [newWorkout, setNewWorkout] = useState<Workout>()
+    const [exercises, setExercises] = useState<Exercise[]>()
 
     const {mutate: makeNewWorkout} = api.getWorkouts.newWorkout.useMutation({
     onSuccess(data, variables, context) {
@@ -85,7 +86,9 @@ function WorkoutUi(){
     )}
     
     return(
-    <WorkoutTable workout={newWorkout}/>
+      <div>
+       <WorkoutTable workout={newWorkout}/>
+      </div>
     )
 
 }
@@ -95,14 +98,69 @@ interface BeginWorkoutProps {
 }
 
 function NewWorkout({ startWorkout}: BeginWorkoutProps): JSX.Element | null {
+    const [description, setDescription]= useState("")
+    const [begin, setBegin] = useState(false)
+    const [start, setStart] = useState(false)
+
     function handleClick(){
-        startWorkout(true)
+      setBegin(true)
     }
+
+    function handleSubmit(event: React.FormEvent<HTMLFormElement>, inputDescription:string) {
+      event.preventDefault()
+      console.log('suecess')
+      setDescription(inputDescription)
+      setStart(true)
+    }
+    console.log(description)
+
     return(
       <div className="object-contain m-2">
-      <button onClick={handleClick} className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400">New Workout</button>
+      {(!begin) && <button onClick={handleClick} className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400">New Workout</button>}
+      { (begin) && (!start) && <NewWorkoutform 
+        handleSubmit={handleSubmit} 
+        />}
+        {(start) && (description) && <NewExerciseForm workout={description}/>}
       </div>
     )
+}
+
+interface NewExerciseFormProps{
+  workout: string;
+}
+
+function NewExerciseForm( {workout}: NewExerciseFormProps ){
+  return(
+    <div>{workout}</div>
+  )
+}
+
+interface workoutFormProps {
+  handleSubmit?: (event: React.FormEvent<HTMLFormElement>, inputDescription: string) => void;
+}
+function NewWorkoutform( { handleSubmit }: workoutFormProps){
+  const [inputDescription, setInputDescription] = useState("")
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setInputDescription(event.target.value)
+  }
+
+  if (!handleSubmit){
+    return null;
+  }
+
+  return(
+    <div>
+      <form onSubmit={(event) => handleSubmit(event, inputDescription)}>
+        <label>Workout:</label>
+        <input type='text' defaultValue="leg day"
+        value={inputDescription}
+        onChange={handleChange}
+        className="text-black"></input>
+        <button type="submit">Begin</button>
+      </form >
+    </div>
+  )
 }
 
 interface WorkoutTableProps {
