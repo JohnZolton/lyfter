@@ -56,14 +56,17 @@ export const getAllWorkouts = createTRPCRouter({
     orderBy: [{ date: "desc"}]
   })),
 
-  newWorkout: privateProcedure.mutation(async ({ ctx }) => {
+  newWorkout: privateProcedure.input(z.object({
+    description: z.string()
+  })).mutation(async ({ ctx, input}) => {
     const userId = ctx.userId;
+    const description = input.description
 
     const workout = await ctx.prisma.workout.create({
       data: {
         userId: userId,
         nominalDay: 'Monday',
-        description: 'Leg Day',
+        description: description,
       }
     })
     return workout

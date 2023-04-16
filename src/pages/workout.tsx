@@ -71,34 +71,35 @@ function WorkoutUi(){
       setNewWorkout(data)
     },
     })
-    if (newWorkout){
-      console.log(newWorkout)
-    }
-    function handleWorkoutClick(){
-        makeNewWorkout()
+
+    console.log(newWorkout)
+    function handleWorkoutClick( description: string){
+        makeNewWorkout({
+          description: description
+        })
     }
 
     if (!newWorkout){
         return (
             <div>
-            {(!newWorkout) && <NewWorkout startWorkout={handleWorkoutClick}/>}
+            {(!newWorkout) && <NewWorkout startWorkout={handleWorkoutClick} />}
             </div>
     )}
     
     return(
       <div>
-       <WorkoutTable workout={newWorkout}/>
+       <WorkoutTable exercises={exercises} workout={newWorkout} />
+       <NewExerciseForm exercises={exercises} updateExercises={setExercises} />
       </div>
     )
 
 }
 
-interface BeginWorkoutProps {
-  startWorkout: React.Dispatch<React.SetStateAction<boolean>>;
+interface NewWorkoutProps{
+  startWorkout: (description: string)=> void;
 }
 
-function NewWorkout({ startWorkout}: BeginWorkoutProps): JSX.Element | null {
-    const [description, setDescription]= useState("")
+function NewWorkout( {startWorkout} : NewWorkoutProps): JSX.Element | null {
     const [begin, setBegin] = useState(false)
     const [start, setStart] = useState(false)
 
@@ -108,11 +109,9 @@ function NewWorkout({ startWorkout}: BeginWorkoutProps): JSX.Element | null {
 
     function handleSubmit(event: React.FormEvent<HTMLFormElement>, inputDescription:string) {
       event.preventDefault()
-      console.log('suecess')
-      setDescription(inputDescription)
       setStart(true)
+      startWorkout(inputDescription)
     }
-    console.log(description)
 
     return(
       <div className="object-contain m-2">
@@ -120,24 +119,14 @@ function NewWorkout({ startWorkout}: BeginWorkoutProps): JSX.Element | null {
       { (begin) && (!start) && <NewWorkoutform 
         handleSubmit={handleSubmit} 
         />}
-        {(start) && (description) && <NewExerciseForm workout={description}/>}
       </div>
     )
-}
-
-interface NewExerciseFormProps{
-  workout: string;
-}
-
-function NewExerciseForm( {workout}: NewExerciseFormProps ){
-  return(
-    <div>{workout}</div>
-  )
 }
 
 interface workoutFormProps {
   handleSubmit?: (event: React.FormEvent<HTMLFormElement>, inputDescription: string) => void;
 }
+
 function NewWorkoutform( { handleSubmit }: workoutFormProps){
   const [inputDescription, setInputDescription] = useState("")
 
@@ -153,7 +142,7 @@ function NewWorkoutform( { handleSubmit }: workoutFormProps){
     <div>
       <form onSubmit={(event) => handleSubmit(event, inputDescription)}>
         <label>Workout:</label>
-        <input type='text' defaultValue="leg day"
+        <input type='text' placeholder="Description"
         value={inputDescription}
         onChange={handleChange}
         className="text-black"></input>
@@ -165,13 +154,43 @@ function NewWorkoutform( { handleSubmit }: workoutFormProps){
 
 interface WorkoutTableProps {
   workout: Workout;
+  exercises: Exercise[] | undefined;
 }
 
-function WorkoutTable( {workout}: WorkoutTableProps){
+function WorkoutTable( {workout, exercises}: WorkoutTableProps){
     return(
       <div>
-        <div>{workout.description}: {workout.nominalDay}</div>
+        <h1>{workout.description}</h1>
+        <table>
+          <thead>
+            <tr>
+              <th>Exercise</th>
+              <th>Weight</th>
+              <th>Sets</th>
+            </tr>
+          </thead>
+          <tbody>
+            { exercises && exercises.map((exercise, index) =>(
+              <tr key={index}>
+                <td>{exercise.description}</td>
+                <td>{exercise.weight}</td>
+                <td>{ Array.isArray(exercise.sets) ? exercise.sets.join(', '): '-'}</td>
+              </tr>
+            )) }
+          </tbody>
+        </table>
       </div>
     )
 
+}
+
+interface NewExerciseFromProps{
+  exercises: Exercise[],
+  updateExercises: React.Dispatch<React.SetStateAction<Exercise[]>>;
+}
+
+function NewExerciseForm({exercises, updateExercises}: NewExerciseFromProps){
+  return(
+    <div>Current exercise form here</div>
+  )
 }
