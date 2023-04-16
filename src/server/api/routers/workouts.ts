@@ -29,6 +29,12 @@ export const getAllWorkouts = createTRPCRouter({
     orderBy: [{ date: "desc"}],
     take: 1,
   })
+  if (!workout){
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "No workout with that User"
+    })
+  }
   return workout
 }),
 
@@ -61,6 +67,33 @@ export const getAllWorkouts = createTRPCRouter({
       }
     })
     return workout
+  }),
+
+  newExercise: privateProcedure.input(z.object({
+    workoutId: z.string(),
+    weight: z.number(),
+    sets: z.string(),
+    description: z.string(),
+  })).mutation(async ({ ctx, input }) => {
+    const workoutId = input.workoutId
+    const weight = input.weight
+    const sets = input.sets
+    const description = input.description
+    const exercise = await ctx.prisma.exercise.create({
+      data: {
+        workoutId: workoutId,
+        description: description,
+        weight: weight,
+        sets: sets,
+      }
+    })
+    if (!exercise){
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: "Failed to add exercise"
+      })
+    }
+    return exercise
   })
 
 });

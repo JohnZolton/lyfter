@@ -16,33 +16,17 @@ import {
 import { userAgent } from "next/server";
 import { userInfo } from "os";
 import { boolean } from "zod";
-import type { Workout } from "@prisma/client"
+import type { User, Workout } from "@prisma/client"
+import { prisma } from "~/server/db";
 
 //@refresh reset
 
+
+
+
+
 const Home: NextPage = () => {
-  const user = useUser()
-  if (user.isSignedIn){
-    console.log(user.user.id)
-    const { data: allWorkouts } = api.getWorkouts.ByUserId.useQuery(
-      {userId: user.user.id}
-    )
-    //const { data: Exercises } = api.getWorkouts.getExerciseByWorkoutId.useQuery(
-      //{userId: user.user.id}
-    //)
-    //const workoutId = allWorkouts?.[0]?.workoutId
-    //console.log(`workoutId: ${workoutId}`)
 
-    //const { data: allExercises } = api.getWorkouts.getExerciseByWorkoutId.useQuery(
-        //{ workoutId: workoutId } 
-    //)
-    //console.log(allExercises)
-
-  }
-  //const { data: workouts } = api.getWorkouts.getAllWorkouts.useQuery()
-  //const { data: exercises } = api.getWorkouts.getAllExercises.useQuery()
-  //workouts?.forEach((workout) => { console.log(
-    //'id: ' + workout.workoutId + ', date: ' + workout.date)})
   return (
     <>
       <Head>
@@ -61,7 +45,7 @@ const Home: NextPage = () => {
                   }} />
             </div>
           <br></br>
-          <WorkoutUi/>
+          <WorkoutUi />
           <br></br>
       <div>
       </div>
@@ -120,6 +104,7 @@ function WorkoutUi(){
   const [workoutStarted, setWorkoutStarted] = useState(false)
   const [workoutId, setWorkoutId] = useState('')
   //kinda garbage how current exercise doesn't  get updated with sets
+  const currentUser = useUser()
 
   function handleSetExercise(newExercise: ExerciseData){
     setCurrentExercise(newExercise)
@@ -127,28 +112,57 @@ function WorkoutUi(){
     setWorkoutExercises( prevState => [...exercises, newExercise])
     console.log(currentExercise)
   }
+    
+  const { mutate: makeNewExercise } = api.getWorkouts.newExercise.useMutation()
+  const {mutate: makeNewWorkout} = api.getWorkouts.newWorkout.useMutation()
+  if (currentUser.isSignedIn && currentUser.user.id){
+    const {data: workout} = api.getWorkouts.getLatestWorkoutByUserId.useQuery({userId: currentUser.user.id})
+    console.log(workout)
+  }
+
   function handleNextExercise(){
     // need workout id, and exercises.slice(-1)[0]
     //write exercise to db
-    console.log(exercises.slice(-1)[0])
+    const exercise = exercises.slice(-1)[0]
+    console.log("exercise: ")
+    console.log(exercise?.description)
+    console.log(exercise?.weight)
+    console.log(exercise?.sets)
+    console.log(workoutId)
+    
+    //const {data: workoutid} =  api.getWorkouts.getLatestWorkoutByUserId.useQuery({
+      //userId: user.user?.id || ""
+    //})
+    //console.log(workoutid)
+    if (exercise && exercise.sets){
+      console.log("exercise mutate fired")
+      console.log(exercise)
+      makeNewExercise({ 
+        workoutId: workoutId,
+        weight: exercise.weight,
+        sets: exercise.sets.join(', '),
+        description: exercise.description
+       })
+    }
+
     setCurrentExercise(null)
   }
   const user = useUser()
 
-  const {mutate} = api.getWorkouts.newWorkout.useMutation()
 
   function handleStartWorkout(){
     console.log('handleworkout fired')
     setWorkoutStarted(true)
-    if (user.isSignedIn){
-      mutate()
-      //could just query latest workout and be done with it
-      //const { data: allWorkouts } = api.getWorkouts.ByUserId.useQuery(
-        //{userId: user.user.id}
-      //)
-      //console.log(allWorkouts?.slice(-1)[0])
-      //const latestWorkout = allWorkouts ? allWorkouts.slice(-1)[0] : null;
-      //setWorkoutId(latestWorkout)
+    if (user.isSignedIn && user.user.id){
+      const workout = makeNewWorkout()
+      console.log("new workout: ")
+      const {data: newworkoutId} = api.getWorkouts.getLatestWorkoutByUserId.useQuery({ userId: user.user.id})
+      if (newworkoutId){
+        console.log("NEW WORKOUT: ")
+        console.log(newworkoutId[0])
+      }
+        
+      console.log(workout)
     }
   }
 
@@ -228,13 +242,7 @@ interface CurrentExerciseProps {
 
 function CurrentExercise({exercise, exercises, setExercises}: CurrentExerciseProps){
   const [newSet, setNextSet] = useState("")
-  const user = useUser()
-  const {data: workoutid} =  api.getWorkouts.getLatestWorkoutByUserId.useQuery({
-    userId: user.user?.id || ""
-  })
-  if (workoutid && workoutid[0]){
-    console.log(workoutid[0].workoutId)
-  }
+  //okay so issue is idk where to handle the exercise save
 
   const handleNewSet = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
