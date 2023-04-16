@@ -154,15 +154,12 @@ function WorkoutUi(){
     console.log('handleworkout fired')
     setWorkoutStarted(true)
     if (user.isSignedIn && user.user.id){
-      const workout = makeNewWorkout()
       console.log("new workout: ")
       const {data: newworkoutId} = api.getWorkouts.getLatestWorkoutByUserId.useQuery({ userId: user.user.id})
       if (newworkoutId){
         console.log("NEW WORKOUT: ")
         console.log(newworkoutId[0])
       }
-        
-      console.log(workout)
     }
   }
 

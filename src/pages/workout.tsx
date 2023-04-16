@@ -64,7 +64,7 @@ export default Home
 
 function WorkoutUi(){
     const [newWorkout, setNewWorkout] = useState<Workout>()
-    const [exercises, setExercises] = useState<Exercise[]>()
+    const [exercises, setExercises] = useState<Exercise[]>([])
 
     const {mutate: makeNewWorkout} = api.getWorkouts.newWorkout.useMutation({
     onSuccess(data, variables, context) {
@@ -185,7 +185,7 @@ function WorkoutTable( {workout, exercises}: WorkoutTableProps){
 }
 
 interface NewExerciseFromProps{
-  exercises: Exercise[],
+  exercises: Exercise[] | undefined,
   updateExercises: React.Dispatch<React.SetStateAction<Exercise[]>>;
 }
 
