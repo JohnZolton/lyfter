@@ -74,8 +74,6 @@ function WorkoutUi(){
     },
     })
 
-    console.log(newWorkout)
-    console.log(exercises)
     function handleWorkoutClick( description: string){
         makeNewWorkout({
           description: description
@@ -103,6 +101,12 @@ function WorkoutUi(){
           updateExercises={setExercises}
           updateselectedExercise={setSelectedExercise}
         />}
+        <EndWorkout 
+          setNewWorkout={setNewWorkout}
+          setInProgress={setInProgress}
+          setExercises={setExercises}
+          setSelectedExercise={setSelectedExercise}
+        />
       </div>
     )
 
@@ -333,14 +337,39 @@ function ExerciseUi({exercises, updateExercises, updateselectedExercise, exercis
         type="submit">Add</button>
       </form>
   
-      <div>{exercise.description}</div>
-      <div>{exercise.weight}</div>
-      <div>{exercise.sets}</div>
+      <br></br>
       <div>
         <button
         onClick={handleNextExercise}
         className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
         >Next Exercise</button>
       </div>
+      <br></br>
     </div>
 )}
+
+interface EndWorkoutProps{
+  setNewWorkout: React.Dispatch<React.SetStateAction<Workout | undefined>>;
+  setInProgress: React.Dispatch<React.SetStateAction<boolean>>;
+  setExercises: React.Dispatch<React.SetStateAction<Exercise[]>>;
+  setSelectedExercise: React.Dispatch<React.SetStateAction<Exercise | undefined>>;
+  
+}
+
+function EndWorkout({setNewWorkout, setInProgress, setExercises, setSelectedExercise}: EndWorkoutProps){
+  function resetValues(){
+    console.log("reset")
+    setNewWorkout(undefined)
+    setInProgress(false)
+    setExercises([])
+    setSelectedExercise(undefined)
+  }
+  return(
+    <div>
+      <button 
+      onClick={resetValues}
+      className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
+       >End Workout</button>
+    </div>
+  )
+}
