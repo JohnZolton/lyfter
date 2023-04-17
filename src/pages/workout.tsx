@@ -73,6 +73,7 @@ function WorkoutUi(){
     })
 
     console.log(newWorkout)
+    console.log(exercises)
     function handleWorkoutClick( description: string){
         makeNewWorkout({
           description: description
@@ -89,7 +90,8 @@ function WorkoutUi(){
     return(
       <div>
        <WorkoutTable exercises={exercises} workout={newWorkout} />
-       <NewExerciseForm exercises={exercises} updateExercises={setExercises} />
+       <NewExerciseForm exercises={exercises} updateExercises={setExercises}
+        workout={newWorkout} />
       </div>
     )
 
@@ -161,7 +163,7 @@ function WorkoutTable( {workout, exercises}: WorkoutTableProps){
     return(
       <div>
         <h1>{workout.description}</h1>
-        <table>
+        <table className="mx-auto">
           <thead>
             <tr>
               <th>Exercise</th>
@@ -187,10 +189,56 @@ function WorkoutTable( {workout, exercises}: WorkoutTableProps){
 interface NewExerciseFromProps{
   exercises: Exercise[] | undefined,
   updateExercises: React.Dispatch<React.SetStateAction<Exercise[]>>;
+  workout: Workout;
 }
 
-function NewExerciseForm({exercises, updateExercises}: NewExerciseFromProps){
+function NewExerciseForm({exercises, updateExercises, workout}: NewExerciseFromProps){
+  const [exerciseName, setExerciseName] = useState("")
+  const [weight, setWeight] = useState("")
+  const handleName = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setExerciseName(event.target.value)
+  }
+  const handleWeight = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setWeight(event.target.value)
+  }
+
+  const {mutate: makeNewExercise} = api.getWorkouts.newExercise.useMutation({
+  onSuccess(data, variables, context) {
+    const updatedExercises = [...(exercises ?? []), data]
+    updateExercises(updatedExercises)
+  },
+  })
+
+  function handleNewSet(){
+    event?.preventDefault()
+    console.log("new set")
+    console.log("name: " + exerciseName)
+    console.log("weight: " + weight)
+    makeNewExercise({
+      workoutId: workout.workoutId,
+      weight: parseInt(weight),
+      sets: "", 
+      description: exerciseName,
+    })
+  }
+
   return(
-    <div>Current exercise form here</div>
+    <div>
+      <form onSubmit={handleNewSet}>
+        <label htmlFor="exerciseName">Exercise: </label>
+        <input 
+        value={exerciseName}
+        className="text-black"
+        onChange={handleName} id="exerciseName"type="text"></input>
+        <label htmlFor="weightNumber">Weight: </label>
+        <input 
+        value={weight}
+        className="text-black"
+        onChange={handleWeight} id="weightNumber"type="number"></input>
+        <button 
+        className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
+        type="submit">Add</button>
+      </form>
+    </div>
   )
 }
