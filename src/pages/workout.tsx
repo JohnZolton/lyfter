@@ -98,7 +98,10 @@ function WorkoutUi(){
         workout={newWorkout} />}
         {(inProgress && selectExercise) && <ExerciseUi 
           setInProgress={setInProgress}
+          exercises={exercises}
           exercise={selectExercise}
+          updateExercises={setExercises}
+          updateselectedExercise={setSelectedExercise}
         />}
       </div>
     )
@@ -184,7 +187,7 @@ function WorkoutTable( {workout, exercises}: WorkoutTableProps){
               <tr key={index}>
                 <td>{exercise.description}</td>
                 <td>{exercise.weight}</td>
-                <td>{ Array.isArray(exercise.sets) ? exercise.sets.join(', '): '-'}</td>
+                <td>{exercise.sets}</td>
               </tr>
             )) }
           </tbody>
@@ -256,23 +259,65 @@ function NewExerciseForm({selectExercise, exercises, updateExercises, workout, e
 }
 
 interface ExerciseUiProps{
+  updateExercises: React.Dispatch<React.SetStateAction<Exercise[]>>;
   setInProgress: React.Dispatch<React.SetStateAction<boolean>>;
   exercise: Exercise;
+  exercises: Exercise[];
+  updateselectedExercise: React.Dispatch<React.SetStateAction<Exercise | undefined>>;
 }
 
-function ExerciseUi({exercise, setInProgress} : ExerciseUiProps){
+function ExerciseUi({exercises, updateExercises, updateselectedExercise, exercise, setInProgress} : ExerciseUiProps){
   const [newSet, setnewSet] = useState("")
+  const [sets, setSets] = useState<string[]>([])
+  console.log(exercise)
 
-  function handleNewSet(){
-    event?.preventDefault()
-    console.log("new set")
+  const {mutate: saveExercise} = api.getWorkouts.updateExercise.useMutation({
+  onSuccess(data, variables, context) {
+    const updatedExercise = data
+    console.log(updatedExercise)
+    console.log("SAVED")
+  },
+  })
+
+  const handleNewSet = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const updatedExercises = exercises.map((e)=> {
+      if (e.description === exercise.description){
+        if (e.sets){
+          return {
+            ...e,
+            sets: e.sets.split(", ").map(Number).concat(parseInt(newSet)).join(", "),
+          }
+        } else {
+          return {
+            ...e,
+            sets: newSet,
+          }
+        }
+      } else {
+        return e
+      }
+    })
+    console.log("UPDATED")
+    console.log(updatedExercises)
+    updateExercises(updatedExercises)
+    setnewSet("")
   }
+
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setnewSet(event.target.value)
   }
+
+  
   function handleNextExercise(){
-    console.log("clicked")
-    setInProgress(false)
+    const currentExercise = exercises.find((ex)=> ex.exerciseId===exercise.exerciseId)
+    if (currentExercise){
+      saveExercise({ 
+        exerciseId: currentExercise.exerciseId,
+        sets: currentExercise.sets,
+      })
+      setInProgress(false)
+    }
   }
 
   return(
@@ -299,18 +344,3 @@ function ExerciseUi({exercise, setInProgress} : ExerciseUiProps){
       </div>
     </div>
 )}
-
-function NextExercise(){
-  function handleClick(){
-    console.log("handleclick fired")
-  }
-
-  return(
-    <div>
-      <button
-      onClick={handleClick}
-      className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
-      >Next Exercise</button>
-    </div>
-  )
-}

@@ -7,7 +7,8 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 
-import type { Workout } from "@prisma/client";
+import type { User, Workout, Exercise } from "@prisma/client"
+
 
 export const getAllWorkouts = createTRPCRouter({
 
@@ -87,6 +88,30 @@ export const getAllWorkouts = createTRPCRouter({
         workoutId: workoutId,
         description: description,
         weight: weight,
+        sets: sets,
+      }
+    })
+    if (!exercise){
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: "Failed to add exercise"
+      })
+    }
+    return exercise
+  }),
+
+  updateExercise: privateProcedure.input(z.object({
+    exerciseId: z.string(),
+    sets: z.string(),
+  })).mutation(async ({ ctx, input }) => {
+    const sets = input.sets
+    const exerciseId = input.exerciseId
+
+    const exercise = await ctx.prisma.exercise.update({
+      where: {
+        exerciseId: exerciseId,
+      },
+      data: {
         sets: sets,
       }
     })
