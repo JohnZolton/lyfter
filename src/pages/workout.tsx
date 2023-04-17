@@ -101,12 +101,12 @@ function WorkoutUi(){
           updateExercises={setExercises}
           updateselectedExercise={setSelectedExercise}
         />}
-        <EndWorkout 
+        {(inProgress) && <EndWorkout 
           setNewWorkout={setNewWorkout}
           setInProgress={setInProgress}
           setExercises={setExercises}
           setSelectedExercise={setSelectedExercise}
-        />
+        />}
       </div>
     )
 
