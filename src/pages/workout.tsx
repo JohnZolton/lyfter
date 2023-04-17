@@ -65,6 +65,8 @@ export default Home
 function WorkoutUi(){
     const [newWorkout, setNewWorkout] = useState<Workout>()
     const [exercises, setExercises] = useState<Exercise[]>([])
+    const [inProgress, setInProgress] = useState(false)
+    const [selectExercise, setSelectedExercise] = useState<Exercise | undefined>(undefined)
 
     const {mutate: makeNewWorkout} = api.getWorkouts.newWorkout.useMutation({
     onSuccess(data, variables, context) {
@@ -90,8 +92,14 @@ function WorkoutUi(){
     return(
       <div>
        <WorkoutTable exercises={exercises} workout={newWorkout} />
-       <NewExerciseForm exercises={exercises} updateExercises={setExercises}
-        workout={newWorkout} />
+       {(!inProgress) && <NewExerciseForm exercises={exercises} updateExercises={setExercises}
+        selectExercise={setSelectedExercise}
+        exerciseSelected={setInProgress}
+        workout={newWorkout} />}
+        {(inProgress && selectExercise) && <ExerciseUi 
+          setInProgress={setInProgress}
+          exercise={selectExercise}
+        />}
       </div>
     )
 
@@ -190,9 +198,11 @@ interface NewExerciseFromProps{
   exercises: Exercise[] | undefined,
   updateExercises: React.Dispatch<React.SetStateAction<Exercise[]>>;
   workout: Workout;
+  exerciseSelected: React.Dispatch<React.SetStateAction<boolean>>;
+  selectExercise: React.Dispatch<React.SetStateAction<Exercise | undefined>>;
 }
 
-function NewExerciseForm({exercises, updateExercises, workout}: NewExerciseFromProps){
+function NewExerciseForm({selectExercise, exercises, updateExercises, workout, exerciseSelected}: NewExerciseFromProps){
   const [exerciseName, setExerciseName] = useState("")
   const [weight, setWeight] = useState("")
   const handleName = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -206,6 +216,8 @@ function NewExerciseForm({exercises, updateExercises, workout}: NewExerciseFromP
   onSuccess(data, variables, context) {
     const updatedExercises = [...(exercises ?? []), data]
     updateExercises(updatedExercises)
+    exerciseSelected(true)
+    selectExercise(data)
   },
   })
 
@@ -239,6 +251,66 @@ function NewExerciseForm({exercises, updateExercises, workout}: NewExerciseFromP
         className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
         type="submit">Add</button>
       </form>
+    </div>
+  )
+}
+
+interface ExerciseUiProps{
+  setInProgress: React.Dispatch<React.SetStateAction<boolean>>;
+  exercise: Exercise;
+}
+
+function ExerciseUi({exercise, setInProgress} : ExerciseUiProps){
+  const [newSet, setnewSet] = useState("")
+
+  function handleNewSet(){
+    event?.preventDefault()
+    console.log("new set")
+  }
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setnewSet(event.target.value)
+  }
+  function handleNextExercise(){
+    console.log("clicked")
+    setInProgress(false)
+  }
+
+  return(
+    <div >
+      <form onSubmit={handleNewSet}>
+        <label htmlFor="repCount">Reps: </label>
+        <input 
+        value={newSet}
+        className="text-black"
+        onChange={handleChange} id="repCount"type="number"></input>
+        <button 
+        className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
+        type="submit">Add</button>
+      </form>
+  
+      <div>{exercise.description}</div>
+      <div>{exercise.weight}</div>
+      <div>{exercise.sets}</div>
+      <div>
+        <button
+        onClick={handleNextExercise}
+        className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
+        >Next Exercise</button>
+      </div>
+    </div>
+)}
+
+function NextExercise(){
+  function handleClick(){
+    console.log("handleclick fired")
+  }
+
+  return(
+    <div>
+      <button
+      onClick={handleClick}
+      className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
+      >Next Exercise</button>
     </div>
   )
 }
