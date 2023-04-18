@@ -91,10 +91,10 @@ const Workouts = () => {
         return(<div>Something went wrong</div>)
     }
     return (
-        <div>
+        <div className="flex flex-wrap">
             {data.map( (workout, index)=> (
-                <div key={index}>
-                    <div>Workout: {workout.description}</div>
+                <div key={index} className="flex flex-col mr-4 mb-4">
+                    <div className="text-lg font-bold mb-2">Workout: {workout.description}</div>
                     <ExerciseDisplay workoutId={workout.workoutId}/>
                 </div>
             ))}
@@ -127,13 +127,24 @@ function ExerciseDisplay( {workoutId} : ExerciseDisplayProps){
       if (exercises) {
     return (
       <div>
-        {exercises.map((exercise, index) => (
-          <div key={index} id={String(index)}>
-            <div>{exercise.description}</div>
-            <div>{exercise.weight}</div>
-            <div>{exercise.sets}</div>
-          </div>
-        ))}
+      <table className="mx-auto">
+          <thead>
+            <tr>
+              <th>Exercise</th>
+              <th>Weight</th>
+              <th>Sets</th>
+            </tr>
+          </thead>
+          <tbody>
+            { exercises && exercises.map((exercise, index) =>(
+              <tr key={index}>
+                <td>{exercise.description}</td>
+                <td>{exercise.weight}</td>
+                <td>{exercise.sets}</td>
+              </tr>
+            )) }
+          </tbody>
+        </table>
       </div>
     );
   }
