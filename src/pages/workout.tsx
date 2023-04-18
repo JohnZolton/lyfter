@@ -65,18 +65,31 @@ export default Home
 function WorkoutUi(){
     const [newWorkout, setNewWorkout] = useState<Workout>()
     const [exercises, setExercises] = useState<Exercise[]>([])
+    const [inProgress, setInProgress] = useState(false)
+    const [selectExercise, setSelectedExercise] = useState<Exercise | undefined>(undefined)
 
-    const {mutate: makeNewWorkout} = api.getWorkouts.newWorkout.useMutation({
+    const {mutate: makeNewWorkout, isLoading} = api.getWorkouts.newWorkout.useMutation({
     onSuccess(data, variables, context) {
       setNewWorkout(data)
     },
     })
 
-    console.log(newWorkout)
     function handleWorkoutClick( description: string){
         makeNewWorkout({
           description: description
         })
+    }
+    if (isLoading){
+      return(
+        <div
+  className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] text-primary motion-reduce:animate-[spin_1.5s_linear_infinite]"
+  role="status">
+  <span
+    className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]"
+    >Loading...</span
+  >
+</div>
+      )
     }
 
     if (!newWorkout){
@@ -89,7 +102,23 @@ function WorkoutUi(){
     return(
       <div>
        <WorkoutTable exercises={exercises} workout={newWorkout} />
-       <NewExerciseForm exercises={exercises} updateExercises={setExercises} />
+       {(!inProgress) && <NewExerciseForm exercises={exercises} updateExercises={setExercises}
+        selectExercise={setSelectedExercise}
+        exerciseSelected={setInProgress}
+        workout={newWorkout} />}
+        {(inProgress && selectExercise) && <ExerciseUi 
+          setInProgress={setInProgress}
+          exercises={exercises}
+          exercise={selectExercise}
+          updateExercises={setExercises}
+          updateselectedExercise={setSelectedExercise}
+        />}
+        {(inProgress) && <EndWorkout 
+          setNewWorkout={setNewWorkout}
+          setInProgress={setInProgress}
+          setExercises={setExercises}
+          setSelectedExercise={setSelectedExercise}
+        />}
       </div>
     )
 
@@ -161,7 +190,7 @@ function WorkoutTable( {workout, exercises}: WorkoutTableProps){
     return(
       <div>
         <h1>{workout.description}</h1>
-        <table>
+        <table className="mx-auto">
           <thead>
             <tr>
               <th>Exercise</th>
@@ -174,7 +203,7 @@ function WorkoutTable( {workout, exercises}: WorkoutTableProps){
               <tr key={index}>
                 <td>{exercise.description}</td>
                 <td>{exercise.weight}</td>
-                <td>{ Array.isArray(exercise.sets) ? exercise.sets.join(', '): '-'}</td>
+                <td>{exercise.sets}</td>
               </tr>
             )) }
           </tbody>
@@ -187,10 +216,172 @@ function WorkoutTable( {workout, exercises}: WorkoutTableProps){
 interface NewExerciseFromProps{
   exercises: Exercise[] | undefined,
   updateExercises: React.Dispatch<React.SetStateAction<Exercise[]>>;
+  workout: Workout;
+  exerciseSelected: React.Dispatch<React.SetStateAction<boolean>>;
+  selectExercise: React.Dispatch<React.SetStateAction<Exercise | undefined>>;
 }
 
-function NewExerciseForm({exercises, updateExercises}: NewExerciseFromProps){
+function NewExerciseForm({selectExercise, exercises, updateExercises, workout, exerciseSelected}: NewExerciseFromProps){
+  const [exerciseName, setExerciseName] = useState("")
+  const [weight, setWeight] = useState("")
+  const handleName = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setExerciseName(event.target.value)
+  }
+  const handleWeight = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setWeight(event.target.value)
+  }
+
+  const {mutate: makeNewExercise} = api.getWorkouts.newExercise.useMutation({
+  onSuccess(data, variables, context) {
+    const updatedExercises = [...(exercises ?? []), data]
+    updateExercises(updatedExercises)
+    exerciseSelected(true)
+    selectExercise(data)
+  },
+  })
+
+  function handleNewSet(){
+    event?.preventDefault()
+    console.log("new set")
+    console.log("name: " + exerciseName)
+    console.log("weight: " + weight)
+    makeNewExercise({
+      workoutId: workout.workoutId,
+      weight: parseInt(weight),
+      sets: "", 
+      description: exerciseName,
+    })
+  }
+
   return(
-    <div>Current exercise form here</div>
+    <div>
+      <form onSubmit={handleNewSet}>
+        <label htmlFor="exerciseName">Exercise: </label>
+        <input 
+        value={exerciseName}
+        className="text-black"
+        onChange={handleName} id="exerciseName"type="text"></input>
+        <label htmlFor="weightNumber">Weight: </label>
+        <input 
+        value={weight}
+        className="text-black"
+        onChange={handleWeight} id="weightNumber"type="number"></input>
+        <button 
+        className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
+        type="submit">Add</button>
+      </form>
+    </div>
+  )
+}
+
+interface ExerciseUiProps{
+  updateExercises: React.Dispatch<React.SetStateAction<Exercise[]>>;
+  setInProgress: React.Dispatch<React.SetStateAction<boolean>>;
+  exercise: Exercise;
+  exercises: Exercise[];
+  updateselectedExercise: React.Dispatch<React.SetStateAction<Exercise | undefined>>;
+}
+
+function ExerciseUi({exercises, updateExercises, updateselectedExercise, exercise, setInProgress} : ExerciseUiProps){
+  const [newSet, setnewSet] = useState("")
+  const [sets, setSets] = useState<string[]>([])
+  console.log(exercise)
+
+  const {mutate: saveExercise} = api.getWorkouts.updateExercise.useMutation({
+  onSuccess(data, variables, context) {
+    const updatedExercise = data
+    console.log(updatedExercise)
+    console.log("SAVED")
+  },
+  })
+
+  const handleNewSet = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const updatedExercises = exercises.map((e)=> {
+      if (e.description === exercise.description){
+        if (e.sets){
+          return {
+            ...e,
+            sets: e.sets.split(", ").map(Number).concat(parseInt(newSet)).join(", "),
+          }
+        } else {
+          return {
+            ...e,
+            sets: newSet,
+          }
+        }
+      } else {
+        return e
+      }
+    })
+    console.log("UPDATED")
+    console.log(updatedExercises)
+    updateExercises(updatedExercises)
+    setnewSet("")
+  }
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setnewSet(event.target.value)
+  }
+
+  
+  function handleNextExercise(){
+    const currentExercise = exercises.find((ex)=> ex.exerciseId===exercise.exerciseId)
+    if (currentExercise){
+      saveExercise({ 
+        exerciseId: currentExercise.exerciseId,
+        sets: currentExercise.sets,
+      })
+      setInProgress(false)
+    }
+  }
+
+  return(
+    <div >
+      <form onSubmit={handleNewSet}>
+        <label htmlFor="repCount">Reps: </label>
+        <input 
+        value={newSet}
+        className="text-black"
+        onChange={handleChange} id="repCount"type="number"></input>
+        <button 
+        className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
+        type="submit">Add</button>
+      </form>
+  
+      <br></br>
+      <div>
+        <button
+        onClick={handleNextExercise}
+        className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
+        >Next Exercise</button>
+      </div>
+      <br></br>
+    </div>
+)}
+
+interface EndWorkoutProps{
+  setNewWorkout: React.Dispatch<React.SetStateAction<Workout | undefined>>;
+  setInProgress: React.Dispatch<React.SetStateAction<boolean>>;
+  setExercises: React.Dispatch<React.SetStateAction<Exercise[]>>;
+  setSelectedExercise: React.Dispatch<React.SetStateAction<Exercise | undefined>>;
+  
+}
+
+function EndWorkout({setNewWorkout, setInProgress, setExercises, setSelectedExercise}: EndWorkoutProps){
+  function resetValues(){
+    console.log("reset")
+    setNewWorkout(undefined)
+    setInProgress(false)
+    setExercises([])
+    setSelectedExercise(undefined)
+  }
+  return(
+    <div>
+      <button 
+      onClick={resetValues}
+      className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
+       >End Workout</button>
+    </div>
   )
 }

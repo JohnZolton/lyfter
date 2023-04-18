@@ -7,7 +7,8 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 
-import type { Workout } from "@prisma/client";
+import type { User, Workout, Exercise } from "@prisma/client"
+
 
 export const getAllWorkouts = createTRPCRouter({
 
@@ -19,6 +20,22 @@ export const getAllWorkouts = createTRPCRouter({
     return ctx.prisma.exercise.findMany();
   }),
 
+  getLastWeekbyUserId: privateProcedure.query(async ({ctx}) => {
+  const workouts = await ctx.prisma.workout.findMany({
+    where: {
+      userId: ctx.userId,
+    },
+    orderBy: [{ date: "desc"}],
+    take: 7,
+  })
+  if (!workouts){
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "No workout with that User"
+    })
+  }
+  return workouts
+}),
   getLatestWorkoutByUserId: publicProcedure.input(z.object({
     userId: z.string(),
   })).query(async ({ctx, input}) => {
@@ -47,14 +64,34 @@ export const getAllWorkouts = createTRPCRouter({
     orderBy: [{ date: "desc"}]
   })),
 
+//  getExerciseByWorkoutId: publicProcedure.input(z.object({
+    //workoutId: z.string(),
+  //})).query( async ({ctx, input}) => {
+    //const exercises = await ctx.prisma.exercise.findMany({
+    //where: {
+      //workoutId: input.workoutId,
+    //},
+    //orderBy: [{ date: "desc"}]
+  //}}
+  //return exercises
+  //)),
   getExerciseByWorkoutId: publicProcedure.input(z.object({
     workoutId: z.string(),
-  })).query(({ctx, input}) => ctx.prisma.exercise.findMany({
+  })).query(async ({ctx, input}) => {
+  const exercises = await ctx.prisma.exercise.findMany({
     where: {
       workoutId: input.workoutId,
     },
-    orderBy: [{ date: "desc"}]
-  })),
+    orderBy: [{ date: "desc"}],
+  })
+  if (!exercises){
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "No workout with that User"
+    })
+  }
+  return exercises
+}),
 
   newWorkout: privateProcedure.input(z.object({
     description: z.string()
@@ -87,6 +124,30 @@ export const getAllWorkouts = createTRPCRouter({
         workoutId: workoutId,
         description: description,
         weight: weight,
+        sets: sets,
+      }
+    })
+    if (!exercise){
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: "Failed to add exercise"
+      })
+    }
+    return exercise
+  }),
+
+  updateExercise: privateProcedure.input(z.object({
+    exerciseId: z.string(),
+    sets: z.string(),
+  })).mutation(async ({ ctx, input }) => {
+    const sets = input.sets
+    const exerciseId = input.exerciseId
+
+    const exercise = await ctx.prisma.exercise.update({
+      where: {
+        exerciseId: exerciseId,
+      },
+      data: {
         sets: sets,
       }
     })

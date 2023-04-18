@@ -72,6 +72,19 @@ model Workout {
   @@index([userId])
 }
 
+model WorkoutPlan {
+  planId  String    @id @default(cuid())
+  userId     String 
+  sunday String
+  monday String
+  tuesday String
+  wednesday String
+  thursday String
+  friday String
+  saturday String
+
+  @@index([userId])
+}
 model Exercise {
   exerciseId  String @id @default(cuid())
   date       DateTime   @default(now())
