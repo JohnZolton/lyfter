@@ -20,6 +20,22 @@ export const getAllWorkouts = createTRPCRouter({
     return ctx.prisma.exercise.findMany();
   }),
 
+  getLastWeekbyUserId: privateProcedure.query(async ({ctx}) => {
+  const workouts = await ctx.prisma.workout.findMany({
+    where: {
+      userId: ctx.userId,
+    },
+    orderBy: [{ date: "desc"}],
+    take: 7,
+  })
+  if (!workouts){
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "No workout with that User"
+    })
+  }
+  return workouts
+}),
   getLatestWorkoutByUserId: publicProcedure.input(z.object({
     userId: z.string(),
   })).query(async ({ctx, input}) => {
