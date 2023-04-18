@@ -40,6 +40,7 @@ const Home: NextPage = () => {
   </div>
   <div className="w-full block flex-grow lg:flex lg:items-center lg:w-auto">
     <div className="text-sm lg:flex-grow">
+      <Link href="home" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Home</Link>
       <Link href="makeplan" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Edit Workout Plan</Link>
       < Link href="allworkouts" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Workout History</Link>
     </div>
@@ -60,7 +61,7 @@ const Home: NextPage = () => {
         <div>
           <SignedIn>
           <br></br>
-          <WorkoutUi />
+          <NewWorkoutUi />
           <br></br>
       <div>
       </div>
@@ -79,308 +80,80 @@ const Home: NextPage = () => {
 
 export default Home;
 
-function CreateWorkout(){
+function NewWorkoutUi(){
   return(
-    <div className="object-contain m-2">
-    <button className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400">Create Workout Plan</button>
+    <div>
+      <WeekForm></WeekForm>
     </div>
   )
 }
 
-interface BeginWorkoutProps {
-  inProgress: boolean;
-  startWorkout: () => void;
-}
+function WeekForm(){
+  const [daysSelected, setDaysSelected] = useState<string[]>([])
+  const daysOfWeek : string[]= ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  
+  function handleCheck(newDay: string, checked: boolean){
+    if (checked) {
+      setDaysSelected(prevDays => [...prevDays, newDay]);
+    } else {
+      setDaysSelected(prevDays => prevDays.filter(day => day !== newDay));
+    }
+  }
+  console.log(daysSelected)
 
-function BeginWorkout({ inProgress, startWorkout}: BeginWorkoutProps): JSX.Element | null {
-  if (!inProgress){
-    return(
-      <div className="object-contain m-2">
-      <button onClick={startWorkout} className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400">Begin Workout</button>
+  return(
+    <div>
+      <div className="text-3xl font-bold text-slate-300 text-center mb-4">Select Workout Days</div>
+      <div className="flex flex-col items-center">
+        <div className="flex flex-row items-center">
+          {daysOfWeek.map((day) => (
+            <div key={day} className="flex flex-col items-center">
+              <span className="ml-2 text-lg">{day}</span>
+              <input type="checkbox" onChange={(event)=>handleCheck(day, event.target.checked)} className="form-checkbox h-6 w-6"/>
+            </div>
+          ))}
+        </div>
       </div>
-    )
-  }
-  return null;
-}
-
-
-interface WorkoutData {
-  workoutId?:  string    ;
-  date?:       string  ;
-  nominalDay?: string;
-  userId?:     string ;
-  description?: string;
-}
-
-function WorkoutUi(){
-  const [currentExercise, setCurrentExercise] = useState<ExerciseData | null>(null)
-  const [hasExercise, sethasExercise] = useState(false)
-  const [exercises, setWorkoutExercises] = useState<ExerciseData[]>([]) 
-  const [workoutStarted, setWorkoutStarted] = useState(false)
-  const [workoutId, setWorkoutId] = useState('')
-  //kinda garbage how current exercise doesn't  get updated with sets
-  const currentUser = useUser()
-
-  function handleSetExercise(newExercise: ExerciseData){
-    setCurrentExercise(newExercise)
-    sethasExercise(true)
-    setWorkoutExercises( prevState => [...exercises, newExercise])
-    console.log(currentExercise)
-  }
-    
-  const { mutate: makeNewExercise } = api.getWorkouts.newExercise.useMutation()
-  const {mutate: makeNewWorkout} = api.getWorkouts.newWorkout.useMutation()
-  if (currentUser.isSignedIn && currentUser.user.id){
-    const {data: workout} = api.getWorkouts.getLatestWorkoutByUserId.useQuery({userId: currentUser.user.id})
-    console.log(workout)
-  }
-
-  function handleNextExercise(){
-    // need workout id, and exercises.slice(-1)[0]
-    //write exercise to db
-    const exercise = exercises.slice(-1)[0]
-    console.log("exercise: ")
-    console.log(exercise?.description)
-    console.log(exercise?.weight)
-    console.log(exercise?.sets)
-    console.log(workoutId)
-    
-    //const {data: workoutid} =  api.getWorkouts.getLatestWorkoutByUserId.useQuery({
-      //userId: user.user?.id || ""
-    //})
-    //console.log(workoutid)
-    if (exercise && exercise.sets){
-      console.log("exercise mutate fired")
-      console.log(exercise)
-      makeNewExercise({ 
-        workoutId: workoutId,
-        weight: exercise.weight,
-        sets: exercise.sets.join(', '),
-        description: exercise.description
-       })
-    }
-
-    setCurrentExercise(null)
-  }
-  const user = useUser()
-
-
-  function handleStartWorkout(){
-    console.log('handleworkout fired')
-    setWorkoutStarted(true)
-    if (user.isSignedIn && user.user.id){
-      console.log("new workout: ")
-      const {data: newworkoutId} = api.getWorkouts.getLatestWorkoutByUserId.useQuery({ userId: user.user.id})
-      if (newworkoutId){
-        console.log("NEW WORKOUT: ")
-        console.log(newworkoutId[0])
-      }
-    }
-  }
-
-
- 
-  if (!workoutStarted){
-    return <BeginWorkout inProgress={workoutStarted} startWorkout={handleStartWorkout}></BeginWorkout>
-  } 
-
-  return(
-    <div>
-      {<ExerciseTable exercises = {exercises}/>}
-      {(!currentExercise) && <NewExercise onSend={handleSetExercise}/>}
-      {currentExercise && <CurrentExercise 
-          setExercises={setWorkoutExercises} 
-          exercise={currentExercise} 
-          exercises={exercises}
-        />}
-      <br></br>
-      {hasExercise && <NextExercise lastExercise={currentExercise!} saveExercise={handleNextExercise}/>}
-      <br></br>
-      <EndWorkout />
+      <WorkoutForm days={daysSelected}/>
     </div>
   )
 }
 
-interface Exercise {
-  description: string;
-  weight: number,
-  sets: number[] | null;
+interface WorkoutFormProps {
+  days: string[]
 }
 
-interface ExerciseData {
-  description: string;
-  weight: number;
-  sets?: number[] | null;
-}
+function WorkoutForm( {days} : WorkoutFormProps){
 
-interface ExerciseTableProps {
-  exercises: ExerciseData[];
-}
+  if (days.length === 0){ return <div></div>}
 
-function ExerciseTable({ exercises }: ExerciseTableProps){
-  if (!exercises){
-    return (<div></div>)
+  const sortedDays = [...days].sort((a, b) => {
+    const order = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    return order.indexOf(a) - order.indexOf(b);
+  });
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>){
+    event?.preventDefault()
+    console.log("new workout ready")
   }
-
-  return (
-    <div>
-        <table className="table-auto mx-auto">
-          <thead>
-            <tr>
-              <th>Exercise</th>
-              <th>Weight</th>
-              <th>Sets</th>
-            </tr>
-          </thead>
-          <tbody>
-            {exercises.map((exercise, index) =>(
-              <tr key={index}>
-                <td>{exercise.description}</td>
-                <td>{exercise.weight}</td>
-                <td>{exercise.sets?.join(', ')}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-    </div>
-  )
-}
-
-interface CurrentExerciseProps {
-  exercise: ExerciseData;
-  exercises: ExerciseData[];
-  setExercises: React.Dispatch<React.SetStateAction<ExerciseData[]>>;
-}
-
-function CurrentExercise({exercise, exercises, setExercises}: CurrentExerciseProps){
-  const [newSet, setNextSet] = useState("")
-  //okay so issue is idk where to handle the exercise save
-
-  const handleNewSet = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const updatedExercises = exercises.map((e)=> {
-      if (e.description === exercise.description){
-        if (e.sets){
-          return {
-            ...e,
-            sets: [...e.sets, parseInt(newSet)],
-          }
-        } else {
-          return {
-            ...e,
-            sets: [parseInt(newSet)],
-          }
-        }
-      } else {
-        return e
-      }
-    })
-    setExercises(updatedExercises)
-    setNextSet("")
-  }
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setNextSet(event.target.value)
-  }
-
-
-  return(
-    <div className="">
-      <form onSubmit={handleNewSet}>
-        <label htmlFor="repCount">Reps: </label>
-        <input 
-        value={newSet}
-        className="text-black"
-        onChange={handleChange} id="repCount"type="number"></input>
-        <button 
-        className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
-        type="submit">Add</button>
-      </form>
-    </div>
-  )
-}
-interface NextExerciseProps {
-  lastExercise: ExerciseData;
-  saveExercise: (exercise: ExerciseData) => void;
-}
-
-function NextExercise( { lastExercise, saveExercise}: NextExerciseProps){
-  function handleClick(){
-    saveExercise(lastExercise)
-    console.log("handleclick fired")
-  }
-
   return(
     <div>
-      <button
-      onClick={handleClick}
-      className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
-      >Next Exercise</button>
+    <div className="container mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold mb-4">Create Your Weekly Workout Plan</h1>
+        <form  onSubmit={handleSubmit}>
+          {sortedDays.map((day) => (
+            <div className="flex flex-wrap mb-4" key={day}>
+              <label htmlFor={day} className="w-full sm:w-1/4">{day}:</label>
+              <div className="w-full sm:w-3/4">
+                <input type="text" id={day} name={day} className="w-full px-3 py-2 border text-black border-gray-400 rounded"></input>
+              </div>
+            </div>
+          ))}
+          <div className="mt-8">
+            <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>
+          </div>
+        </form>
     </div>
-  )
-}
-
-
-function EndWorkout(){
-  return(
-    <div>
-      <button
-      className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
-      >End Workout</button>
-    </div>
-  )
-}
-
-interface NewExerciseProps {
-  onSend: (exercise: Exercise) => void;
-}
-
-function NewExercise({ onSend }: NewExerciseProps){
-  const [description, setDescription] = useState("")
-  const [weight, setWeight] = useState("")
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const newExercise = {
-      description: description,
-      weight: parseInt(weight),
-      sets: []
-    };
-
-    console.log("exercise: " + description)
-    console.log("weight: " + weight)
-    onSend(newExercise)
-  }
-  const handleName = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setDescription(event.target.value)
-  }
-  const handleNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setWeight(event.target.value)
-  }
-
-  return(
-    <div>
-      <form onSubmit={handleSubmit}>
-        <div id="exerciseInput">
-          <label>Exercise: </label>
-          <input className="text-black" onChange={handleName} type="text" id="description"></input>
-        </div>
-        <br></br>
-        <div id="weightInput">
-          <label>Weight: </label>
-          <input onChange={handleNumber} className="text-black" type="number" id="weight"></input>
-        </div>
-        <br></br>
-        <button 
-        className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
-        type="submit">Begin</button>
-      </form>
-    </div>
-    )
-}
-function EditWorkout(){
-  return(
-    <div className="object-contain  m-2">
-    <button className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400">Edit Workout Plan</button>
     </div>
   )
 }
