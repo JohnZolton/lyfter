@@ -43,10 +43,9 @@ const Home: NextPage = () => {
       <Link href="makeplan" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Edit Workout Plan</Link>
       < Link href="allworkouts" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Workout History</Link>
     </div>
-  </div>
-</nav>
-        <div>
-          <SignedIn>
+    <div>
+        <SignedIn>
+
             <div className="text-white   items-end flex p-6 items-right flex-col ">
                 <UserButton appearance={{ 
                   elements: { 
@@ -54,6 +53,12 @@ const Home: NextPage = () => {
                     }
                   }} />
             </div>
+        </SignedIn>
+    </div>
+  </div>
+</nav>
+        <div>
+          <SignedIn>
           <br></br>
           <WorkoutUi />
           <br></br>
