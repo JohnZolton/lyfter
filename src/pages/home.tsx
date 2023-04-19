@@ -81,6 +81,11 @@ function WorkoutUi(){
     const [exercises, setExercises] = useState<Exercise[]>([])
     const [inProgress, setInProgress] = useState(false)
     const [selectExercise, setSelectedExercise] = useState<Exercise | undefined>(undefined)
+    
+    const {data: testworkouts } = api.getWorkouts.getLastTwoWeeks.useQuery()
+    console.log(testworkouts)
+    //const {data: workoutHistory } = api.getWorkouts.getLastTwoWeeks.useQuery()
+    //console.log(workoutHistory)
 
     const {mutate: makeNewWorkout, isLoading} = api.getWorkouts.newWorkout.useMutation({
     onSuccess(data, variables, context) {

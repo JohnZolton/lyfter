@@ -21,6 +21,26 @@ export const getAllWorkouts = createTRPCRouter({
     return ctx.prisma.exercise.findMany();
   }),
 
+  getLastTwoWeeks: privateProcedure.query(async ({ctx}) => {
+    const workouts = await ctx.prisma.testWorkout.findMany({
+      where: {
+        userId: ctx.userId,
+        date: {
+          gte: new Date(Date.now() - 14*24*60*60*1000)
+        }
+      },
+      include: { exercises: true},
+      orderBy: [{date: "desc"}]
+    })
+    if (!workouts){
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "no workout history found"
+      })
+    }
+    return workouts
+  }),
+
   getLastWeekbyUserId: privateProcedure.query(async ({ctx}) => {
   const workouts = await ctx.prisma.workout.findMany({
     where: {
