@@ -16,7 +16,7 @@ import {
 import { userAgent } from "next/server";
 import { userInfo } from "os";
 import { boolean } from "zod";
-import type { User, Workout } from "@prisma/client"
+import type { User, Workout, WorkoutPlan } from "@prisma/client"
 import { prisma } from "~/server/db";
 
 //@refresh reset
@@ -36,15 +36,6 @@ const Home: NextPage = () => {
       </Head>
       <main className="text-white text-center flex min-h-screen   flex-col  bg-gradient-to-b from-[#000000] to-[#44454b]">
 <nav className="flex items-center justify-between flex-wrap bg-black-500 p-6">
-  <div className="flex items-center flex-shrink-0 text-white mr-6">
-  </div>
-  <div className="w-full block flex-grow lg:flex lg:items-center lg:w-auto">
-    <div className="text-sm lg:flex-grow">
-      <Link href="home" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Home</Link>
-      <Link href="makeplan" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Edit Workout Plan</Link>
-      < Link href="allworkouts" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Workout History</Link>
-    </div>
-    <div>
         <SignedIn>
 
             <div className="text-white   items-end flex p-6 items-right flex-col ">
@@ -55,6 +46,15 @@ const Home: NextPage = () => {
                   }} />
             </div>
         </SignedIn>
+  <div className="flex items-center flex-shrink-0 text-white mr-6">
+  </div>
+  <div className="w-full block flex-grow lg:flex lg:items-center lg:w-auto">
+    <div className="text-sm lg:flex-grow">
+      <Link href="home" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Home</Link>
+      <Link href="makeplan" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Edit Workout Plan</Link>
+      < Link href="allworkouts" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Workout History</Link>
+    </div>
+    <div>
     </div>
   </div>
 </nav>
@@ -99,7 +99,6 @@ function WeekForm(){
       setDaysSelected(prevDays => prevDays.filter(day => day !== newDay));
     }
   }
-  console.log(daysSelected)
 
   return(
     <div>
@@ -123,6 +122,17 @@ interface WorkoutFormProps {
   days: string[]
 }
 
+interface WorkoutPlanInput {
+  sunday: string;
+  monday: string;
+  tuesday: string;
+  wednesday: string;
+  thursday: string;
+  friday: string;
+  saturday: string;
+}
+
+
 function WorkoutForm( {days} : WorkoutFormProps){
 
   if (days.length === 0){ return <div></div>}
@@ -132,9 +142,33 @@ function WorkoutForm( {days} : WorkoutFormProps){
     return order.indexOf(a) - order.indexOf(b);
   });
 
+  const newPlan : WorkoutPlanInput = {
+    sunday: "",
+    monday: "",
+    tuesday: "",
+    wednesday: "",
+    thursday: "",
+    friday: "",
+    saturday: "",
+  }
+
+  const {mutate: makePlan, isLoading} = api.getWorkouts.newWorkoutPlan.useMutation({
+    onSuccess(data, variables, context) {
+      console.log(data)
+    },
+    })
+
   function handleSubmit(event: React.FormEvent<HTMLFormElement>){
     event?.preventDefault()
-    console.log("new workout ready")
+    const formData = new FormData(event.currentTarget)
+    const input = Object.fromEntries(formData.entries())
+    Object.keys(input).forEach((day) => {
+      if (input[day] !== undefined){
+        newPlan[day.toLowerCase() as keyof WorkoutPlanInput] = input[day] as string
+      }
+    })
+    console.log(newPlan)
+    makePlan(newPlan)
   }
   return(
     <div>

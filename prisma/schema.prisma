@@ -74,7 +74,7 @@ model Workout {
 
 model WorkoutPlan {
   planId  String    @id @default(cuid())
-  userId     String 
+  userId     String  @unique
   sunday String
   monday String
   tuesday String
@@ -85,6 +85,7 @@ model WorkoutPlan {
 
   @@index([userId])
 }
+
 model Exercise {
   exerciseId  String @id @default(cuid())
   date       DateTime   @default(now())

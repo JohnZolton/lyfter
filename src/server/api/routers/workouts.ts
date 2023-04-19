@@ -1,13 +1,14 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import { string, z } from "zod";
 import {
   createTRPCRouter,
   privateProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
 
-import type { User, Workout, Exercise } from "@prisma/client"
+import type { User, Workout, Exercise, WorkoutPlan } from "@prisma/client"
+import { prisma } from "~/server/db";
 
 
 export const getAllWorkouts = createTRPCRouter({
@@ -158,6 +159,49 @@ export const getAllWorkouts = createTRPCRouter({
       })
     }
     return exercise
+  }),
+
+  newWorkoutPlan: privateProcedure.input(z.object({
+    sunday: z.string(),
+    monday: z.string(),
+    tuesday: z.string(),
+    wednesday: z.string(),
+    thursday: z.string(),
+    friday: z.string(),
+    saturday: z.string(),
+  })).mutation(async ({ ctx, input }) => {
+    const workoutplan = await ctx.prisma.workoutPlan.upsert({
+      where: {
+        userId: ctx.userId,
+      },
+      update: {
+        sunday: input.sunday,
+        monday: input.monday,
+        tuesday: input.tuesday,
+        wednesday: input.wednesday,
+        thursday: input.thursday,
+        friday: input.friday,
+        saturday: input.saturday,
+      },
+      create: {
+        userId: ctx.userId,
+        sunday: input.sunday,
+        monday: input.monday,
+        tuesday: input.tuesday,
+        wednesday: input.wednesday,
+        thursday: input.thursday,
+        friday: input.friday,
+        saturday: input.saturday,
+      }
+    })
+    if (!workoutplan){
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: "Failed to create workout plan"
+      })
+    }
+    return workoutplan
   })
 
 });
+

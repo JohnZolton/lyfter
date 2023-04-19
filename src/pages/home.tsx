@@ -32,15 +32,6 @@ const Home: NextPage = () => {
       </Head>
       <main className="text-white text-center flex min-h-screen   flex-col  bg-gradient-to-b from-[#000000] to-[#44454b]">
 <nav className="flex items-center justify-between flex-wrap bg-black-500 p-6">
-  <div className="flex items-center flex-shrink-0 text-white mr-6">
-  </div>
-  <div className="w-full block flex-grow lg:flex lg:items-center lg:w-auto">
-    <div className="text-sm lg:flex-grow">
-      <Link href="home" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Home</Link>
-      <Link href="makeplan" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Edit Workout Plan</Link>
-      < Link href="allworkouts" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Workout History</Link>
-    </div>
-    <div>
         <SignedIn>
 
             <div className="text-white   items-end flex p-6 items-right flex-col ">
@@ -51,6 +42,15 @@ const Home: NextPage = () => {
                   }} />
             </div>
         </SignedIn>
+  <div className="flex items-center flex-shrink-0 text-white mr-6">
+  </div>
+  <div className="w-full block flex-grow lg:flex lg:items-center lg:w-auto">
+    <div className="text-sm lg:flex-grow">
+      <Link href="home" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Home</Link>
+      <Link href="makeplan" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Edit Workout Plan</Link>
+      < Link href="allworkouts" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Workout History</Link>
+    </div>
+    <div>
     </div>
   </div>
 </nav>
