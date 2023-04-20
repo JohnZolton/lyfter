@@ -83,6 +83,10 @@ export default Home;
 function NewWorkoutUi(){
   return(
     <div>
+      <MakePplSplit></MakePplSplit>
+      <br></br>
+      <div>or make your own</div>
+      <br></br>
       <WeekForm></WeekForm>
     </div>
   )
@@ -191,3 +195,98 @@ function WorkoutForm( {days} : WorkoutFormProps){
     </div>
   )
 }
+
+function MakePplSplit(){
+  const {mutate: makePlan, isLoading} = api.getWorkouts.newTestPlan.useMutation({
+    onSuccess(data, variables, context) {
+      console.log(data)
+    },
+    })
+
+  function handleClick(){
+    makePlan( {workouts: pplPlanArray})
+  }
+  return(<div>
+      <div className="text-3xl font-bold text-slate-300 text-center mb-4">Our Recommended Plan</div>
+      <div className="text-2xl font-bold text-slate-300 text-center mb-4">(Push, Pull, Legs)</div>
+    <button
+     onClick={handleClick}
+     className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400">Use Recommended</button>
+  </div>)
+}
+
+type ExerciseTemplate = {
+  description: string;
+  weight: number;
+  sets: number;
+};
+
+type WorkoutTemplate = {
+  description: string;
+  nominalDay: string;
+  exercises: ExerciseTemplate[];
+}
+
+const PushFirst = {
+  description: "Push #1",
+  nominalDay: "Monday",
+  exercises: [
+    {description: "Atlantis Side Raise", weight: 90, sets: 4},
+    {description: "Calf Raise", weight: 220, sets: 4},
+    {description: "Machine Press", weight: 185, sets: 3},
+    {description: "Incline DB Press", weight: 60, sets: 2},
+    {description: "Cable Pushdown", weight: 120, sets: 4},
+
+  ]
+}
+const PushSecond = {
+  description: "Push #2",
+  nominalDay: "Thursday",
+  exercises: [
+    {description: "Machine Press", weight: 185, sets: 3},
+    {description: "Incline DB Press", weight: 60, sets: 2},
+    {description: "Cable Upright Row", weight: 70, sets: 4},
+    {description: "Cable Pushdown", weight: 120, sets: 4},
+    {description: "Leg Raise", weight: 0, sets: 4},
+  ]
+}
+const LegFirst = {
+  description: "Legs #1",
+  nominalDay: "Tuesday",
+  exercises: [
+    {description: "DB RDL", weight: 100, sets: 2},
+    {description: "Belt Squat", weight: 135, sets: 4},
+    {description: "Candlesticks", weight: 0, sets: 4},
+  ]
+}
+const LegSecond = {
+  description: "Legs #2",
+  nominalDay: "Friday",
+  exercises: [
+    {description: "Belt Squat", weight: 135, sets: 4},
+    {description: "Ham Curl", weight: 100, sets: 4},
+    {description: "Calf Raise", weight: 220, sets: 4},
+  ]
+}
+const PullFirst = {
+  description: "Pull #1",
+  nominalDay: "Wednesday",
+  exercises: [
+    {description: "Calf Raise", weight: 220, sets: 4},
+    {description: "Lat Pulldown", weight: 140, sets: 4},
+    {description: "Machine Row", weight: 185, sets: 4},
+    {description: "Bicep Curl", weight: 40, sets: 4},
+  ]
+}
+const PullSecond = {
+  description: "Pull #2",
+  nominalDay: "Saturday",
+  exercises: [
+    {description: "Machine Row", weight: 185, sets: 4},
+    {description: "Lat Pulldown", weight: 140, sets: 4},
+    {description: "Atlantis Side Raise", weight: 90, sets: 4},
+    {description: "Bicep Curl", weight: 40, sets: 4},
+    {description: "Candlesticks", weight: 0, sets: 4},
+  ]
+}
+const pplPlanArray = [PushFirst, PushSecond, LegFirst, LegSecond, PullFirst, PullSecond];

@@ -16,7 +16,7 @@ import {
 import { userAgent } from "next/server";
 import { userInfo } from "os";
 import { boolean, set } from "zod";
-import type { User, Workout, Exercise } from "@prisma/client"
+import type { User, Workout, Exercise, TestExercise, TestWorkout } from "@prisma/client"
 import { prisma } from "~/server/db";
 import { start } from "repl";
 
@@ -74,6 +74,46 @@ const Home: NextPage = () => {
 
 export default Home
 
+function LastWorkout({ workoutHistory }: { workoutHistory: TestWorkout2[] | undefined }) {
+  if (workoutHistory === undefined){
+    return (<div>No history</div>)
+  }
+  return (
+    <div>
+      {workoutHistory.map((workout) => (
+        <div key={workout.workoutId}>
+          <div>
+            <div>Last time: {workout.description}</div>
+            <ListExercises workout={workout}/>
+          </div>
+          <div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+interface TestWorkout2 {
+  workoutId: string;
+  date: Date;
+  nominalDay: string;
+  userId: string;
+  description: string;
+  exercises: TestExercise[];
+}
+
+function ListExercises( {workout}: {workout: TestWorkout2}){
+  return (
+    <div>
+      {workout.exercises?.map((exercise) => (
+        <div key={exercise.exerciseId}>
+          <div>{exercise.description}: {exercise.weight} x {exercise.sets}</div>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 
 function WorkoutUi(){
@@ -81,9 +121,24 @@ function WorkoutUi(){
     const [exercises, setExercises] = useState<Exercise[]>([])
     const [inProgress, setInProgress] = useState(false)
     const [selectExercise, setSelectedExercise] = useState<Exercise | undefined>(undefined)
+    const [workoutHistory, setWorkoutHistory] = useState<TestWorkout2[] | undefined>(undefined)
+
+    const today = new Date()
+    const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const todayName = weekdays[today.getDay()];
+    console.log(todayName); 
     
-    const {data: testworkouts } = api.getWorkouts.getLastTwoWeeks.useQuery()
-    console.log(testworkouts)
+    if (todayName){
+      const {data: testworkouts, isLoading: workoutsLoading } = api.getWorkouts.getPreviousWorkout.useQuery({
+        nominalDay: todayName
+      }) 
+      if (!workoutsLoading && workoutHistory === undefined){
+        setWorkoutHistory(testworkouts)
+      }
+    }
+
+
+
     //const {data: workoutHistory } = api.getWorkouts.getLastTwoWeeks.useQuery()
     //console.log(workoutHistory)
 
@@ -94,9 +149,15 @@ function WorkoutUi(){
     })
 
     function handleWorkoutClick( description: string){
+        const today = new Date()
+        const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const todayName = weekdays[today.getDay()];
+        if (todayName){
         makeNewWorkout({
+          nominalDay: todayName,
           description: description
         })
+        }
     }
     if (isLoading){
       return(
@@ -114,12 +175,15 @@ function WorkoutUi(){
     if (!newWorkout){
         return (
             <div>
+
+        <LastWorkout workoutHistory={workoutHistory}></LastWorkout>
             {(!newWorkout) && <NewWorkout startWorkout={handleWorkoutClick} />}
             </div>
     )}
     
     return(
       <div>
+
        <WorkoutTable exercises={exercises} workout={newWorkout} />
        {(!inProgress) && <NewExerciseForm exercises={exercises} updateExercises={setExercises}
         selectExercise={setSelectedExercise}

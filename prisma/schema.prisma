@@ -104,6 +104,7 @@ model TestWorkout {
   userId     String 
   description String
   exercises TestExercise[]
+  completed Boolean @default(false)
   //maybe add mesocycles and weeks for clumping/display?
   @@index([userId])
 }
@@ -116,6 +117,39 @@ model TestExercise {
   sets        String
   workoutId String
   workout TestWorkout  @relation(fields: [workoutId], references: [workoutId])
+
+  @@index([workoutId])
+}
+
+model ModelWorkoutPlan {
+  planId  String    @id @default(cuid())
+  userId     String  @unique
+  workouts ModelWorkout[]
+  @@index([userId])
+}
+
+model ModelWorkout {
+  workoutId  String    @id @default(cuid())
+  date       DateTime   @default(now())
+  nominalDay String
+  userId     String 
+  description String
+  exercises ModelExercise[]
+  workoutPlan  ModelWorkoutPlan  @relation(fields: [userId], references: [userId])
+
+
+  //maybe add mesocycles and weeks for clumping/display?
+  @@index([userId])
+}
+
+model ModelExercise {
+  exerciseId  String @id @default(cuid())
+  date       DateTime   @default(now())
+  description String
+  weight      Int
+  sets        Int
+  workoutId String
+  workout ModelWorkout    @relation(fields: [workoutId], references: [workoutId])
 
   @@index([workoutId])
 }
