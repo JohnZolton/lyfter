@@ -7,7 +7,7 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 
-import type { User, Workout, Exercise, WorkoutPlan } from "@prisma/client"
+import type { User, Workout, Exercise, WorkoutPlan, ModelWorkoutPlan } from "@prisma/client"
 import { prisma } from "~/server/db";
 import { Input } from "postcss";
 
@@ -234,6 +234,58 @@ export const getAllWorkouts = createTRPCRouter({
         thursday: input.thursday,
         friday: input.friday,
         saturday: input.saturday,
+      }
+    })
+    if (!workoutplan){
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: "Failed to create workout plan"
+      })
+    }
+    return workoutplan
+  }),
+
+  newTestPlan: privateProcedure.input(
+    z.object({
+        workouts: z.array(
+          z.object({
+            description: z.string(),
+            nominalDay: z.string(),
+            exercises: z.array(
+              z.object({
+                description: z.string(),
+                weight: z.number(),
+                sets: z.number(),
+              })
+            ),
+          })
+        ),
+      })
+  ).mutation(async ({ ctx, input }) => {
+    const {workouts} = input
+    const workoutplan = await ctx.prisma.modelWorkoutPlan.create({
+      data: {
+        userId: ctx.userId,
+        workouts: {
+          create: workouts.map((workout)=>({
+            description: workout.description,
+            nominalDay: workout.nominalDay,
+            exercises: {
+              create: workout.exercises.map((exercise)=>({
+                description: exercise.description,
+                weight: exercise.weight,
+                sets: exercise.sets,
+              }))
+            }
+          }))
+        },
+      },
+      include: {
+        workouts: {
+          include: {
+            exercises: true
+          }
+        }
       }
     })
     if (!workoutplan){

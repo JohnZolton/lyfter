@@ -147,7 +147,7 @@ model ModelExercise {
   date       DateTime   @default(now())
   description String
   weight      Int
-  sets        String
+  sets        Int
   workoutId String
   workout ModelWorkout    @relation(fields: [workoutId], references: [workoutId])
 
