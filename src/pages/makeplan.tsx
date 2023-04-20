@@ -83,6 +83,8 @@ export default Home;
 function NewWorkoutUi(){
   return(
     <div>
+      <MakePplSplit></MakePplSplit>
+      <br></br>
       <WeekForm></WeekForm>
     </div>
   )
@@ -190,4 +192,91 @@ function WorkoutForm( {days} : WorkoutFormProps){
     </div>
     </div>
   )
+}
+
+function MakePplSplit(){
+  const {mutate: makePlan, isLoading} = api.getWorkouts.newWorkoutPlan.useMutation({
+    onSuccess(data, variables, context) {
+      console.log(data)
+    },
+    })
+
+  const user = useUser()
+  function handleClick(){
+    console.log('clicked')
+    
+  }
+  return(<div>
+    <button
+     onClick={handleClick}
+     className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400">Use the best Push/Pull/Legs Split ever</button>
+  </div>)
+}
+
+type ExerciseTemplate = {
+  name: string;
+  weight: number;
+  sets: number;
+};
+
+type WorkoutTemplate = {
+  name: string;
+  exercises: ExerciseTemplate[];
+}
+
+const PushFirst: WorkoutTemplate = {
+  name: "Push #1",
+  exercises: [
+    {name: "Atlantis Side Raise", weight: 90, sets: 4},
+    {name: "Calf Raise", weight: 220, sets: 4},
+    {name: "Machine Press", weight: 185, sets: 3},
+    {name: "Incline DB Press", weight: 60, sets: 2},
+    {name: "Cable Pushdown", weight: 120, sets: 4},
+
+  ]
+}
+const PushSecond: WorkoutTemplate = {
+  name: "Push #2",
+  exercises: [
+    {name: "Machine Press", weight: 185, sets: 3},
+    {name: "Incline DB Press", weight: 60, sets: 2},
+    {name: "Cable Upright Row", weight: 70, sets: 4},
+    {name: "Cable Pushdown", weight: 120, sets: 4},
+    {name: "Leg Raise", weight: 0, sets: 4},
+  ]
+}
+const LegFirst: WorkoutTemplate = {
+  name: "Legs #1",
+  exercises: [
+    {name: "DB RDL", weight: 100, sets: 2},
+    {name: "Belt Squat", weight: 135, sets: 4},
+    {name: "Candlesticks", weight: 0, sets: 4},
+  ]
+}
+const LegSecond: WorkoutTemplate = {
+  name: "Legs #2",
+  exercises: [
+    {name: "Belt Squat", weight: 135, sets: 4},
+    {name: "Ham Curl", weight: 100, sets: 4},
+    {name: "Calf Raise", weight: 220, sets: 4},
+  ]
+}
+const PullFirst: WorkoutTemplate = {
+  name: "Pull #1",
+  exercises: [
+    {name: "Calf Raise", weight: 220, sets: 4},
+    {name: "Lat Pulldown", weight: 140, sets: 4},
+    {name: "Machine Row", weight: 185, sets: 4},
+    {name: "Bicep Curl", weight: 40, sets: 4},
+  ]
+}
+const PullSecond: WorkoutTemplate = {
+  name: "Pull #2",
+  exercises: [
+    {name: "Machine Row", weight: 185, sets: 4},
+    {name: "Lat Pulldown", weight: 140, sets: 4},
+    {name: "Atlantis Side Raise", weight: 90, sets: 4},
+    {name: "Bicep Curl", weight: 40, sets: 4},
+    {name: "Candlesticks", weight: 0, sets: 4},
+  ]
 }
