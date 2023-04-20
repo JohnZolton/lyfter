@@ -9,6 +9,7 @@ import {
 
 import type { User, Workout, Exercise, WorkoutPlan } from "@prisma/client"
 import { prisma } from "~/server/db";
+import { Input } from "postcss";
 
 
 export const getAllWorkouts = createTRPCRouter({
@@ -39,6 +40,26 @@ export const getAllWorkouts = createTRPCRouter({
       })
     }
     return workouts
+  }),
+  
+  getPreviousWorkout: privateProcedure.input(z.object({
+    nominalDay: z.string(),
+  })).query(async ({ctx, input}) => {
+    const workout = await ctx.prisma.testWorkout.findMany({
+      where: {
+        userId: ctx.userId,
+        nominalDay: input.nominalDay,
+      },
+      orderBy: {date: "desc"},
+      include: { exercises: true},
+    })
+    if (!workout){
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "No workout with that User"
+      })
+    }
+    return workout
   }),
 
   getLastWeekbyUserId: privateProcedure.query(async ({ctx}) => {
@@ -115,7 +136,8 @@ export const getAllWorkouts = createTRPCRouter({
 }),
 
   newWorkout: privateProcedure.input(z.object({
-    description: z.string()
+    description: z.string(),
+    nominalDay: z.string()
   })).mutation(async ({ ctx, input}) => {
     const userId = ctx.userId;
     const description = input.description
