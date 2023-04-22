@@ -146,10 +146,44 @@ model ModelExercise {
   exerciseId  String @id @default(cuid())
   date       DateTime   @default(now())
   description String
-  weight      Int
+  weight      Int?
   sets        Int
   workoutId String
   workout ModelWorkout    @relation(fields: [workoutId], references: [workoutId])
+
+  previousExercise   ModelExercise? @relation("previousExercise", fields: [previousExerciseId], references: [exerciseId], onDelete: NoAction, onUpdate: NoAction)
+  previousExerciseId String? @unique
+  nextExercise       ModelExercise? @relation("previousExercise")
+  nextExerciseId     String?
+
+  @@index([workoutId])
+}
+
+model ActualWorkout {
+  workoutId  String    @id @default(cuid())
+  date       DateTime   @default(now())
+  nominalDay String
+  userId     String 
+  description String
+  exercises ActualExercise[]
+  workoutNumber Int
+
+  @@index([userId])
+}
+
+model ActualExercise {
+  exerciseId  String @id @default(cuid())
+  date       DateTime   @default(now())
+  description String
+  weight      Int?
+  sets        Int
+  workoutId String
+  workout ActualWorkout    @relation(fields: [workoutId], references: [workoutId])
+
+  previousExercise   ActualExercise? @relation("previousExercise", fields: [previousExerciseId], references: [exerciseId], onDelete: NoAction, onUpdate: NoAction)
+  previousExerciseId String? @unique
+  nextExercise       ActualExercise? @relation("previousExercise")
+  nextExerciseId     String?
 
   @@index([workoutId])
 }

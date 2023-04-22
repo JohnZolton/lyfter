@@ -16,7 +16,7 @@ import {
 import { userAgent } from "next/server";
 import { userInfo } from "os";
 import { boolean, set } from "zod";
-import type { User, Workout, Exercise, TestExercise, TestWorkout } from "@prisma/client"
+import { User, Workout, Exercise, TestExercise, TestWorkout, ModelWorkout, ModelExercise } from "@prisma/client"
 import { prisma } from "~/server/db";
 import { start } from "repl";
 
@@ -145,7 +145,7 @@ function WorkoutUi(){
 
     const {mutate: makeNewWorkout, isLoading} = api.getWorkouts.newWorkout.useMutation({
     onSuccess(data, variables, context) {
-      setNewWorkout(data)
+      //setNewWorkout(data)
     },
     })
 
@@ -171,8 +171,139 @@ function WorkoutUi(){
     
     return(
       <div>
-        <LastWorkout workoutHistory={workoutHistory}></LastWorkout>
+        <h3 className="text-xl font-bold">Todays Workout</h3>
+        <br></br>
+        {!inProgress && <CurrentWorkout/>}
+
+        {//<LastWorkout workoutHistory={workoutHistory}></LastWorkout>
+    }
       </div>
     )
 
+}
+
+interface WorkoutPlanProps{
+  setWorkout: React.Dispatch<React.SetStateAction<
+  ModelWorkout & {
+    exercises: ModelExercise[];
+}
+  >>
+}
+
+function WorkoutPlan( {setWorkout}: WorkoutPlanProps){
+  const [todaysWorkout, setTodaysWorkout] = useState<ModelWorkout>()
+  const {data: workoutPlan} = api.getWorkouts.getWorkoutPlan.useQuery()
+
+  const today = new Date()
+  const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const todayName = weekdays[today.getDay()];
+  console.log(todaysWorkout)
+
+  if (workoutPlan){
+    const newWorkout = workoutPlan[0]?.workouts.find((workout) => workout.nominalDay === todayName)
+    if (newWorkout && !todaysWorkout){
+      setTodaysWorkout(newWorkout)
+      setWorkout(newWorkout)
+    }
+  return(
+    <div>
+      {workoutPlan?.[0]?.workouts?.map((workout, index) => (
+        <div key={index}>
+          <div>{workout.nominalDay}: {workout.description}</div>
+          <div>
+            {workout?.exercises.map((exercise, exIndex) => (
+              <div key={exIndex}>
+                <div>{exercise.description}: {exercise.weight} x {exercise.sets}</div>
+              </div>
+            ))}
+          </div>
+          <br></br>
+        </div>
+      ))}
+    </div>
+  )
+}
+return null
+}
+
+interface WorkoutWithExercise {
+  workoutId: string;
+  date: Date;
+  nominalDay: string;
+  userId: string;
+  description: string;
+  exercises: ModelExercise[];
+}
+
+function CurrentWorkout(){
+  const [todaysWorkout, setTodaysWorkout] = useState<WorkoutWithExercise>()
+  const [workoutStarted, setWorkoutStarted] = useState(false)
+  const {data: workoutPlan} = api.getWorkouts.getWorkoutPlan.useQuery()
+
+  const today = new Date()
+  const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const todayName = weekdays[today.getDay()];
+
+
+  if (workoutPlan && !todaysWorkout){
+    const newWorkout = workoutPlan[0]?.workouts.find((workout) => workout.nominalDay === todayName)
+    if (newWorkout && !todaysWorkout){
+      setTodaysWorkout(newWorkout)
+    }
+  }
+  if (!todaysWorkout){
+    return(
+        <div
+            className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] text-primary motion-reduce:animate-[spin_1.5s_linear_infinite]"
+            role="status">
+            <span
+                className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]"
+                >Loading...</span
+            >
+        </div>
+      )
+    }
+  if (todaysWorkout ){
+    console.log(todaysWorkout)
+
+  return(
+    <div>
+      {(!workoutStarted) && todaysWorkout?.exercises?.map((exercise, index)=> (
+      <div key={index}>{exercise.description}: {exercise.weight} x {exercise.sets}</div>
+    ))}
+    {(!workoutStarted) && <StartWorkoutButton startWorkout={setWorkoutStarted}/>}
+    {(workoutStarted && <WorkoutHandler {...todaysWorkout}/>)}
+
+    </div>
+  )
+  }
+  
+
+return null
+}
+
+interface DoWorkoutProps{
+  startWorkout: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+function StartWorkoutButton( {startWorkout}: DoWorkoutProps){
+  function handleClick(){
+    startWorkout(true)
+  }
+  return(
+    <div>
+      <button onClick={handleClick}>Begin Workout</button>
+    </div>
+  )
+}
+
+function WorkoutHandler( workout: WorkoutWithExercise){
+  console.log(workout)
+  return(
+    <div>
+      <div>{workout.exercises?.map((exercise, index)=>(
+        <div key={index}>{exercise.description}</div>
+      ))}</div>
+    </div>
+  )
 }
