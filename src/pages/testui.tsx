@@ -173,7 +173,8 @@ function WorkoutUi(){
       <div>
         <h3 className="text-xl font-bold">Todays Workout</h3>
         <br></br>
-        <CurrentWorkout/>
+        {!inProgress && <CurrentWorkout/>}
+
         {//<LastWorkout workoutHistory={workoutHistory}></LastWorkout>
     }
       </div>
@@ -181,8 +182,15 @@ function WorkoutUi(){
 
 }
 
+interface WorkoutPlanProps{
+  setWorkout: React.Dispatch<React.SetStateAction<
+  ModelWorkout & {
+    exercises: ModelExercise[];
+}
+  >>
+}
 
-function WorkoutPlan(){
+function WorkoutPlan( {setWorkout}: WorkoutPlanProps){
   const [todaysWorkout, setTodaysWorkout] = useState<ModelWorkout>()
   const {data: workoutPlan} = api.getWorkouts.getWorkoutPlan.useQuery()
 
@@ -195,6 +203,7 @@ function WorkoutPlan(){
     const newWorkout = workoutPlan[0]?.workouts.find((workout) => workout.nominalDay === todayName)
     if (newWorkout && !todaysWorkout){
       setTodaysWorkout(newWorkout)
+      setWorkout(newWorkout)
     }
   return(
     <div>
@@ -217,7 +226,7 @@ function WorkoutPlan(){
 return null
 }
 
-interface Workout {
+interface WorkoutWithExercise {
   workoutId: string;
   date: Date;
   nominalDay: string;
@@ -227,7 +236,8 @@ interface Workout {
 }
 
 function CurrentWorkout(){
-  const [todaysWorkout, setTodaysWorkout] = useState<Workout>()
+  const [todaysWorkout, setTodaysWorkout] = useState<WorkoutWithExercise>()
+  const [workoutStarted, setWorkoutStarted] = useState(false)
   const {data: workoutPlan} = api.getWorkouts.getWorkoutPlan.useQuery()
 
   const today = new Date()
@@ -258,9 +268,11 @@ function CurrentWorkout(){
 
   return(
     <div>
-      {todaysWorkout?.exercises?.map((exercise, index)=> (
+      {(!workoutStarted) && todaysWorkout?.exercises?.map((exercise, index)=> (
       <div key={index}>{exercise.description}: {exercise.weight} x {exercise.sets}</div>
     ))}
+    {(!workoutStarted) && <StartWorkoutButton startWorkout={setWorkoutStarted}/>}
+    {(workoutStarted && <WorkoutHandler {...todaysWorkout}/>)}
 
     </div>
   )
@@ -270,3 +282,28 @@ function CurrentWorkout(){
 return null
 }
 
+interface DoWorkoutProps{
+  startWorkout: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+function StartWorkoutButton( {startWorkout}: DoWorkoutProps){
+  function handleClick(){
+    startWorkout(true)
+  }
+  return(
+    <div>
+      <button onClick={handleClick}>Begin Workout</button>
+    </div>
+  )
+}
+
+function WorkoutHandler( workout: WorkoutWithExercise){
+  console.log(workout)
+  return(
+    <div>
+      <div>{workout.exercises?.map((exercise, index)=>(
+        <div key={index}>{exercise.description}</div>
+      ))}</div>
+    </div>
+  )
+}
