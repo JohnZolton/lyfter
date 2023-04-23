@@ -280,6 +280,7 @@ function CurrentWorkout(){
     {(!workoutStarted) && <StartWorkoutButton startWorkout={setWorkoutStarted}/>}
     {(workoutStarted && todaysWorkout && <WorkoutHandler setCurrentExercise={setCurrentExercise} workout={todaysWorkout}/>)}
     {(workoutStarted) && <CurrentExercise setCurrentExercise={setCurrentExercise} exercise={currentExercise}/>}
+    <ExerciseForm/>
 
     </div>
   )
@@ -425,3 +426,98 @@ function ActualWorkoutDisplay(){
     </div>
   )
 }
+
+
+interface saveSetProps {
+  weight: number;
+  reps: number;
+  rir: number;
+  event: React.FormEvent<HTMLFormElement>;
+}
+
+function ExerciseForm() {
+  const [data, setData] = useState<[]>([])
+
+
+  const handleSaveSet = ({weight, reps, rir, event}: saveSetProps ) => {
+    event.preventDefault();
+    const newData = [...data, [weight, reps, rir]]
+    //setData(newData)
+    console.log(`weight: ${weight}, reps: ${reps}, rir: ${rir}`)
+  };
+
+
+  return (
+    <div className="p-4">
+      <SetForm saveSet={handleSaveSet}/>
+    </div>)
+
+  }
+
+interface setFormProps {
+  saveSet: ({ weight, reps, rir, event }: { weight: number, reps: number, rir: number, event: React.FormEvent<HTMLFormElement>}) => void;
+}
+
+function SetForm( {saveSet}: setFormProps ) {
+  const [weight, setWeight] = useState<number>(0);
+  const [reps, setReps] = useState<number>(0);
+  const [rir, setRir] = useState<number>(0);
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+
+  const handleWeightChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setWeight(parseInt(event.target.value));
+  };
+
+  const handleRepsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setReps(parseInt(event.target.value));
+  };
+
+  const handleRirChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRir(parseInt(event.target.value));
+  };
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    saveSet({weight: weight, reps: reps, rir: rir, event: event})
+    setReps(0)
+    setRir(0)
+    setIsSubmitted(true);
+  };
+
+
+  return (
+    <div className="p-4">
+      <div>Set Form:</div>
+      <form onSubmit={handleSubmit}>
+        <label>
+          Weight:
+          <input
+            className="text-black"
+            type="number"
+            value={weight}
+            onChange={handleWeightChange}
+          />
+        </label>
+        <label>
+          Reps:
+          <input
+            className="text-black"
+            type="number"
+            value={reps}
+            onChange={handleRepsChange}
+          />
+        </label>
+        <label>
+          RIR:
+          <input
+            className="text-black"
+            type="number"
+            value={rir}
+            onChange={handleRirChange}
+          />
+        </label>
+        <button type="submit">Save</button>
+      </form>
+    </div>)
+
+  }
