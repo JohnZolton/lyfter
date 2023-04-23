@@ -2,7 +2,7 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { api } from "~/utils/api";
-import React, { useState, useTransition } from 'react'
+import React, { FormEvent, useState, useTransition, useRef } from 'react'
 import {
   ClerkProvider,
   RedirectToOrganizationProfile,
@@ -16,7 +16,7 @@ import {
 import { userAgent } from "next/server";
 import { userInfo } from "os";
 import { boolean, set } from "zod";
-import { User, Workout, Exercise, TestExercise, TestWorkout, ModelWorkout, ModelExercise } from "@prisma/client"
+import { ActualWorkout, ActualExercise, User, Workout, Exercise, TestExercise, TestWorkout, ModelWorkout, ModelExercise } from "@prisma/client"
 import { prisma } from "~/server/db";
 import { start } from "repl";
 
@@ -238,7 +238,8 @@ interface WorkoutWithExercise {
 function CurrentWorkout(){
   const [todaysWorkout, setTodaysWorkout] = useState<WorkoutWithExercise>()
   const [workoutStarted, setWorkoutStarted] = useState(false)
-  const {data: workoutPlan} = api.getWorkouts.getWorkoutPlan.useQuery()
+  const [currentExercise, setCurrentExercise] = useState<ModelExercise | undefined >()
+  const {data: workoutPlan, isLoading} = api.getWorkouts.getWorkoutPlan.useQuery()
 
   const today = new Date()
   const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -246,12 +247,13 @@ function CurrentWorkout(){
 
 
   if (workoutPlan && !todaysWorkout){
-    const newWorkout = workoutPlan[0]?.workouts.find((workout) => workout.nominalDay === todayName)
+    //const newWorkout = workoutPlan[0]?.workouts.find((workout) => workout.nominalDay === todayName)
+    const newWorkout = workoutPlan[0]?.workouts.find((workout) => workout.nominalDay === "Saturday")
     if (newWorkout && !todaysWorkout){
       setTodaysWorkout(newWorkout)
     }
   }
-  if (!todaysWorkout){
+  if (isLoading){
     return(
         <div
             className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] text-primary motion-reduce:animate-[spin_1.5s_linear_infinite]"
@@ -263,6 +265,9 @@ function CurrentWorkout(){
         </div>
       )
     }
+  if (!todaysWorkout){
+    return(<div>No Workout</div>)
+  }
   if (todaysWorkout ){
     console.log(todaysWorkout)
 
@@ -271,8 +276,10 @@ function CurrentWorkout(){
       {(!workoutStarted) && todaysWorkout?.exercises?.map((exercise, index)=> (
       <div key={index}>{exercise.description}: {exercise.weight} x {exercise.sets}</div>
     ))}
+    <br></br>
     {(!workoutStarted) && <StartWorkoutButton startWorkout={setWorkoutStarted}/>}
-    {(workoutStarted && <WorkoutHandler {...todaysWorkout}/>)}
+    {(workoutStarted && todaysWorkout && <WorkoutHandler setCurrentExercise={setCurrentExercise} workout={todaysWorkout}/>)}
+    {(workoutStarted) && <CurrentExercise setCurrentExercise={setCurrentExercise} exercise={currentExercise}/>}
 
     </div>
   )
@@ -284,6 +291,7 @@ return null
 
 interface DoWorkoutProps{
   startWorkout: React.Dispatch<React.SetStateAction<boolean>>;
+ 
 }
 
 function StartWorkoutButton( {startWorkout}: DoWorkoutProps){
@@ -292,18 +300,128 @@ function StartWorkoutButton( {startWorkout}: DoWorkoutProps){
   }
   return(
     <div>
-      <button onClick={handleClick}>Begin Workout</button>
+      <button 
+      className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
+      onClick={handleClick}>Begin Workout</button>
     </div>
   )
 }
 
-function WorkoutHandler( workout: WorkoutWithExercise){
+
+interface WorkoutHandlerProps{
+  setCurrentExercise: React.Dispatch<React.SetStateAction<ModelExercise | undefined>>;
+  workout: WorkoutWithExercise;
+}
+
+function WorkoutHandler( {workout, setCurrentExercise}: WorkoutHandlerProps){
   console.log(workout)
+
+  function handleClick( thisexercise: ModelExercise){
+    setCurrentExercise(thisexercise)
+  }
   return(
     <div>
-      <div>{workout.exercises?.map((exercise, index)=>(
-        <div key={index}>{exercise.description}</div>
+      <div className="flex flex-col items-center">{workout.exercises?.map((exercise, index)=>(
+        <div className="flex flex-row items-center m-2" key={index}>
+          <div>{exercise.description}</div>
+          <button
+          onClick={()=> handleClick(exercise)}
+        className="p-1 mx-2 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
+          >Begin</button>
+        </div>
       ))}</div>
+    </div>
+  )
+}
+
+interface CurrentExerciseProps{
+  exercise: ModelExercise | undefined; 
+  setCurrentExercise: React.Dispatch<React.SetStateAction<ModelExercise | undefined>>;
+}
+
+function CurrentExercise( {exercise, setCurrentExercise} : CurrentExerciseProps){
+  const [weight, setWeight] = useState<number | undefined>()
+  const [sets, setSets] = useState<number[]>([])
+  const repsInputRef = useRef<HTMLInputElement>(null)
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>){
+    event.preventDefault()
+    const input = event.currentTarget.elements[0] as HTMLInputElement
+    const inputValue = input.value
+    if (inputValue){
+      const newSets = [...sets, Number(inputValue)];
+      setSets(newSets)
+      event.currentTarget.reset()
+      repsInputRef.current?.focus()
+    }
+  }
+  function handleWeight(event: FormEvent<HTMLFormElement>){
+    event.preventDefault()
+    const input = event.currentTarget.elements[0] as HTMLInputElement
+    const weight = input.value
+    if (weight){
+      setWeight(Number(weight))
+      event.currentTarget.reset()
+    }
+  }
+
+  function handleSaveExercise(){
+    setCurrentExercise(undefined)
+    setSets([])
+  }
+
+  if(exercise){
+  return(
+  <div>
+    <div>{exercise.description}: {exercise.weight ===0 ? "BW" : exercise.weight} x {exercise.sets} sets</div>
+    <div>
+    {weight} x {sets.join(', ')}
+    </div>
+    {(!weight) && 
+    <form onSubmit={handleWeight}>
+    <label>Weight: </label>
+      <input className="text-black"type="number" required></input>
+    <button type="submit"
+      className="p-1 mx-2 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
+    >Save</button>
+    </form>
+    }
+    <form onSubmit={handleSubmit}>
+    <div className="my-2">
+      <label>Reps: </label>
+      <input className="text-black"type="number" ref={repsInputRef} required></input>
+    </div>
+    <div className="my-2">
+      <label>RIR: </label>
+      <input className="text-black"type="number" required></input>
+    </div>
+    <button type="submit"
+      className="p-1 mx-2 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
+    >Add Set</button>
+    </form>
+    
+    <button 
+      onClick={handleSaveExercise}
+      className="p-1 m-2 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
+    >Next Exercise</button>
+  </div>
+  )
+  }
+  return null
+}
+
+interface ActualWorkoutDisplay{
+  nominalDay: string;
+  userId: string;
+  description: string;
+  workoutNumber: number;
+  exercises: ActualExercise[];
+}
+
+function ActualWorkoutDisplay(){
+  return(
+    <div>
+      <div>Actual Workout here</div>
     </div>
   )
 }
