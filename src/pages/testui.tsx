@@ -229,12 +229,12 @@ interface WorkoutWithExercise {
 }
 
 interface WorkoutActual {
-  nominalDay: string;
-  description: string;
+  nominalDay?: string | undefined;
+  description?: string | undefined;
   exercises: ExerciseActual[];
 }
 interface ExerciseActual {
-  description: string;
+  description: string | undefined;
   sets: resultOfSet[];
 }
 
@@ -257,7 +257,7 @@ function CurrentWorkout(){
   const [workoutStarted, setWorkoutStarted] = useState(false)
   const [currentExercise, setCurrentExercise] = useState<ModelExercise | undefined >()
   const {data: workoutPlan, isLoading} = api.getWorkouts.getWorkoutPlan.useQuery()
-  const [workoutActual, setWorkoutActual] = useState<WorkoutActual | undefined>()
+  const [workoutActual, setWorkoutActual] = useState<WorkoutActual>()
   const [exerciseActual, setExerciseActual] = useState<ExerciseActual | undefined>()
 
   console.log("workout: ")
@@ -270,17 +270,56 @@ function CurrentWorkout(){
   const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const todayName = weekdays[today.getDay()];
 
-  function updateWorkout( newExercise: ExerciseActual){
-    setWorkoutActual(prev => {
+  if (!workoutActual && todaysWorkout){
+    //populate exercises and weight
+    const newWorkoutActual : WorkoutActual = {
+      nominalDay: todaysWorkout?.nominalDay,
+      description: todaysWorkout?.description,
+      exercises: [],
+    }
+    todaysWorkout.exercises.forEach((exercise)=>(
+      newWorkoutActual.exercises.push({
+        description: exercise.description,
+        sets: [],
+      } as ExerciseActual)
+    ))
+    setWorkoutActual(newWorkoutActual)
+  }
+  function updateWorkout(newExercise: ExerciseActual) {
+  setWorkoutActual(prev => {
+    const existingExerciseIndex = prev?.exercises.findIndex(exercise => exercise.description === newExercise.description);
+    if (existingExerciseIndex !== -1 && existingExerciseIndex!== undefined) {
+      if (!prev){return}
+      const updatedExercises = [...prev.exercises];
+      updatedExercises[existingExerciseIndex] = newExercise;
+      return {
+        ...prev,
+        exercises: updatedExercises
+      };
+    } else {
       const newExercises = prev?.exercises ? [...prev.exercises, newExercise] : [newExercise];
       return {
         ...prev,
         exercises: newExercises,
-        nominalDay: prev?.nominalDay ?? '', // use empty string as default value
-        description: prev?.description ?? '', // use empty string as default value
-      } as WorkoutActual; // type assertion
-    })
-  }
+        nominalDay: todaysWorkout?.nominalDay ?? "",
+        description: todaysWorkout?.description ?? '',
+      } as WorkoutActual;
+    }
+  });
+}
+
+  //function updateWorkout( newExercise: ExerciseActual){
+    //console.log(newExercise.description)
+    //setWorkoutActual(prev => {
+      //const newExercises = prev?.exercises ? [...prev.exercises, newExercise] : [newExercise];
+      //return {
+        //...prev,
+        //exercises: newExercises,
+        //nominalDay: todaysWorkout?.nominalDay ?? "", // use empty string as default value
+        //description: todaysWorkout?.description ?? '', // use empty string as default value
+      //} as WorkoutActual; // type assertion
+    //})
+  //}
 
 
   if (workoutPlan && !todaysWorkout){
@@ -296,8 +335,6 @@ function CurrentWorkout(){
     return(<div>No Workout</div>)
   }
   if (todaysWorkout ){
-    console.log(todaysWorkout)
-    console.log(exerciseActual)
 
   return(
     <div>
@@ -312,7 +349,7 @@ function CurrentWorkout(){
     exerciseActual={exerciseActual}
     updateExercise={setExerciseActual}
     setCurrentExercise={setCurrentExercise} exercise={currentExercise}/>
-
+    {(workoutActual) && <CompletedWork workout={workoutActual}/>}
     </div>
   )
   }
@@ -618,3 +655,24 @@ function SetForm( {saveSet}: setFormProps ) {
     </div>)
 
   }
+
+
+  interface CompletedWorkProps{
+    workout: WorkoutActual;
+  }
+
+  function CompletedWork({workout}: CompletedWorkProps){
+    return(
+      <div>
+      <div>{workout.description}</div>
+      <div>
+        {workout.exercises.map((exercise, index)=>(
+        <div key={index}>
+          <div>{exercise.description}</div>
+          <div>{exercise.sets.map((setData, place) => (
+            <div key={place}>{setData.weight} x {setData.reps} at {setData.rir} RIR</div>
+          ))}</div>
+        </div>
+      ))}</div>
+      </div>
+ )} 
