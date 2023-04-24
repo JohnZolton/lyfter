@@ -411,6 +411,13 @@ function CurrentExercise( {exercise, setCurrentExercise} : CurrentExerciseProps)
   return null
 }
 
+type resultOfSet = {
+    weight: number;
+    reps: number;
+    rir: number;
+}
+
+
 interface ActualWorkoutDisplay{
   nominalDay: string;
   userId: string;
@@ -435,23 +442,48 @@ interface saveSetProps {
   event: React.FormEvent<HTMLFormElement>;
 }
 
+
+
 function ExerciseForm() {
-  const [data, setData] = useState<[]>([])
+  const [data, setData] = useState<resultOfSet[]>([])
 
 
   const handleSaveSet = ({weight, reps, rir, event}: saveSetProps ) => {
     event.preventDefault();
-    const newData = [...data, [weight, reps, rir]]
-    //setData(newData)
+    const newSet : resultOfSet = {
+      weight: weight,
+      reps: reps,
+      rir: rir,
+    }
+    const newData = [...data, newSet]
+    setData(newData)
     console.log(`weight: ${weight}, reps: ${reps}, rir: ${rir}`)
   };
 
 
   return (
     <div className="p-4">
+      <DisplayTotalSets sets={data}/>
       <SetForm saveSet={handleSaveSet}/>
     </div>)
 
+  }
+
+type exerciseResult = {
+  sets: resultOfSet[];
+}
+
+  function DisplayTotalSets({sets}: exerciseResult){
+    if (!sets){
+      return(<div></div>)
+    }
+    return(
+      <div>
+        {sets?.map((currentSet, index)=>(
+          <div key={index}>{currentSet.weight} x {currentSet.reps} ({currentSet.rir})</div>
+        ))}
+      </div>
+    )
   }
 
 interface setFormProps {
