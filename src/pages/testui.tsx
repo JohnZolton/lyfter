@@ -235,6 +235,16 @@ interface WorkoutWithExercise {
   exercises: ModelExercise[];
 }
 
+interface WorkoutActual {
+  nominalDay: string;
+  description: string;
+  exercises: ExerciseActual[];
+}
+interface ExerciseActual {
+  description: string;
+  sets: resultOfSet[];
+}
+
 function CurrentWorkout(){
   const [todaysWorkout, setTodaysWorkout] = useState<WorkoutWithExercise>()
   const [workoutStarted, setWorkoutStarted] = useState(false)
@@ -278,9 +288,8 @@ function CurrentWorkout(){
     ))}
     <br></br>
     {(!workoutStarted) && <StartWorkoutButton startWorkout={setWorkoutStarted}/>}
-    {(workoutStarted && todaysWorkout && <WorkoutHandler setCurrentExercise={setCurrentExercise} workout={todaysWorkout}/>)}
-    {(workoutStarted) && <CurrentExercise setCurrentExercise={setCurrentExercise} exercise={currentExercise}/>}
-    <ExerciseForm/>
+    {(workoutStarted && !currentExercise && todaysWorkout && <WorkoutHandler setCurrentExercise={setCurrentExercise} workout={todaysWorkout}/>)}
+    {(workoutStarted) && <ExerciseForm setCurrentExercise={setCurrentExercise} exercise={currentExercise}/>}
 
     </div>
   )
@@ -444,7 +453,8 @@ interface saveSetProps {
 
 
 
-function ExerciseForm() {
+function ExerciseForm({exercise, setCurrentExercise} : CurrentExerciseProps) {
+  //needs to know current exercise, update exerciseActual
   const [data, setData] = useState<resultOfSet[]>([])
 
 
@@ -459,12 +469,21 @@ function ExerciseForm() {
     setData(newData)
     console.log(`weight: ${weight}, reps: ${reps}, rir: ${rir}`)
   };
+  function handleSaveExercise(){
+    //need to save it
+    setCurrentExercise(undefined)
+    setData([])
+  }
 
 
   return (
     <div className="p-4">
+      <div>{exercise?.description} ({exercise?.weight} x {exercise?.sets})</div>
       <DisplayTotalSets sets={data}/>
       <SetForm saveSet={handleSaveSet}/>
+      <button
+      onClick={handleSaveExercise}
+      >Next Exercise</button>
     </div>)
 
   }
@@ -480,7 +499,7 @@ type exerciseResult = {
     return(
       <div>
         {sets?.map((currentSet, index)=>(
-          <div key={index}>{currentSet.weight} x {currentSet.reps} ({currentSet.rir})</div>
+          <div key={index}>{currentSet.weight} x {currentSet.reps} ({currentSet.rir} RIR)</div>
         ))}
       </div>
     )
@@ -495,6 +514,7 @@ function SetForm( {saveSet}: setFormProps ) {
   const [reps, setReps] = useState<number>(0);
   const [rir, setRir] = useState<number>(0);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const repsInputRef = useRef<HTMLInputElement>(null)
 
   const handleWeightChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setWeight(parseInt(event.target.value));
@@ -512,8 +532,8 @@ function SetForm( {saveSet}: setFormProps ) {
     event.preventDefault();
     saveSet({weight: weight, reps: reps, rir: rir, event: event})
     setReps(0)
-    setRir(0)
     setIsSubmitted(true);
+    repsInputRef.current?.focus()
   };
 
 
@@ -535,6 +555,7 @@ function SetForm( {saveSet}: setFormProps ) {
           <input
             className="text-black"
             type="number"
+            ref={repsInputRef}
             value={reps}
             onChange={handleRepsChange}
           />
