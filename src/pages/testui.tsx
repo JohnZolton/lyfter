@@ -270,8 +270,8 @@ function CurrentWorkout(){
   const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const todayName = weekdays[today.getDay()];
 
+  //populate exercises and weight
   if (!workoutActual && todaysWorkout){
-    //populate exercises and weight
     const newWorkoutActual : WorkoutActual = {
       nominalDay: todaysWorkout?.nominalDay,
       description: todaysWorkout?.description,
@@ -285,6 +285,7 @@ function CurrentWorkout(){
     ))
     setWorkoutActual(newWorkoutActual)
   }
+
   function updateWorkout(newExercise: ExerciseActual) {
   setWorkoutActual(prev => {
     const existingExerciseIndex = prev?.exercises.findIndex(exercise => exercise.description === newExercise.description);
@@ -303,29 +304,15 @@ function CurrentWorkout(){
         exercises: newExercises,
         nominalDay: todaysWorkout?.nominalDay ?? "",
         description: todaysWorkout?.description ?? '',
-      } as WorkoutActual;
+      } ;
     }
   });
 }
 
-  //function updateWorkout( newExercise: ExerciseActual){
-    //console.log(newExercise.description)
-    //setWorkoutActual(prev => {
-      //const newExercises = prev?.exercises ? [...prev.exercises, newExercise] : [newExercise];
-      //return {
-        //...prev,
-        //exercises: newExercises,
-        //nominalDay: todaysWorkout?.nominalDay ?? "", // use empty string as default value
-        //description: todaysWorkout?.description ?? '', // use empty string as default value
-      //} as WorkoutActual; // type assertion
-    //})
-  //}
-
-
   if (workoutPlan && !todaysWorkout){
     const newWorkout = workoutPlan[0]?.workouts.find((workout) => workout.nominalDay === todayName)
     //const newWorkout = workoutPlan[0]?.workouts.find((workout) => workout.nominalDay === "Saturday")
-    if (newWorkout && !todaysWorkout){
+    if (newWorkout){
       setTodaysWorkout(newWorkout)
     }
   }
@@ -348,6 +335,7 @@ function CurrentWorkout(){
     updateWorkout={updateWorkout}
     exerciseActual={exerciseActual}
     updateExercise={setExerciseActual}
+    setWorkoutActual={updateWorkout}
     setCurrentExercise={setCurrentExercise} exercise={currentExercise}/>
     {(workoutActual) && <CompletedWork workout={workoutActual}/>}
     </div>
@@ -409,6 +397,7 @@ interface CurrentExerciseProps{
   setCurrentExercise: React.Dispatch<React.SetStateAction<ModelExercise | undefined>>;
   updateExercise: React.Dispatch<React.SetStateAction<ExerciseActual | undefined>>;
   updateWorkout: (newExercise: ExerciseActual)=> void;
+  setWorkoutActual: (newExercise: ExerciseActual)=> void;
 }
 
 //function CurrentExercise( {exercise, setCurrentExercise} : CurrentExerciseProps){
@@ -515,7 +504,7 @@ interface saveSetProps {
 
 
 
-function ExerciseForm({exercise, setCurrentExercise, updateExercise, exerciseActual, updateWorkout} : CurrentExerciseProps) {
+function ExerciseForm({exercise, setCurrentExercise, updateExercise, exerciseActual, updateWorkout, setWorkoutActual} : CurrentExerciseProps) {
   //needs to know current exercise, update exerciseActual
   const [data, setData] = useState<resultOfSet[]>([])
 
@@ -534,6 +523,7 @@ function ExerciseForm({exercise, setCurrentExercise, updateExercise, exerciseAct
         sets: newExerciseSets,
       }
       updateExercise(newExerciseActual)
+      setWorkoutActual(newExerciseActual)
     } else {
       const newExerciseSets = [newSet]
       const newExerciseActual: ExerciseActual = {
@@ -541,6 +531,7 @@ function ExerciseForm({exercise, setCurrentExercise, updateExercise, exerciseAct
         sets: newExerciseSets,
       }
       updateExercise(newExerciseActual)
+      setWorkoutActual(newExerciseActual)
     }
 
     const newData = [...data, newSet]
