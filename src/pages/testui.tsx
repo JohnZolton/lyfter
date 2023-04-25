@@ -2,7 +2,7 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { api } from "~/utils/api";
-import React, { FormEvent, useState, useTransition, useRef } from 'react'
+import React, { FormEvent, useState, useTransition, useRef, useEffect } from 'react'
 import {
   ClerkProvider,
   RedirectToOrganizationProfile,
@@ -128,7 +128,6 @@ function WorkoutUi(){
     const today = new Date()
     const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const todayName = weekdays[today.getDay()];
-    console.log(todayName); 
     
     if (todayName){
       const {data: testworkouts, isLoading: workoutsLoading } = api.getWorkouts.getPreviousWorkout.useQuery({
@@ -175,50 +174,6 @@ function WorkoutUi(){
 
 }
 
-interface WorkoutPlanProps{
-  setWorkout: React.Dispatch<React.SetStateAction<
-  ModelWorkout & {
-    exercises: ModelExercise[];
-}
-  >>
-}
-
-function WorkoutPlan( {setWorkout}: WorkoutPlanProps){
-  const [todaysWorkout, setTodaysWorkout] = useState<ModelWorkout>()
-  const {data: workoutPlan} = api.getWorkouts.getWorkoutPlan.useQuery()
-
-  const today = new Date()
-  const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const todayName = weekdays[today.getDay()];
-  console.log(todaysWorkout)
-
-  if (workoutPlan){
-    const newWorkout = workoutPlan[0]?.workouts.find((workout) => workout.nominalDay === todayName)
-    if (newWorkout && !todaysWorkout){
-      setTodaysWorkout(newWorkout)
-      setWorkout(newWorkout)
-    }
-  return(
-    <div>
-      {workoutPlan?.[0]?.workouts?.map((workout, index) => (
-        <div key={index}>
-          <div>{workout.nominalDay}: {workout.description}</div>
-          <div>
-            {workout?.exercises.map((exercise, exIndex) => (
-              <div key={exIndex}>
-                <div>{exercise.description}: {exercise.weight} x {exercise.sets}</div>
-              </div>
-            ))}
-          </div>
-          <br></br>
-        </div>
-      ))}
-    </div>
-  )
-}
-return null
-}
-
 interface WorkoutWithExercise {
   workoutId: string;
   date: Date;
@@ -229,8 +184,8 @@ interface WorkoutWithExercise {
 }
 
 interface WorkoutActual {
-  nominalDay?: string | undefined;
-  description?: string | undefined;
+  nominalDay: string | undefined;
+  description: string | undefined;
   exercises: ExerciseActual[];
 }
 interface ExerciseActual {
@@ -338,6 +293,7 @@ function CurrentWorkout(){
     setWorkoutActual={updateWorkout}
     setCurrentExercise={setCurrentExercise} exercise={currentExercise}/>
     {(workoutActual) && <CompletedWork workout={workoutActual}/>}
+    {(workoutActual) && <EndWorkout workout={workoutActual}/>}
     </div>
   )
   }
@@ -371,7 +327,6 @@ interface WorkoutHandlerProps{
 }
 
 function WorkoutHandler( {workout, setCurrentExercise}: WorkoutHandlerProps){
-  console.log(workout)
 
   function handleClick( thisexercise: ModelExercise){
     setCurrentExercise(thisexercise)
@@ -400,100 +355,11 @@ interface CurrentExerciseProps{
   setWorkoutActual: (newExercise: ExerciseActual)=> void;
 }
 
-//function CurrentExercise( {exercise, setCurrentExercise} : CurrentExerciseProps){
-  //const [weight, setWeight] = useState<number | undefined>()
-  //const [sets, setSets] = useState<number[]>([])
-  //const repsInputRef = useRef<HTMLInputElement>(null)
-
-  //function handleSubmit(event: FormEvent<HTMLFormElement>){
-    //event.preventDefault()
-    //const input = event.currentTarget.elements[0] as HTMLInputElement
-    //const inputValue = input.value
-    //if (inputValue){
-      //const newSets = [...sets, Number(inputValue)];
-      //setSets(newSets)
-      //event.currentTarget.reset()
-      //repsInputRef.current?.focus()
-    //}
-  //}
-  //function handleWeight(event: FormEvent<HTMLFormElement>){
-    //event.preventDefault()
-    //const input = event.currentTarget.elements[0] as HTMLInputElement
-    //const weight = input.value
-    //if (weight){
-      //setWeight(Number(weight))
-      //event.currentTarget.reset()
-    //}
-  //}
-
-  //function handleSaveExercise(){
-    //setCurrentExercise(undefined)
-    //setSets([])
-  //}
-
-  //if(exercise){
-  //return(
-  //<div>
-    //<div>{exercise.description}: {exercise.weight ===0 ? "BW" : exercise.weight} x {exercise.sets} sets</div>
-    //<div>
-    //{weight} x {sets.join(', ')}
-    //</div>
-    //{(!weight) && 
-    //<form onSubmit={handleWeight}>
-    //<label>Weight: </label>
-      //<input className="text-black"type="number" required></input>
-    //<button type="submit"
-      //className="p-1 mx-2 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
-    //>Save</button>
-    //</form>
-    //}
-    //<form onSubmit={handleSubmit}>
-    //<div className="my-2">
-      //<label>Reps: </label>
-      //<input className="text-black"type="number" ref={repsInputRef} required></input>
-    //</div>
-    //<div className="my-2">
-      //<label>RIR: </label>
-      //<input className="text-black"type="number" required></input>
-    //</div>
-    //<button type="submit"
-      //className="p-1 mx-2 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
-    //>Add Set</button>
-    //</form>
-    
-    //<button 
-      //onClick={handleSaveExercise}
-      //className="p-1 m-2 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
-    //>Next Exercise</button>
-  //</div>
-  //)
-  //}
-  //return null
-//}
-
 type resultOfSet = {
     weight: number;
     reps: number;
     rir: number;
 }
-
-
-interface ActualWorkoutDisplay{
-  nominalDay: string;
-  userId: string;
-  description: string;
-  workoutNumber: number;
-  exercises: ActualExercise[];
-}
-
-function ActualWorkoutDisplay(){
-  return(
-    <div>
-      <div>Actual Workout here</div>
-    </div>
-  )
-}
-
 
 interface saveSetProps {
   weight: number;
@@ -501,8 +367,6 @@ interface saveSetProps {
   rir: number;
   event: React.FormEvent<HTMLFormElement>;
 }
-
-
 
 function ExerciseForm({exercise, setCurrentExercise, updateExercise, exerciseActual, updateWorkout, setWorkoutActual} : CurrentExerciseProps) {
   //needs to know current exercise, update exerciseActual
@@ -552,7 +416,7 @@ function ExerciseForm({exercise, setCurrentExercise, updateExercise, exerciseAct
     <div className="p-4">
       <div>{exercise?.description} ({exercise?.weight} x {exercise?.sets})</div>
       <DisplayTotalSets sets={data}/>
-      <SetForm saveSet={handleSaveSet}/>
+      <SetForm saveSet={handleSaveSet} exercisePlan={exercise} exerciseActual={exerciseActual}/>
       <button
       onClick={handleSaveExercise}
       >Next Exercise</button>
@@ -579,14 +443,25 @@ type exerciseResult = {
 
 interface setFormProps {
   saveSet: ({ weight, reps, rir, event }: { weight: number, reps: number, rir: number, event: React.FormEvent<HTMLFormElement>}) => void;
+  exercisePlan: ModelExercise | undefined;
+  exerciseActual: ExerciseActual | undefined;
 }
 
-function SetForm( {saveSet}: setFormProps ) {
+function SetForm( {saveSet, exerciseActual, exercisePlan}: setFormProps ) {
   const [weight, setWeight] = useState<number>(0);
   const [reps, setReps] = useState<number>(0);
   const [rir, setRir] = useState<number>(0);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const repsInputRef = useRef<HTMLInputElement>(null)
+
+
+  useEffect(() => {
+    const defaultWeight = getMaxWeight(exerciseActual) ?? exercisePlan?.weight ?? 0;
+    if (defaultWeight > 0) {
+      setWeight(defaultWeight);
+    }
+  }, [exerciseActual, exercisePlan]);
+
 
   const handleWeightChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setWeight(parseInt(event.target.value));
@@ -647,6 +522,17 @@ function SetForm( {saveSet}: setFormProps ) {
 
   }
 
+function getMaxWeight(exercise: ExerciseActual | undefined):number|undefined{
+  if (!exercise){return undefined}
+  let maxWeight = 0
+  for (const set of exercise.sets){
+    if (set.weight > maxWeight){
+      maxWeight = set.weight
+    }
+  }
+  return maxWeight
+}
+
 
   interface CompletedWorkProps{
     workout: WorkoutActual;
@@ -661,9 +547,35 @@ function SetForm( {saveSet}: setFormProps ) {
         <div key={index}>
           <div>{exercise.description}</div>
           <div>{exercise.sets.map((setData, place) => (
-            <div key={place}>{setData.weight} x {setData.reps} at {setData.rir} RIR</div>
+            <div key={place}>{setData.weight === 0? "BW" : setData.weight} x {setData.reps} at {setData.rir} RIR</div>
           ))}</div>
         </div>
       ))}</div>
       </div>
  )} 
+
+interface EndWorkoutProps{
+  workout: WorkoutActual
+}
+
+ function EndWorkout({workout}: EndWorkoutProps){
+    const {mutate: saveWorkout, isLoading} = api.getWorkouts.saveWorkout.useMutation({
+    onSuccess(data, variables, context) {
+      //setNewWorkout(data)
+      console.log(data)
+    },
+    })
+  function saveTodaysWorkout(){
+    console.log(workout)
+    console.log("attempting to save...")
+    if ((workout.description!==undefined) && (workout.nominalDay!==undefined)){
+      //saveWorkout(workout)
+      //type error, string | undefined cant be assigned to string
+    }
+  }
+  return(<div>
+    <button
+    onClick={saveTodaysWorkout}
+    >Save Workout</button>
+  </div>)
+ }

@@ -166,9 +166,10 @@ model ActualWorkout {
   userId     String 
   description String
   exercises ActualExercise[]
-  workoutNumber Int
+  workoutNumber Int?
 
   @@index([userId])
+  @@index([date])
 }
 
 model ActualExercise {
@@ -176,7 +177,8 @@ model ActualExercise {
   date       DateTime   @default(now())
   description String
   weight      Int?
-  sets        String
+  sets        exerciseSet[]
+  
   workoutId String
   workout ActualWorkout    @relation(fields: [workoutId], references: [workoutId])
 
@@ -186,4 +188,15 @@ model ActualExercise {
   nextExerciseId     String?
 
   @@index([workoutId])
+}
+
+model exerciseSet {
+  setId String @id @default(cuid())
+  exerciseId String
+  weight Int
+  reps Int
+  rir Int
+  exercise  ActualExercise  @relation(fields: [exerciseId], references: [exerciseId])
+
+  @@index([exerciseId])
 }
