@@ -74,51 +74,6 @@ const Home: NextPage = () => {
 
 export default Home
 
-function LastWorkout({ workoutHistory }: { workoutHistory: TestWorkout2[] | undefined }) {
-  if (workoutHistory === undefined){
-    return (<div>No history</div>)
-  }
-
-
-  return (
-    <div>
-      {workoutHistory.map((workout) => (
-        <div key={workout.workoutId}>
-          <div>
-            <div>Last time: {workout.description}</div>
-            <ListExercises workout={workout}/>
-          </div>
-          <div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-
-interface TestWorkout2 {
-  workoutId: string;
-  date: Date;
-  nominalDay: string;
-  userId: string;
-  description: string;
-  exercises: TestExercise[];
-}
-
-function ListExercises( {workout}: {workout: TestWorkout2}){
-  return (
-    <div>
-      {workout.exercises?.map((exercise) => (
-        <div key={exercise.exerciseId}>
-          <div>{exercise.description}: {exercise.weight} x {exercise.sets}</div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-
 function WorkoutUi(){
     const [newWorkout, setNewWorkout] = useState<Workout>()
     const [exercises, setExercises] = useState<Exercise[]>([])
@@ -133,8 +88,6 @@ function WorkoutUi(){
     const today = new Date()
     const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const todayName = weekdays[today.getDay()];
-    console.log("prior workouts: ")
-    console.log(workoutHistory)
     
     if (todayName){
       const {data: priorWorkouts, isLoading: workoutsLoading } = api.getWorkouts.getPreviousWorkout.useQuery({
@@ -146,43 +99,25 @@ function WorkoutUi(){
         }
       } 
       }
-    
 
-
-    //const {data: workoutHistory } = api.getWorkouts.getLastTwoWeeks.useQuery()
-    //console.log(workoutHistory)
-
-    const {mutate: makeNewWorkout, isLoading} = api.getWorkouts.newWorkout.useMutation({
-    onSuccess(data, variables, context) {
-      //setNewWorkout(data)
-    },
-    })
-
-    function handleWorkoutClick( description: string){
-        makeNewWorkout({
-            nominalDay: "Thursday",
-            description: description
-        })
-    }
-    if (isLoading){
-      return(
-        <LoadingSpinner/>
-      )
-    }
 
     
     return(
       <div>
         <h3 className="text-xl font-bold">Todays Workout</h3>
         <br></br>
-        {!inProgress && <CurrentWorkout/>}
-
-        {//<LastWorkout workoutHistory={workoutHistory}></LastWorkout>
-    }
+        {!inProgress && workoutHistory && workoutHistory[0] && <CurrentWorkout workout={workoutHistory[0]}/>}
       </div>
     )
 
 }
+
+interface CurrentWorkoutProps{
+  workout: ActualWorkout & {
+    exercises: Array<ActualExercise & {
+        sets: exerciseSet[];
+    }>
+} }
 
 interface WorkoutWithExercise {
   workoutId: string;
@@ -217,13 +152,16 @@ function LoadingSpinner(){
   )
 }
 
-function CurrentWorkout(){
+function CurrentWorkout({workout}: CurrentWorkoutProps){
   const [todaysWorkout, setTodaysWorkout] = useState<WorkoutWithExercise>()
   const [workoutStarted, setWorkoutStarted] = useState(false)
   const [currentExercise, setCurrentExercise] = useState<ModelExercise | undefined >()
   const {data: workoutPlan, isLoading} = api.getWorkouts.getWorkoutPlan.useQuery()
   const [workoutActual, setWorkoutActual] = useState<WorkoutActual>()
   const [exerciseActual, setExerciseActual] = useState<ExerciseActual | undefined>()
+
+  console.log("History: ")
+  console.log(workout)
 
   console.log("workout: ")
   console.log(workoutActual)
@@ -276,7 +214,6 @@ function CurrentWorkout(){
 
   if (workoutPlan && !todaysWorkout){
     const newWorkout = workoutPlan[0]?.workouts.find((workout) => workout.nominalDay === todayName)
-    //const newWorkout = workoutPlan[0]?.workouts.find((workout) => workout.nominalDay === "Saturday")
     if (newWorkout){
       setTodaysWorkout(newWorkout)
     }
@@ -303,6 +240,7 @@ function CurrentWorkout(){
     setWorkoutActual={updateWorkout}
     setCurrentExercise={setCurrentExercise} exercise={currentExercise}/>
     {(workoutActual) && <CompletedWork workout={workoutActual}/>}
+    <br></br>
     {(workoutActual) && <EndWorkout workout={workoutActual}/>}
     </div>
   )
@@ -425,7 +363,6 @@ function ExerciseForm({exercise, setCurrentExercise, updateExercise, exerciseAct
   return (
     <div className="p-4">
       <div>{exercise?.description} ({exercise?.weight} x {exercise?.sets})</div>
-      <DisplayTotalSets sets={data}/>
       <SetForm saveSet={handleSaveSet} exercisePlan={exercise} exerciseActual={exerciseActual}/>
       <button
       onClick={handleSaveExercise}
@@ -460,16 +397,22 @@ interface setFormProps {
 function SetForm( {saveSet, exerciseActual, exercisePlan}: setFormProps ) {
   const [weight, setWeight] = useState<number>(0);
   const [reps, setReps] = useState<number>(0);
-  const [rir, setRir] = useState<number>(0);
+  const [rir, setRir] = useState<number>(3);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const repsInputRef = useRef<HTMLInputElement>(null)
 
 
   useEffect(() => {
-    const defaultWeight = getMaxWeight(exerciseActual) ?? exercisePlan?.weight ?? 0;
-    if (defaultWeight > 0) {
-      setWeight(defaultWeight);
+    const defaultWeight = typeof getMaxWeight(exerciseActual) === "number" ? getMaxWeight(exerciseActual) : (typeof exercisePlan?.weight === "number" ? exercisePlan.weight : 0);
+
+    console.log(`default weight: `)
+    console.log(defaultWeight)
+    if (defaultWeight){
+      setWeight(defaultWeight)
+    } else {
+      setWeight(0)
     }
+    
   }, [exerciseActual, exercisePlan]);
 
 
@@ -549,20 +492,65 @@ function getMaxWeight(exercise: ExerciseActual | undefined):number|undefined{
   }
 
   function CompletedWork({workout}: CompletedWorkProps){
-    return(
-      <div>
-      <div>{workout.description}</div>
-      <div>
-        {workout.exercises.map((exercise, index)=>(
-        <div key={index}>
-          <div>{exercise.description}</div>
-          <div>{exercise.sets.map((setData, place) => (
-            <div key={place}>{setData.weight === 0? "BW" : setData.weight} x {setData.reps} at {setData.rir} RIR</div>
-          ))}</div>
-        </div>
-      ))}</div>
-      </div>
- )} 
+  return (
+<div className="bg-gray-800 w-4/5 mx-auto p-4 rounded-lg">
+  <h3 className="text-xl font-bold mb-4">{workout.description}</h3>
+  <table className="w-full overflow-x-auto border border-gray-400">
+    <thead>
+      <tr>
+        <th className="text-center">Exercise</th>
+        <th className="text-center">Set</th>
+        <th className="text-center">Reps</th>
+        <th className="text-center">Weight</th>
+        <th className="text-center">RIR</th>
+      </tr>
+    </thead>
+    <tbody>
+      {workout.exercises.map((exercise, exerciseIndex) => (
+        <React.Fragment key={exerciseIndex}>
+          <tr className="border-t border-b border-gray-400 mt-4 mb-2">
+            <td className="font-bold align-middle">
+              {exercise.description}
+            </td>
+            <td colSpan={4}>
+              <table className="w-full">
+                <tbody>
+                  {exercise.sets.map((set, setIndex) => (
+                    <tr key={setIndex}>
+                      <td className="text-center w-1/4">{setIndex + 1}</td>
+                      <td className="text-center w-1/4">{set.reps}</td>
+                      <td className="text-center w-1/4">{set.weight === 0 ? "BW" : set.weight}</td>
+                      <td className="text-center w-1/4">{set.rir}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+        </React.Fragment>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+  )
+}
+
+
+    ////return(
+      ////<div>
+      ////<div>{workout.description}</div>
+      ////<div>
+        ////{workout.exercises.map((exercise, index)=>(
+        ////<div key={index}>
+          ////<div>{exercise.description}</div>
+          ////<div>{exercise.sets.map((setData, place) => (
+            ////<div key={place}>{setData.weight === 0? "BW" : setData.weight} x {setData.reps} at {setData.rir} RIR</div>
+          ////))}</div>
+        ////</div>
+      ////))}</div>
+      ////</div>
+ ////)} 
 
 interface EndWorkoutProps{
   workout: WorkoutActual
