@@ -46,13 +46,13 @@ export const getAllWorkouts = createTRPCRouter({
   getPreviousWorkout: privateProcedure.input(z.object({
     nominalDay: z.string(),
   })).query(async ({ctx, input}) => {
-    const workout = await ctx.prisma.testWorkout.findMany({
+    const workout = await ctx.prisma.actualWorkout.findMany({
       where: {
         userId: ctx.userId,
         nominalDay: input.nominalDay,
       },
       orderBy: {date: "desc"},
-      include: { exercises: true},
+      include: { exercises: {include: {sets: true}}},
     })
     if (!workout){
       throw new TRPCError({

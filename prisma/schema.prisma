@@ -176,7 +176,6 @@ model ActualExercise {
   exerciseId  String @id @default(cuid())
   date       DateTime   @default(now())
   description String
-  weight      Int?
   sets        exerciseSet[]
   
   workoutId String

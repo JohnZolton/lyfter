@@ -16,7 +16,7 @@ import {
 import { userAgent } from "next/server";
 import { userInfo } from "os";
 import { boolean, set } from "zod";
-import { ActualWorkout, ActualExercise, User, Workout, Exercise, TestExercise, TestWorkout, ModelWorkout, ModelExercise } from "@prisma/client"
+import { ActualWorkout, ActualExercise, User, Workout, Exercise, TestExercise, TestWorkout, ModelWorkout, ModelExercise, exerciseSet } from "@prisma/client"
 import { prisma } from "~/server/db";
 import { start } from "repl";
 
@@ -96,6 +96,7 @@ function LastWorkout({ workoutHistory }: { workoutHistory: TestWorkout2[] | unde
   );
 }
 
+
 interface TestWorkout2 {
   workoutId: string;
   date: Date;
@@ -123,20 +124,29 @@ function WorkoutUi(){
     const [exercises, setExercises] = useState<Exercise[]>([])
     const [inProgress, setInProgress] = useState(false)
     const [selectExercise, setSelectedExercise] = useState<Exercise | undefined>(undefined)
-    const [workoutHistory, setWorkoutHistory] = useState<TestWorkout2[] | undefined>(undefined)
+    const [workoutHistory, setWorkoutHistory] = useState<(ActualWorkout & {
+    exercises: (ActualExercise & {
+        sets: exerciseSet[];
+    })[];
+})[] | undefined>(undefined)
 
     const today = new Date()
     const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const todayName = weekdays[today.getDay()];
+    console.log("prior workouts: ")
+    console.log(workoutHistory)
     
     if (todayName){
-      const {data: testworkouts, isLoading: workoutsLoading } = api.getWorkouts.getPreviousWorkout.useQuery({
+      const {data: priorWorkouts, isLoading: workoutsLoading } = api.getWorkouts.getPreviousWorkout.useQuery({
         nominalDay: todayName
         }) 
-        if (!workoutsLoading && workoutHistory === undefined){
-        setWorkoutHistory(testworkouts)
+      if (!workoutsLoading && workoutHistory===undefined){
+        if (priorWorkouts && priorWorkouts[0]){
+          setWorkoutHistory(priorWorkouts)
         }
-    }
+      } 
+      }
+    
 
 
     //const {data: workoutHistory } = api.getWorkouts.getLastTwoWeeks.useQuery()
@@ -561,7 +571,6 @@ interface EndWorkoutProps{
  function EndWorkout({workout}: EndWorkoutProps){
     const {mutate: saveWorkout, isLoading} = api.getWorkouts.saveWorkout.useMutation({
     onSuccess(data, variables, context) {
-      //setNewWorkout(data)
       console.log(data)
     },
     })
@@ -569,7 +578,16 @@ interface EndWorkoutProps{
     console.log(workout)
     console.log("attempting to save...")
     if ((workout.description!==undefined) && (workout.nominalDay!==undefined)){
-      //saveWorkout(workout)
+      const newWorkout = {
+        ...workout,
+        nominalDay: workout.nominalDay || "none",
+        description: workout.description || "none",
+        exercises: workout.exercises.map((exercise)=>({
+          ...exercise,
+          description: exercise.description || 'none'
+        })),
+      }
+      saveWorkout(newWorkout)
       //type error, string | undefined cant be assigned to string
     }
   }

@@ -133,7 +133,8 @@ function WorkoutUi(){
         nominalDay: todayName
       }) 
       if (!workoutsLoading && workoutHistory === undefined){
-        setWorkoutHistory(testworkouts)
+        //data format changed
+        //setWorkoutHistory(testworkouts)
       }
     }
 
