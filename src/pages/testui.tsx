@@ -234,6 +234,7 @@ function CurrentWorkout({workout}: CurrentWorkoutProps){
     <StartWorkoutButton startWorkout={setWorkoutStarted}/>
     <WorkoutHandler setCurrentExercise={setCurrentExercise} workout={todaysWorkout}/>
     <ExerciseForm 
+    lastWorkout={workout}
     updateWorkout={updateWorkout}
     exerciseActual={exerciseActual}
     updateExercise={setExerciseActual}
@@ -301,6 +302,7 @@ interface CurrentExerciseProps{
   updateExercise: React.Dispatch<React.SetStateAction<ExerciseActual | undefined>>;
   updateWorkout: (newExercise: ExerciseActual)=> void;
   setWorkoutActual: (newExercise: ExerciseActual)=> void;
+  lastWorkout: WorkoutActual;
 }
 
 type resultOfSet = {
@@ -316,9 +318,18 @@ interface saveSetProps {
   event: React.FormEvent<HTMLFormElement>;
 }
 
-function ExerciseForm({exercise, setCurrentExercise, updateExercise, exerciseActual, updateWorkout, setWorkoutActual} : CurrentExerciseProps) {
+function ExerciseForm({lastWorkout, exercise, setCurrentExercise, updateExercise, exerciseActual, updateWorkout, setWorkoutActual} : CurrentExerciseProps) {
   //needs to know current exercise, update exerciseActual
   const [data, setData] = useState<resultOfSet[]>([])
+  const [lastWeekExercise, setLastWeekExercise] = useState<ExerciseActual>()
+  console.log("the won that i want")
+  console.log(lastWorkout)
+  console.log(exercise)
+
+  useEffect(() => {if (!lastWeekExercise || lastWeekExercise.description !==exercise?.description){ 
+    const lastTimeExercise = lastWorkout.exercises.find((workout) => workout.description === exercise?.description)
+    setLastWeekExercise(lastTimeExercise)
+  }}, [lastWeekExercise, lastWorkout, exercise])
 
 
   const handleSaveSet = ({weight, reps, rir, event}: saveSetProps ) => {
@@ -362,7 +373,8 @@ function ExerciseForm({exercise, setCurrentExercise, updateExercise, exerciseAct
 
   return (
     <div className="p-4">
-      <div>{exercise?.description} ({exercise?.weight} x {exercise?.sets})</div>
+      <DisplayLastExercise plannedExercise={exercise} lastExercise={lastWeekExercise}/>
+      <br></br>
       <SetForm saveSet={handleSaveSet} exercisePlan={exercise} exerciseActual={exerciseActual}/>
       <button
       onClick={handleSaveExercise}
@@ -370,6 +382,32 @@ function ExerciseForm({exercise, setCurrentExercise, updateExercise, exerciseAct
     </div>)
 
   }
+interface DisplayLastExerciseProps{
+  lastExercise: ExerciseActual | undefined;
+  plannedExercise: ModelExercise | undefined;
+}
+function DisplayLastExercise({lastExercise, plannedExercise}: DisplayLastExerciseProps){
+  if (!lastExercise){return(
+    <div>
+      <div>Plan: {plannedExercise?.description}</div>
+      <div>{plannedExercise?.weight} x {plannedExercise?.sets} at 3 RIR</div>
+    </div>
+    )}
+
+  return(
+    <div className="bg-gray-800 p-4 rounded-md w-64 mx-auto">
+      <div className="text-lg font-bold">Last time: </div>
+      <div className="text-lg font-bold mb-1">{lastExercise.description}</div>
+      <div>
+        {lastExercise.sets.map((set, index) => (
+          <div key={index} className="text-sm mb-1">
+            {set.weight} x {set.reps} at {set.rir} RIR
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 type exerciseResult = {
   sets: resultOfSet[];
@@ -431,49 +469,64 @@ function SetForm( {saveSet, exerciseActual, exercisePlan}: setFormProps ) {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     saveSet({weight: weight, reps: reps, rir: rir, event: event})
-    setReps(0)
+    setReps(parseInt(""))
     setIsSubmitted(true);
     repsInputRef.current?.focus()
   };
 
 
   return (
-    <div className="p-4">
-      <div>Set Form:</div>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Weight:
-          <input
-            className="text-black"
-            type="number"
-            value={weight}
-            onChange={handleWeightChange}
-          />
-        </label>
-        <label>
-          Reps:
-          <input
-            className="text-black"
-            type="number"
-            ref={repsInputRef}
-            value={reps}
-            onChange={handleRepsChange}
-          />
-        </label>
-        <label>
-          RIR:
-          <input
-            className="text-black"
-            type="number"
-            value={rir}
-            onChange={handleRirChange}
-          />
-        </label>
-        <button type="submit">Save</button>
-      </form>
-    </div>)
-
-  }
+<div className="bg-gray-800 w-4/5 mx-auto p-4 rounded-lg">
+  <form className="flex flex-wrap items-center justify-center" onSubmit={handleSubmit}>
+    <div className="mr-4 mb-4">
+      <label className="block font-medium mb-2" htmlFor="weight">
+        Weight:
+      </label>
+      <input
+        className="shadow appearance-none border rounded w-24 py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline"
+        id="weight"
+        type="number"
+        value={weight}
+        onChange={handleWeightChange}
+        required
+      />
+    </div>
+    <div className="mr-4 mb-4">
+      <label className="block font-medium mb-2" htmlFor="reps">
+        Reps:
+      </label>
+      <input
+        className="shadow appearance-none border rounded w-24 py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline"
+        id="reps"
+        type="number"
+        ref={repsInputRef}
+        value={reps}
+        onChange={handleRepsChange}
+        required
+      />
+    </div>
+    <div className="mr-4 mb-4">
+      <label className="block font-medium mb-2" htmlFor="rir">
+        RIR:
+      </label>
+      <input
+        className="shadow appearance-none border rounded w-24 py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline"
+        id="rir"
+        type="number"
+        value={rir}
+        onChange={handleRirChange}
+        required
+      />
+    </div>
+    <button
+      className="bg-gray-700 mt-4 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+      type="submit"
+    >
+      Save
+    </button>
+  </form>
+</div>
+)}
 
 function getMaxWeight(exercise: ExerciseActual | undefined):number|undefined{
   if (!exercise){return undefined}
