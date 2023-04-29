@@ -16,7 +16,7 @@ import {
 import { userAgent } from "next/server";
 import { userInfo } from "os";
 import { boolean, set } from "zod";
-import { ActualWorkout, ActualExercise, User, Workout, Exercise, TestExercise, TestWorkout, ModelWorkout, ModelExercise, exerciseSet } from "@prisma/client"
+import { ActualWorkout, ActualExercise, User, Workout, Exercise, TestExercise, TestWorkout, ModelWorkout, ModelExercise, exerciseSet, ModelWorkoutPlan} from "@prisma/client"
 import { prisma } from "~/server/db";
 import { start } from "repl";
 
@@ -89,6 +89,7 @@ function WorkoutUi(){
     const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const todayName = weekdays[today.getDay()];
     
+    const {data: workoutPlan, isLoading} = api.getWorkouts.getWorkoutPlan.useQuery()
     if (todayName){
       const {data: priorWorkouts, isLoading: workoutsLoading } = api.getWorkouts.getPreviousWorkout.useQuery({
         nominalDay: todayName
@@ -106,18 +107,23 @@ function WorkoutUi(){
       <div>
         <h3 className="text-xl font-bold">Todays Workout</h3>
         <br></br>
-        {!inProgress && workoutHistory && workoutHistory[0] && <CurrentWorkout workout={workoutHistory[0]}/>}
+        {!inProgress && <CurrentWorkout plan={workoutPlan} workout={workoutHistory}/>}
       </div>
     )
 
 }
 
 interface CurrentWorkoutProps{
-  workout: ActualWorkout & {
-    exercises: Array<ActualExercise & {
+  workout: (ActualWorkout & {
+    exercises: (ActualExercise & {
         sets: exerciseSet[];
-    }>
-} }
+    })[];
+})[] | undefined;
+  plan: (ModelWorkoutPlan & {
+    workouts: (ModelWorkout & {
+        exercises: ModelExercise[];
+    })[];
+})[] | undefined}
 
 interface WorkoutWithExercise {
   workoutId: string;
@@ -152,35 +158,26 @@ function LoadingSpinner(){
   )
 }
 
-function CurrentWorkout({workout}: CurrentWorkoutProps){
+function CurrentWorkout({workout, plan}: CurrentWorkoutProps){
   const [todaysWorkout, setTodaysWorkout] = useState<WorkoutWithExercise>()
   const [workoutStarted, setWorkoutStarted] = useState(false)
   const [currentExercise, setCurrentExercise] = useState<ModelExercise | undefined >()
-  const {data: workoutPlan, isLoading} = api.getWorkouts.getWorkoutPlan.useQuery()
   const [workoutActual, setWorkoutActual] = useState<WorkoutActual>()
   const [exerciseActual, setExerciseActual] = useState<ExerciseActual | undefined>()
-
-  console.log("History: ")
-  console.log(workout)
-
-  console.log("workout: ")
-  console.log(workoutActual)
-
-  console.log("exercise: ")
-  console.log(exerciseActual)
 
   const today = new Date()
   const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const todayName = weekdays[today.getDay()];
 
   //populate exercises and weight
-  if (!workoutActual && todaysWorkout){
+  if (!workoutActual && workout && workout[0] && workout[0].exercises){
+    console.log(workout)
     const newWorkoutActual : WorkoutActual = {
       nominalDay: todaysWorkout?.nominalDay,
       description: todaysWorkout?.description,
       exercises: [],
     }
-    todaysWorkout.exercises.forEach((exercise)=>(
+    workout[0].exercises.forEach((exercise)=>(
       newWorkoutActual.exercises.push({
         description: exercise.description,
         sets: [],
@@ -211,14 +208,25 @@ function CurrentWorkout({workout}: CurrentWorkoutProps){
     }
   });
 }
+  const lastWorkout: WorkoutActual = {
+    description: undefined,
+    nominalDay: undefined,
+    exercises: [],
+  };
 
-  if (workoutPlan && !todaysWorkout){
-    const newWorkout = workoutPlan[0]?.workouts.find((workout) => workout.nominalDay === todayName)
+  if (workout && workout.length > 0) {
+    lastWorkout.description = workout[0]?.description;
+    lastWorkout.nominalDay = workout[0]?.nominalDay;
+    lastWorkout.exercises = workout[0]?.exercises || [];
+  }
+
+
+  if (plan && todaysWorkout===undefined){
+    const newWorkout = plan[0]?.workouts.find((workout) => workout.nominalDay === todayName)
     if (newWorkout){
       setTodaysWorkout(newWorkout)
     }
   }
-  if (isLoading){return(<LoadingSpinner/>)}
 
   if (!todaysWorkout){
     return(<div>No Workout</div>)
@@ -234,7 +242,7 @@ function CurrentWorkout({workout}: CurrentWorkoutProps){
     <StartWorkoutButton startWorkout={setWorkoutStarted}/>
     <WorkoutHandler setCurrentExercise={setCurrentExercise} workout={todaysWorkout}/>
     <ExerciseForm 
-    lastWorkout={workout}
+    lastWorkout={lastWorkout}
     updateWorkout={updateWorkout}
     exerciseActual={exerciseActual}
     updateExercise={setExerciseActual}
@@ -302,7 +310,7 @@ interface CurrentExerciseProps{
   updateExercise: React.Dispatch<React.SetStateAction<ExerciseActual | undefined>>;
   updateWorkout: (newExercise: ExerciseActual)=> void;
   setWorkoutActual: (newExercise: ExerciseActual)=> void;
-  lastWorkout: WorkoutActual;
+  lastWorkout: WorkoutActual | undefined;
 }
 
 type resultOfSet = {
@@ -322,13 +330,14 @@ function ExerciseForm({lastWorkout, exercise, setCurrentExercise, updateExercise
   //needs to know current exercise, update exerciseActual
   const [data, setData] = useState<resultOfSet[]>([])
   const [lastWeekExercise, setLastWeekExercise] = useState<ExerciseActual>()
-  console.log("the won that i want")
-  console.log(lastWorkout)
-  console.log(exercise)
 
   useEffect(() => {if (!lastWeekExercise || lastWeekExercise.description !==exercise?.description){ 
-    const lastTimeExercise = lastWorkout.exercises.find((workout) => workout.description === exercise?.description)
-    setLastWeekExercise(lastTimeExercise)
+    if (!lastWorkout || lastWorkout.exercises === undefined){
+      setLastWeekExercise(undefined)
+    } else {
+      const lastTimeExercise = lastWorkout.exercises.find((workout) => workout.description === exercise?.description)
+      setLastWeekExercise(lastTimeExercise)
+    }
   }}, [lastWeekExercise, lastWorkout, exercise])
 
 
@@ -434,7 +443,7 @@ interface setFormProps {
 
 function SetForm( {saveSet, exerciseActual, exercisePlan}: setFormProps ) {
   const [weight, setWeight] = useState<number>(0);
-  const [reps, setReps] = useState<number>(0);
+  const [reps, setReps] = useState<number>(5);
   const [rir, setRir] = useState<number>(3);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const repsInputRef = useRef<HTMLInputElement>(null)
@@ -443,8 +452,6 @@ function SetForm( {saveSet, exerciseActual, exercisePlan}: setFormProps ) {
   useEffect(() => {
     const defaultWeight = typeof getMaxWeight(exerciseActual) === "number" ? getMaxWeight(exerciseActual) : (typeof exercisePlan?.weight === "number" ? exercisePlan.weight : 0);
 
-    console.log(`default weight: `)
-    console.log(defaultWeight)
     if (defaultWeight){
       setWeight(defaultWeight)
     } else {
@@ -589,22 +596,6 @@ function getMaxWeight(exercise: ExerciseActual | undefined):number|undefined{
   )
 }
 
-
-    ////return(
-      ////<div>
-      ////<div>{workout.description}</div>
-      ////<div>
-        ////{workout.exercises.map((exercise, index)=>(
-        ////<div key={index}>
-          ////<div>{exercise.description}</div>
-          ////<div>{exercise.sets.map((setData, place) => (
-            ////<div key={place}>{setData.weight === 0? "BW" : setData.weight} x {setData.reps} at {setData.rir} RIR</div>
-          ////))}</div>
-        ////</div>
-      ////))}</div>
-      ////</div>
- ////)} 
-
 interface EndWorkoutProps{
   workout: WorkoutActual
 }
@@ -616,8 +607,6 @@ interface EndWorkoutProps{
     },
     })
   function saveTodaysWorkout(){
-    console.log(workout)
-    console.log("attempting to save...")
     if ((workout.description!==undefined) && (workout.nominalDay!==undefined)){
       const newWorkout = {
         ...workout,
@@ -629,7 +618,6 @@ interface EndWorkoutProps{
         })),
       }
       saveWorkout(newWorkout)
-      //type error, string | undefined cant be assigned to string
     }
   }
   return(<div>
