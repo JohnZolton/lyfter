@@ -55,9 +55,11 @@ const Home: NextPage = () => {
   </div>
 </nav>
         <div>
-          <br></br>
-          <WorkoutUi />
-          <br></br>
+          <SignedIn>
+            <br></br>
+            <WorkoutUi />
+            <br></br>
+          </SignedIn>
       <div>
       </div>
         <SignedOut>
@@ -100,8 +102,13 @@ function WorkoutUi(){
         }
       } 
       }
-
-
+      if (isLoading){
+        return(
+          <div>
+            <LoadingSpinner/>
+          </div>
+        )
+      }
     
     return(
       <div>
@@ -271,7 +278,7 @@ function StartWorkoutButton( {startWorkout}: DoWorkoutProps){
   return(
     <div>
       <button 
-      className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
+      className="bg-gray-700 mt-4 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
       onClick={handleClick}>Begin Workout</button>
     </div>
   )
@@ -295,7 +302,7 @@ function WorkoutHandler( {workout, setCurrentExercise}: WorkoutHandlerProps){
           <div>{exercise.description}</div>
           <button
           onClick={()=> handleClick(exercise)}
-        className="p-1 mx-2 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
+      className="bg-gray-700  mx-4 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           >Begin</button>
         </div>
       ))}</div>
@@ -387,6 +394,7 @@ function ExerciseForm({lastWorkout, exercise, setCurrentExercise, updateExercise
       <SetForm saveSet={handleSaveSet} exercisePlan={exercise} exerciseActual={exerciseActual}/>
       <button
       onClick={handleSaveExercise}
+      className="bg-gray-700 mt-4 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
       >Next Exercise</button>
     </div>)
 
@@ -620,8 +628,16 @@ interface EndWorkoutProps{
       saveWorkout(newWorkout)
     }
   }
+  if (isLoading){
+    return(
+      <div>
+      <LoadingSpinner/>
+      </div>
+    )
+  }
   return(<div>
     <button
+      className="bg-gray-700 mt-4 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
     onClick={saveTodaysWorkout}
     >Save Workout</button>
   </div>)
