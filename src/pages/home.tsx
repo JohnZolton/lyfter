@@ -248,7 +248,7 @@ function CurrentWorkout({workout, plan}: CurrentWorkoutProps){
       <div key={index}>{exercise.description}: {exercise.weight} x {exercise.sets}</div>
     ))}
     {(!workoutStarted) && <StartWorkoutButton startWorkout={setWorkoutStarted}/>}
-    {(workoutStarted) && <WorkoutHandler setCurrentExercise={setCurrentExercise} workout={todaysWorkout}/>}
+    {(workoutStarted) && (!currentExercise) && <WorkoutHandler setCurrentExercise={setCurrentExercise} workout={todaysWorkout}/>}
     {(workoutStarted) && (currentExercise) && <ExerciseForm 
     lastWorkout={lastWorkout}
     updateWorkout={updateWorkout}
@@ -338,6 +338,7 @@ function ExerciseForm({lastWorkout, exercise, setCurrentExercise, updateExercise
   //needs to know current exercise, update exerciseActual
   const [data, setData] = useState<resultOfSet[]>([])
   const [lastWeekExercise, setLastWeekExercise] = useState<ExerciseActual>()
+  const [warning, setWarning] = useState(false)
 
   useEffect(() => {if (!lastWeekExercise || lastWeekExercise.description !==exercise?.description){ 
     if (!lastWorkout || lastWorkout.exercises === undefined){
@@ -377,6 +378,22 @@ function ExerciseForm({lastWorkout, exercise, setCurrentExercise, updateExercise
     const newData = [...data, newSet]
     setData(newData)
     console.log(`weight: ${weight}, reps: ${reps}, rir: ${rir}`)
+    console.log(newData.length)
+    console.log(lastWeekExercise?.sets[newData.length-1]) // have last exercise, need current workout + index to compare
+    if (
+      lastWeekExercise !== undefined &&
+      lastWeekExercise.sets !== undefined &&
+      newData.length - 1 <= lastWeekExercise.sets.length
+    ) {
+      const lastSet = lastWeekExercise.sets[newData.length - 1];
+      if (
+        weight < (lastSet?.weight ?? 0) ||
+        reps < (lastSet?.reps ?? 0)
+      ) {
+        console.log("performance declining");
+        setWarning(true)
+      } else { setWarning(false)}
+    }
   };
   function handleSaveExercise(){
     if (exerciseActual){
@@ -393,6 +410,11 @@ function ExerciseForm({lastWorkout, exercise, setCurrentExercise, updateExercise
       <DisplayLastExercise plannedExercise={exercise} lastExercise={lastWeekExercise}/>
       <br></br>
       <SetForm saveSet={handleSaveSet} exercisePlan={exercise} exerciseActual={exerciseActual}/>
+      {(warning) && (
+          <div className="bg-red-500 text-white py-2 px-4 rounded-lg">
+            Performance Declining
+          </div>
+      )}
       <button
       onClick={handleSaveExercise}
       className="bg-gray-700 mt-4 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
@@ -457,6 +479,9 @@ function SetForm( {saveSet, exerciseActual, exercisePlan}: setFormProps ) {
   const [rir, setRir] = useState<number>(3);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const repsInputRef = useRef<HTMLInputElement>(null)
+  const [rirError, setRirError] = useState(false)
+  const [repsError, setRepsError] = useState(false)
+  const [weightError, setWeightError] = useState(false)
 
 
   useEffect(() => {
@@ -477,10 +502,20 @@ function SetForm( {saveSet, exerciseActual, exercisePlan}: setFormProps ) {
 
   const handleRepsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setReps(parseInt(event.target.value));
+    if (parseInt(event.target.value) < 5 || parseInt(event.target.value) > 30){
+      setRepsError(true)
+    } else {
+      setRepsError(false)
+    }
   };
 
   const handleRirChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRir(parseInt(event.target.value));
+    if (parseInt(event.target.value) > 3){
+      setRirError(true)
+    } else {
+      setRirError(false)
+    }
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -518,6 +553,7 @@ function SetForm( {saveSet, exerciseActual, exercisePlan}: setFormProps ) {
         type="number"
         ref={repsInputRef}
         value={reps}
+        min={0}
         onChange={handleRepsChange}
         required
       />
@@ -531,6 +567,7 @@ function SetForm( {saveSet, exerciseActual, exercisePlan}: setFormProps ) {
         id="rir"
         type="number"
         value={rir}
+        min={0}
         onChange={handleRirChange}
         required
       />
@@ -542,6 +579,8 @@ function SetForm( {saveSet, exerciseActual, exercisePlan}: setFormProps ) {
       Save
     </button>
   </form>
+      {(repsError) && <div className="text-red-400">5-30 reps is best for growth</div>}
+      {(rirError) && <div className="text-red-400">Go closer to failure for best growth</div>}
 </div>
 )}
 
