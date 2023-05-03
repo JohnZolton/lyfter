@@ -7,9 +7,10 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 
-import type { User, Workout, Exercise, WorkoutPlan, ModelWorkoutPlan } from "@prisma/client"
+import type { User, Workout, Exercise, WorkoutPlan, ModelWorkoutPlan, exerciseSet } from "@prisma/client"
 import { prisma } from "~/server/db";
 import { Input } from "postcss";
+import internal from "stream";
 
 
 export const getAllWorkouts = createTRPCRouter({
@@ -45,13 +46,13 @@ export const getAllWorkouts = createTRPCRouter({
   getPreviousWorkout: privateProcedure.input(z.object({
     nominalDay: z.string(),
   })).query(async ({ctx, input}) => {
-    const workout = await ctx.prisma.testWorkout.findMany({
+    const workout = await ctx.prisma.actualWorkout.findMany({
       where: {
         userId: ctx.userId,
         nominalDay: input.nominalDay,
       },
       orderBy: {date: "desc"},
-      include: { exercises: true},
+      include: { exercises: {include: {sets: true}}},
     })
     if (!workout){
       throw new TRPCError({
@@ -308,7 +309,52 @@ export const getAllWorkouts = createTRPCRouter({
       })
     }
     return workoutplan
-  })
+  }),
+
+
+  saveWorkout: privateProcedure.input(
+    z.object({
+      description: z.string(),
+      nominalDay: z.string(),
+      exercises: z.array(z.object({
+        description: z.string(),
+        sets: z.array(z.object({
+          weight: z.number(),
+          reps: z.number(),
+          rir: z.number(),
+        }))
+      })),
+    })
+  ).mutation(async ({ ctx, input }) => {
+    const savedWorkout = await ctx.prisma.actualWorkout.create({
+      data: {
+        userId: ctx.userId,
+        description: input.description,
+        nominalDay: input.nominalDay,
+        exercises: {
+          create: input.exercises.map((exercise)=>({
+            description: exercise.description,
+            sets: {
+              create: exercise.sets.map((set)=>({
+                weight: set.weight,
+                reps: set.reps,
+                rir: set.rir,
+              }))
+            }
+        })) 
+      }},
+      include: {
+        exercises: {
+          include: {
+            sets: true
+          }
+        }
+      }
+        
+      
+    })
+    return savedWorkout
+  }),
 
 });
 

@@ -2,7 +2,7 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { api } from "~/utils/api";
-import React, { useState, useTransition } from 'react'
+import React, { FormEvent, useState, useTransition, useRef, useEffect } from 'react'
 import {
   ClerkProvider,
   RedirectToOrganizationProfile,
@@ -16,7 +16,7 @@ import {
 import { userAgent } from "next/server";
 import { userInfo } from "os";
 import { boolean, set } from "zod";
-import type { User, Workout, Exercise, TestExercise, TestWorkout } from "@prisma/client"
+import { ActualWorkout, ActualExercise, User, Workout, Exercise, TestExercise, TestWorkout, ModelWorkout, ModelExercise, exerciseSet, ModelWorkoutPlan} from "@prisma/client"
 import { prisma } from "~/server/db";
 import { start } from "repl";
 
@@ -55,9 +55,11 @@ const Home: NextPage = () => {
   </div>
 </nav>
         <div>
-          <br></br>
-          <WorkoutUi />
-          <br></br>
+          <SignedIn>
+            <br></br>
+            <WorkoutUi />
+            <br></br>
+          </SignedIn>
       <div>
       </div>
         <SignedOut>
@@ -74,397 +76,571 @@ const Home: NextPage = () => {
 
 export default Home
 
-function LastWorkout({ workoutHistory }: { workoutHistory: TestWorkout2[] | undefined }) {
-  if (workoutHistory === undefined){
-    return (<div>No history</div>)
-  }
-  return (
-    <div>
-      {workoutHistory.map((workout) => (
-        <div key={workout.workoutId}>
-          <div>
-            <div>Last time: {workout.description}</div>
-            <ListExercises workout={workout}/>
-          </div>
-          <div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-interface TestWorkout2 {
-  workoutId: string;
-  date: Date;
-  nominalDay: string;
-  userId: string;
-  description: string;
-  exercises: TestExercise[];
-}
-
-function ListExercises( {workout}: {workout: TestWorkout2}){
-  return (
-    <div>
-      {workout.exercises?.map((exercise) => (
-        <div key={exercise.exerciseId}>
-          <div>{exercise.description}: {exercise.weight} x {exercise.sets}</div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-
 function WorkoutUi(){
     const [newWorkout, setNewWorkout] = useState<Workout>()
     const [exercises, setExercises] = useState<Exercise[]>([])
     const [inProgress, setInProgress] = useState(false)
     const [selectExercise, setSelectedExercise] = useState<Exercise | undefined>(undefined)
-    const [workoutHistory, setWorkoutHistory] = useState<TestWorkout2[] | undefined>(undefined)
+    const [workoutHistory, setWorkoutHistory] = useState<(ActualWorkout & {
+    exercises: (ActualExercise & {
+        sets: exerciseSet[];
+    })[];
+})[] | undefined>(undefined)
 
     const today = new Date()
     const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const todayName = weekdays[today.getDay()];
-    console.log(todayName); 
     
+    const {data: workoutPlan, isLoading} = api.getWorkouts.getWorkoutPlan.useQuery()
     if (todayName){
-      const {data: testworkouts, isLoading: workoutsLoading } = api.getWorkouts.getPreviousWorkout.useQuery({
+      const {data: priorWorkouts, isLoading: workoutsLoading } = api.getWorkouts.getPreviousWorkout.useQuery({
         nominalDay: todayName
-      }) 
-      if (!workoutsLoading && workoutHistory === undefined){
-        setWorkoutHistory(testworkouts)
-      }
-    }
-
-
-
-    //const {data: workoutHistory } = api.getWorkouts.getLastTwoWeeks.useQuery()
-    //console.log(workoutHistory)
-
-    const {mutate: makeNewWorkout, isLoading} = api.getWorkouts.newWorkout.useMutation({
-    onSuccess(data, variables, context) {
-      setNewWorkout(data)
-    },
-    })
-
-    function handleWorkoutClick( description: string){
-        const today = new Date()
-        const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        const todayName = weekdays[today.getDay()];
-        if (todayName){
-        makeNewWorkout({
-          nominalDay: todayName,
-          description: description
-        })
+        }) 
+      if (!workoutsLoading && workoutHistory===undefined){
+        if (priorWorkouts && priorWorkouts[0]){
+          setWorkoutHistory(priorWorkouts)
         }
-    }
-    if (isLoading){
-      return(
-        <div
-  className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] text-primary motion-reduce:animate-[spin_1.5s_linear_infinite]"
-  role="status">
-  <span
-    className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]"
-    >Loading...</span
-  >
-</div>
-      )
-    }
-
-    if (!newWorkout){
-        return (
-            <div>
-
-        <LastWorkout workoutHistory={workoutHistory}></LastWorkout>
-            {(!newWorkout) && <NewWorkout startWorkout={handleWorkoutClick} />}
-            </div>
-    )}
+      } 
+      }
+      if (isLoading){
+        return(
+          <div>
+            <LoadingSpinner/>
+          </div>
+        )
+      }
     
     return(
       <div>
-
-       <WorkoutTable exercises={exercises} workout={newWorkout} />
-       {(!inProgress) && <NewExerciseForm exercises={exercises} updateExercises={setExercises}
-        selectExercise={setSelectedExercise}
-        exerciseSelected={setInProgress}
-        workout={newWorkout} />}
-        {(inProgress && selectExercise) && <ExerciseUi 
-          setInProgress={setInProgress}
-          exercises={exercises}
-          exercise={selectExercise}
-          updateExercises={setExercises}
-          updateselectedExercise={setSelectedExercise}
-        />}
-        {(inProgress) && <EndWorkout 
-          setNewWorkout={setNewWorkout}
-          setInProgress={setInProgress}
-          setExercises={setExercises}
-          setSelectedExercise={setSelectedExercise}
-        />}
+        <br></br>
+        {!inProgress && <CurrentWorkout plan={workoutPlan} workout={workoutHistory}/>}
       </div>
     )
 
 }
 
-interface NewWorkoutProps{
-  startWorkout: (description: string)=> void;
+interface CurrentWorkoutProps{
+  workout: (ActualWorkout & {
+    exercises: (ActualExercise & {
+        sets: exerciseSet[];
+    })[];
+})[] | undefined;
+  plan: (ModelWorkoutPlan & {
+    workouts: (ModelWorkout & {
+        exercises: ModelExercise[];
+    })[];
+})[] | undefined}
+
+interface WorkoutWithExercise {
+  workoutId: string;
+  date: Date;
+  nominalDay: string;
+  userId: string;
+  description: string;
+  exercises: ModelExercise[];
 }
 
-function NewWorkout( {startWorkout} : NewWorkoutProps): JSX.Element | null {
-    const [begin, setBegin] = useState(false)
-    const [start, setStart] = useState(false)
-
-    function handleClick(){
-      setBegin(true)
-    }
-
-    function handleSubmit(event: React.FormEvent<HTMLFormElement>, inputDescription:string) {
-      event.preventDefault()
-      setStart(true)
-      startWorkout(inputDescription)
-    }
-
-    return(
-      <div className="object-contain m-2">
-      {(!begin) && <button onClick={handleClick} className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400">New Workout</button>}
-      { (begin) && (!start) && <NewWorkoutform 
-        handleSubmit={handleSubmit} 
-        />}
-      </div>
-    )
+interface WorkoutActual {
+  nominalDay: string | undefined;
+  description: string | undefined;
+  exercises: ExerciseActual[];
+}
+interface ExerciseActual {
+  description: string | undefined;
+  sets: resultOfSet[];
 }
 
-interface workoutFormProps {
-  handleSubmit?: (event: React.FormEvent<HTMLFormElement>, inputDescription: string) => void;
-}
-
-function NewWorkoutform( { handleSubmit }: workoutFormProps){
-  const [inputDescription, setInputDescription] = useState("")
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInputDescription(event.target.value)
-  }
-
-  if (!handleSubmit){
-    return null;
-  }
-
+function LoadingSpinner(){
   return(
-    <div>
-      <form onSubmit={(event) => handleSubmit(event, inputDescription)}>
-        <label>Workout:</label>
-        <input type='text' placeholder="Description"
-        value={inputDescription}
-        onChange={handleChange}
-        className="text-black"></input>
-        <button type="submit">Begin</button>
-      </form >
-    </div>
+
+        <div
+            className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] text-primary motion-reduce:animate-[spin_1.5s_linear_infinite]"
+            role="status">
+            <span
+                className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]"
+                >Loading...</span
+            >
+        </div>
   )
 }
 
-interface WorkoutTableProps {
-  workout: Workout;
-  exercises: Exercise[] | undefined;
-}
+function CurrentWorkout({workout, plan}: CurrentWorkoutProps){
+  const [todaysWorkout, setTodaysWorkout] = useState<WorkoutWithExercise>()
+  const [workoutStarted, setWorkoutStarted] = useState(false)
+  const [currentExercise, setCurrentExercise] = useState<ModelExercise | undefined >()
+  const [workoutActual, setWorkoutActual] = useState<WorkoutActual>()
+  const [exerciseActual, setExerciseActual] = useState<ExerciseActual | undefined>()
 
-function WorkoutTable( {workout, exercises}: WorkoutTableProps){
-    return(
-      <div>
-        <h1>{workout.description}</h1>
-        <table className="mx-auto">
-          <thead>
-            <tr>
-              <th>Exercise</th>
-              <th>Weight</th>
-              <th>Sets</th>
-            </tr>
-          </thead>
-          <tbody>
-            { exercises && exercises.map((exercise, index) =>(
-              <tr key={index}>
-                <td>{exercise.description}</td>
-                <td>{exercise.weight}</td>
-                <td>{exercise.sets}</td>
-              </tr>
-            )) }
-          </tbody>
-        </table>
-      </div>
-    )
+  const today = new Date()
+  const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const todayName = weekdays[today.getDay()];
+  console.log("current exercise:")
+  console.log(currentExercise)
 
-}
-
-interface NewExerciseFromProps{
-  exercises: Exercise[] | undefined,
-  updateExercises: React.Dispatch<React.SetStateAction<Exercise[]>>;
-  workout: Workout;
-  exerciseSelected: React.Dispatch<React.SetStateAction<boolean>>;
-  selectExercise: React.Dispatch<React.SetStateAction<Exercise | undefined>>;
-}
-
-function NewExerciseForm({selectExercise, exercises, updateExercises, workout, exerciseSelected}: NewExerciseFromProps){
-  const [exerciseName, setExerciseName] = useState("")
-  const [weight, setWeight] = useState("")
-  const handleName = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setExerciseName(event.target.value)
-  }
-  const handleWeight = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setWeight(event.target.value)
+  //populate exercises and weight
+  if (!workoutActual && workout && workout[0] && workout[0].exercises){
+    console.log(workout)
+    const newWorkoutActual : WorkoutActual = {
+      nominalDay: todaysWorkout?.nominalDay,
+      description: todaysWorkout?.description,
+      exercises: [],
+    }
+    workout[0].exercises.forEach((exercise)=>(
+      newWorkoutActual.exercises.push({
+        description: exercise.description,
+        sets: [],
+      } as ExerciseActual)
+    ))
+    setWorkoutActual(newWorkoutActual)
   }
 
-  const {mutate: makeNewExercise} = api.getWorkouts.newExercise.useMutation({
-  onSuccess(data, variables, context) {
-    const updatedExercises = [...(exercises ?? []), data]
-    updateExercises(updatedExercises)
-    exerciseSelected(true)
-    selectExercise(data)
-  },
-  })
-
-  function handleNewSet(){
-    event?.preventDefault()
-    console.log("new set")
-    console.log("name: " + exerciseName)
-    console.log("weight: " + weight)
-    makeNewExercise({
-      workoutId: workout.workoutId,
-      weight: parseInt(weight),
-      sets: "", 
-      description: exerciseName,
-    })
-  }
-
-  return(
-    <div>
-      <form onSubmit={handleNewSet}>
-        <label htmlFor="exerciseName">Exercise: </label>
-        <input 
-        value={exerciseName}
-        className="text-black"
-        onChange={handleName} id="exerciseName"type="text"></input>
-        <label htmlFor="weightNumber">Weight: </label>
-        <input 
-        value={weight}
-        className="text-black"
-        onChange={handleWeight} id="weightNumber"type="number"></input>
-        <button 
-        className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
-        type="submit">Add</button>
-      </form>
-    </div>
-  )
+  function updateWorkout(newExercise: ExerciseActual) {
+  setWorkoutActual(prev => {
+    const existingExerciseIndex = prev?.exercises.findIndex(exercise => exercise.description === newExercise.description);
+    if (existingExerciseIndex !== -1 && existingExerciseIndex!== undefined) {
+      if (!prev){return}
+      const updatedExercises = [...prev.exercises];
+      updatedExercises[existingExerciseIndex] = newExercise;
+      return {
+        ...prev,
+        exercises: updatedExercises
+      };
+    } else {
+      const newExercises = prev?.exercises ? [...prev.exercises, newExercise] : [newExercise];
+      return {
+        ...prev,
+        exercises: newExercises,
+        nominalDay: todaysWorkout?.nominalDay ?? "",
+        description: todaysWorkout?.description ?? '',
+      } ;
+    }
+  });
 }
+  const lastWorkout: WorkoutActual = {
+    description: undefined,
+    nominalDay: undefined,
+    exercises: [],
+  };
 
-interface ExerciseUiProps{
-  updateExercises: React.Dispatch<React.SetStateAction<Exercise[]>>;
-  setInProgress: React.Dispatch<React.SetStateAction<boolean>>;
-  exercise: Exercise;
-  exercises: Exercise[];
-  updateselectedExercise: React.Dispatch<React.SetStateAction<Exercise | undefined>>;
-}
-
-function ExerciseUi({exercises, updateExercises, updateselectedExercise, exercise, setInProgress} : ExerciseUiProps){
-  const [newSet, setnewSet] = useState("")
-  const [sets, setSets] = useState<string[]>([])
-  console.log(exercise)
-
-  const {mutate: saveExercise} = api.getWorkouts.updateExercise.useMutation({
-  onSuccess(data, variables, context) {
-    const updatedExercise = data
-    console.log(updatedExercise)
-    console.log("SAVED")
-  },
-  })
-
-  const handleNewSet = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const updatedExercises = exercises.map((e)=> {
-      if (e.description === exercise.description){
-        if (e.sets){
-          return {
-            ...e,
-            sets: e.sets.split(", ").map(Number).concat(parseInt(newSet)).join(", "),
-          }
-        } else {
-          return {
-            ...e,
-            sets: newSet,
-          }
-        }
-      } else {
-        return e
-      }
-    })
-    console.log("UPDATED")
-    console.log(updatedExercises)
-    updateExercises(updatedExercises)
-    setnewSet("")
+  if (workout && workout.length > 0) {
+    lastWorkout.description = workout[0]?.description;
+    lastWorkout.nominalDay = workout[0]?.nominalDay;
+    lastWorkout.exercises = workout[0]?.exercises || [];
   }
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setnewSet(event.target.value)
-  }
 
-  
-  function handleNextExercise(){
-    const currentExercise = exercises.find((ex)=> ex.exerciseId===exercise.exerciseId)
-    if (currentExercise){
-      saveExercise({ 
-        exerciseId: currentExercise.exerciseId,
-        sets: currentExercise.sets,
-      })
-      setInProgress(false)
+  if (plan && todaysWorkout===undefined){
+    const newWorkout = plan[0]?.workouts.find((workout) => workout.nominalDay === todayName)
+    if (newWorkout){
+      setTodaysWorkout(newWorkout)
     }
   }
 
-  return(
-    <div >
-      <form onSubmit={handleNewSet}>
-        <label htmlFor="repCount">Reps: </label>
-        <input 
-        value={newSet}
-        className="text-black"
-        onChange={handleChange} id="repCount"type="number"></input>
-        <button 
-        className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
-        type="submit">Add</button>
-      </form>
-  
-      <br></br>
-      <div>
-        <button
-        onClick={handleNextExercise}
-        className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
-        >Next Exercise</button>
-      </div>
-      <br></br>
-    </div>
-)}
+  if (!todaysWorkout){
+    return(<div>No Workout</div>)
+  }
+  if (todaysWorkout ){
 
-interface EndWorkoutProps{
-  setNewWorkout: React.Dispatch<React.SetStateAction<Workout | undefined>>;
-  setInProgress: React.Dispatch<React.SetStateAction<boolean>>;
-  setExercises: React.Dispatch<React.SetStateAction<Exercise[]>>;
-  setSelectedExercise: React.Dispatch<React.SetStateAction<Exercise | undefined>>;
+  return(
+    <div>
+      {(!workoutStarted) && <h3 className="text-xl font-bold">Todays Workout</h3>}
+      {(!workoutStarted) && todaysWorkout?.exercises?.map((exercise, index)=> (
+      <div key={index}>{exercise.description}: {exercise.weight} x {exercise.sets}</div>
+    ))}
+    {(!workoutStarted) && <StartWorkoutButton startWorkout={setWorkoutStarted}/>}
+    {(workoutStarted) && <WorkoutHandler setCurrentExercise={setCurrentExercise} workout={todaysWorkout}/>}
+    {(workoutStarted) && (currentExercise) && <ExerciseForm 
+    lastWorkout={lastWorkout}
+    updateWorkout={updateWorkout}
+    exerciseActual={exerciseActual}
+    updateExercise={setExerciseActual}
+    setWorkoutActual={updateWorkout}
+    setCurrentExercise={setCurrentExercise} exercise={currentExercise}/>}
+    {(workoutStarted) && (workoutActual) && <CompletedWork workout={workoutActual}/>}
+    <br></br>
+    {(workoutStarted) && (workoutActual) && <EndWorkout workout={workoutActual}/>}
+    </div>
+  )
+  }
   
+
+return null
 }
 
-function EndWorkout({setNewWorkout, setInProgress, setExercises, setSelectedExercise}: EndWorkoutProps){
-  function resetValues(){
-    console.log("reset")
-    setNewWorkout(undefined)
-    setInProgress(false)
-    setExercises([])
-    setSelectedExercise(undefined)
+interface DoWorkoutProps{
+  startWorkout: React.Dispatch<React.SetStateAction<boolean>>;
+ 
+}
+
+function StartWorkoutButton( {startWorkout}: DoWorkoutProps){
+  function handleClick(){
+    startWorkout(true)
   }
   return(
     <div>
       <button 
-      onClick={resetValues}
-      className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
-       >End Workout</button>
+      className="bg-gray-700 mt-4 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+      onClick={handleClick}>Begin Workout</button>
     </div>
   )
 }
+
+
+interface WorkoutHandlerProps{
+  setCurrentExercise: React.Dispatch<React.SetStateAction<ModelExercise | undefined>>;
+  workout: WorkoutWithExercise;
+}
+
+function WorkoutHandler( {workout, setCurrentExercise}: WorkoutHandlerProps){
+
+  function handleClick( thisexercise: ModelExercise){
+    setCurrentExercise(thisexercise)
+  }
+  return(
+    <div>
+      <div className="flex flex-col items-center">{workout.exercises?.map((exercise, index)=>(
+        <div className="flex flex-row items-center m-2" key={index}>
+          <div>{exercise.description}</div>
+          <button
+          onClick={()=> handleClick(exercise)}
+      className="bg-gray-700  mx-4 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          >Begin</button>
+        </div>
+      ))}</div>
+    </div>
+  )
+}
+
+interface CurrentExerciseProps{
+  exercise: ModelExercise | undefined; 
+  exerciseActual: ExerciseActual | undefined;
+  setCurrentExercise: React.Dispatch<React.SetStateAction<ModelExercise | undefined>>;
+  updateExercise: React.Dispatch<React.SetStateAction<ExerciseActual | undefined>>;
+  updateWorkout: (newExercise: ExerciseActual)=> void;
+  setWorkoutActual: (newExercise: ExerciseActual)=> void;
+  lastWorkout: WorkoutActual | undefined;
+}
+
+type resultOfSet = {
+    weight: number;
+    reps: number;
+    rir: number;
+}
+
+interface saveSetProps {
+  weight: number;
+  reps: number;
+  rir: number;
+  event: React.FormEvent<HTMLFormElement>;
+}
+
+function ExerciseForm({lastWorkout, exercise, setCurrentExercise, updateExercise, exerciseActual, updateWorkout, setWorkoutActual} : CurrentExerciseProps) {
+  //needs to know current exercise, update exerciseActual
+  const [data, setData] = useState<resultOfSet[]>([])
+  const [lastWeekExercise, setLastWeekExercise] = useState<ExerciseActual>()
+
+  useEffect(() => {if (!lastWeekExercise || lastWeekExercise.description !==exercise?.description){ 
+    if (!lastWorkout || lastWorkout.exercises === undefined){
+      setLastWeekExercise(undefined)
+    } else {
+      const lastTimeExercise = lastWorkout.exercises.find((workout) => workout.description === exercise?.description)
+      setLastWeekExercise(lastTimeExercise)
+    }
+  }}, [lastWeekExercise, lastWorkout, exercise])
+
+
+  const handleSaveSet = ({weight, reps, rir, event}: saveSetProps ) => {
+    event.preventDefault();
+    const newSet : resultOfSet = {
+      weight: weight,
+      reps: reps,
+      rir: rir,
+    }
+    if (exerciseActual){
+      const newExerciseSets = [...exerciseActual.sets, newSet]
+      const newExerciseActual: ExerciseActual = {
+        description: exercise?.description ??  "",
+        sets: newExerciseSets,
+      }
+      updateExercise(newExerciseActual)
+      setWorkoutActual(newExerciseActual)
+    } else {
+      const newExerciseSets = [newSet]
+      const newExerciseActual: ExerciseActual = {
+        description: exercise?.description ??  "",
+        sets: newExerciseSets,
+      }
+      updateExercise(newExerciseActual)
+      setWorkoutActual(newExerciseActual)
+    }
+
+    const newData = [...data, newSet]
+    setData(newData)
+    console.log(`weight: ${weight}, reps: ${reps}, rir: ${rir}`)
+  };
+  function handleSaveExercise(){
+    if (exerciseActual){
+      updateWorkout(exerciseActual)
+    }
+    setCurrentExercise(undefined)
+    updateExercise(undefined)
+    setData([])
+  }
+
+
+  return (
+    <div className="p-4">
+      <DisplayLastExercise plannedExercise={exercise} lastExercise={lastWeekExercise}/>
+      <br></br>
+      <SetForm saveSet={handleSaveSet} exercisePlan={exercise} exerciseActual={exerciseActual}/>
+      <button
+      onClick={handleSaveExercise}
+      className="bg-gray-700 mt-4 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+      >Next Exercise</button>
+    </div>)
+
+  }
+interface DisplayLastExerciseProps{
+  lastExercise: ExerciseActual | undefined;
+  plannedExercise: ModelExercise | undefined;
+}
+function DisplayLastExercise({lastExercise, plannedExercise}: DisplayLastExerciseProps){
+  if (!plannedExercise && !lastExercise){return(<div></div>)}
+  if (!lastExercise){return(
+    <div>
+      <div>Plan: {plannedExercise?.description}</div>
+      <div>{plannedExercise?.weight} x {plannedExercise?.sets} at 3 RIR</div>
+    </div>
+    )}
+
+  return(
+    <div className="bg-gray-800 p-4 rounded-md w-64 mx-auto">
+      <div className="text-lg font-bold">Last time: </div>
+      <div className="text-lg font-bold mb-1">{lastExercise.description}</div>
+      <div>
+        {lastExercise.sets.map((set, index) => (
+          <div key={index} className="text-sm mb-1">
+            {set.weight} x {set.reps} at {set.rir} RIR
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+type exerciseResult = {
+  sets: resultOfSet[];
+}
+
+  function DisplayTotalSets({sets}: exerciseResult){
+    if (!sets){
+      return(<div></div>)
+    }
+    return(
+      <div>
+        {sets?.map((currentSet, index)=>(
+          <div key={index}>{currentSet.weight} x {currentSet.reps} ({currentSet.rir} RIR)</div>
+        ))}
+      </div>
+    )
+  }
+
+interface setFormProps {
+  saveSet: ({ weight, reps, rir, event }: { weight: number, reps: number, rir: number, event: React.FormEvent<HTMLFormElement>}) => void;
+  exercisePlan: ModelExercise | undefined;
+  exerciseActual: ExerciseActual | undefined;
+}
+
+function SetForm( {saveSet, exerciseActual, exercisePlan}: setFormProps ) {
+  const [weight, setWeight] = useState<number>(0);
+  const [reps, setReps] = useState<number>(5);
+  const [rir, setRir] = useState<number>(3);
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const repsInputRef = useRef<HTMLInputElement>(null)
+
+
+  useEffect(() => {
+    const defaultWeight = typeof getMaxWeight(exerciseActual) === "number" ? getMaxWeight(exerciseActual) : (typeof exercisePlan?.weight === "number" ? exercisePlan.weight : 0);
+
+    if (defaultWeight){
+      setWeight(defaultWeight)
+    } else {
+      setWeight(0)
+    }
+    
+  }, [exerciseActual, exercisePlan]);
+
+
+  const handleWeightChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setWeight(parseInt(event.target.value));
+  };
+
+  const handleRepsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setReps(parseInt(event.target.value));
+  };
+
+  const handleRirChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRir(parseInt(event.target.value));
+  };
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    saveSet({weight: weight, reps: reps, rir: rir, event: event})
+    setReps(parseInt(""))
+    setIsSubmitted(true);
+    repsInputRef.current?.focus()
+  };
+
+
+  return (
+<div className="bg-gray-800 w-4/5 mx-auto p-4 rounded-lg">
+  <form className="flex flex-wrap items-center justify-center" onSubmit={handleSubmit}>
+    <div className="mr-4 mb-4">
+      <label className="block font-medium mb-2" htmlFor="weight">
+        Weight:
+      </label>
+      <input
+        className="shadow appearance-none border rounded w-24 py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline"
+        id="weight"
+        type="number"
+        value={weight}
+        onChange={handleWeightChange}
+        required
+      />
+    </div>
+    <div className="mr-4 mb-4">
+      <label className="block font-medium mb-2" htmlFor="reps">
+        Reps:
+      </label>
+      <input
+        className="shadow appearance-none border rounded w-24 py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline"
+        id="reps"
+        type="number"
+        ref={repsInputRef}
+        value={reps}
+        onChange={handleRepsChange}
+        required
+      />
+    </div>
+    <div className="mr-4 mb-4">
+      <label className="block font-medium mb-2" htmlFor="rir">
+        RIR:
+      </label>
+      <input
+        className="shadow appearance-none border rounded w-24 py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline"
+        id="rir"
+        type="number"
+        value={rir}
+        onChange={handleRirChange}
+        required
+      />
+    </div>
+    <button
+      className="bg-gray-700 mt-4 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+      type="submit"
+    >
+      Save
+    </button>
+  </form>
+</div>
+)}
+
+function getMaxWeight(exercise: ExerciseActual | undefined):number|undefined{
+  if (!exercise){return undefined}
+  let maxWeight = 0
+  for (const set of exercise.sets){
+    if (set.weight > maxWeight){
+      maxWeight = set.weight
+    }
+  }
+  return maxWeight
+}
+
+
+  interface CompletedWorkProps{
+    workout: WorkoutActual;
+  }
+
+  function CompletedWork({workout}: CompletedWorkProps){
+  return (
+<div className="bg-gray-800 w-4/5 mx-auto p-4 rounded-lg">
+  <h3 className="text-xl font-bold mb-4">{workout.description}</h3>
+  <table className="w-full overflow-x-auto border border-gray-400">
+    <thead>
+      <tr>
+        <th className="text-center">Exercise</th>
+        <th className="text-center">Set</th>
+        <th className="text-center">Reps</th>
+        <th className="text-center">Weight</th>
+        <th className="text-center">RIR</th>
+      </tr>
+    </thead>
+    <tbody>
+      {workout.exercises.map((exercise, exerciseIndex) => (
+        <React.Fragment key={exerciseIndex}>
+          <tr className="border-t border-b border-gray-400 mt-4 mb-2">
+            <td className="font-bold align-middle">
+              {exercise.description}
+            </td>
+            <td colSpan={4}>
+              <table className="w-full">
+                <tbody>
+                  {exercise.sets.map((set, setIndex) => (
+                    <tr key={setIndex}>
+                      <td className="text-center w-1/4">{setIndex + 1}</td>
+                      <td className="text-center w-1/4">{set.reps}</td>
+                      <td className="text-center w-1/4">{set.weight === 0 ? "BW" : set.weight}</td>
+                      <td className="text-center w-1/4">{set.rir}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+        </React.Fragment>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+  )
+}
+
+interface EndWorkoutProps{
+  workout: WorkoutActual
+}
+
+ function EndWorkout({workout}: EndWorkoutProps){
+    const {mutate: saveWorkout, isLoading} = api.getWorkouts.saveWorkout.useMutation({
+    onSuccess(data, variables, context) {
+      console.log(data)
+    },
+    })
+  function saveTodaysWorkout(){
+    if ((workout.description!==undefined) && (workout.nominalDay!==undefined)){
+      const newWorkout = {
+        ...workout,
+        nominalDay: workout.nominalDay || "none",
+        description: workout.description || "none",
+        exercises: workout.exercises.map((exercise)=>({
+          ...exercise,
+          description: exercise.description || 'none'
+        })),
+      }
+      saveWorkout(newWorkout)
+    }
+  }
+  if (isLoading){
+    return(
+      <div>
+      <LoadingSpinner/>
+      </div>
+    )
+  }
+  return(<div>
+    <button
+      className="bg-gray-700 mt-4 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+    onClick={saveTodaysWorkout}
+    >Save Workout</button>
+  </div>)
+ }
