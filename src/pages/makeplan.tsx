@@ -162,9 +162,11 @@ function WorkoutForm( {days} : WorkoutFormProps){
     },
     })
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>){
-    event?.preventDefault()
-    const formData = new FormData(event.currentTarget)
+  function handleSubmit(event: React.MouseEvent<HTMLButtonElement>){
+    event.preventDefault()
+    const form = event.currentTarget.form;
+    if (!form){return}
+    const formData = new FormData(form)
     const input = Object.fromEntries(formData.entries())
     Object.keys(input).forEach((day) => {
       if (input[day] !== undefined){
@@ -172,26 +174,102 @@ function WorkoutForm( {days} : WorkoutFormProps){
       }
     })
     console.log(newPlan)
-    makePlan(newPlan)
+    //makePlan(newPlan)
   }
   return(
     <div>
     <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-4">Create Your Weekly Workout Plan</h1>
-        <form  onSubmit={handleSubmit}>
+        <form>
           {sortedDays.map((day) => (
             <div className="flex flex-wrap mb-4" key={day}>
               <label htmlFor={day} className="w-full sm:w-1/4">{day}:</label>
               <div className="w-full sm:w-3/4">
-                <input type="text" id={day} name={day} className="w-full px-3 py-2 border text-black border-gray-400 rounded"></input>
+                <NewDay/>
               </div>
             </div>
           ))}
           <div className="mt-8">
-            <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>
+            <button onClick={handleSubmit} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>
           </div>
         </form>
     </div>
+    </div>
+  )
+}
+
+interface NewExerciseProps {
+  exercises: ExerciseTemplate[] | undefined;
+  setExercises: React.Dispatch<React.SetStateAction<ExerciseTemplate[] | undefined>>;
+}
+
+
+function NewExercise({exercises, setExercises}: NewExerciseProps){
+  const [description, setDescription] = useState('')
+  const [weight, setWeight] = useState(0)
+  const [sets, setSets] = useState(0)
+
+  const handleSubmit = (event:React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    const newExercise: ExerciseTemplate ={
+      description: description,
+      weight: weight,
+      sets: sets
+    };
+    console.log(newExercise)
+    //const newExercises = exercises?.push(newExercise)
+  }
+  const handleDescriptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setDescription(event.target.value);
+  };
+  const handleWeightChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setWeight(parseInt(event.target.value));
+  };
+  const handleSetsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSets(parseInt(event.target.value));
+  };
+
+  return(
+    <div>
+      <div>
+        {exercises && exercises.map((exercise)=>(
+          <div key={exercise.description}>
+            <div>{exercise.description}</div>
+            <div>{exercise.weight}</div>
+            <div>{exercise.sets}</div>
+          </div>
+        ))}
+      </div>
+        <label>Description: </label>
+        <input className="text-black" type='text' onChange={handleDescriptionChange}></input>
+        <br></br>
+        <br></br>
+        <label>Weight: </label>
+        <input type="number" className="text-black" onChange={handleWeightChange}></input>
+        <br></br>
+        <br></br>
+        <label>Sets: </label>
+        <input type="number" className="text-black" onChange={handleSetsChange}></input>
+        <br></br>
+        <br></br>
+        <button onClick={handleSubmit}>Add Exercise</button>
+    </div>
+  )
+}
+
+function NewDay(){
+  const [exercises, setExercises] = useState<ExerciseTemplate[]>()
+
+  return(
+    <div>
+      <div>
+        {exercises && exercises.map((exercise)=>(
+          <div><div>{exercise.description}</div>
+          <div>{exercise.weight}</div>
+          <div>{exercise.sets}</div></div>
+        ))}
+      </div>
+      <NewExercise exercises={exercises} setExercises={setExercises}/>
     </div>
   )
 }
