@@ -264,7 +264,8 @@ function NewDay(){
     <div>
       <div>
         {exercises && exercises.map((exercise)=>(
-          <div><div>{exercise.description}</div>
+          <div key={exercise.description}>
+          <div>{exercise.description}</div>
           <div>{exercise.weight}</div>
           <div>{exercise.sets}</div></div>
         ))}
