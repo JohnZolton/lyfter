@@ -109,6 +109,11 @@ function WeekForm(){
   const handlePlanUpdate = (newDay: WorkoutTemplate) => {
     const updatedPlan = [...newPlan, newDay]
     setNewPlan(updatedPlan)
+    console.log(updatedPlan)
+  }
+
+  const saveWorkout = ()=>{
+    console.log(newPlan)
   }
 
   return(
@@ -124,14 +129,15 @@ function WeekForm(){
           ))}
         </div>
       </div>
-      <WorkoutForm days={daysSelected} handlePlanUpdate={handlePlanUpdate}/>
+      <WorkoutForm savePlan={saveWorkout} days={daysSelected} handlePlanUpdate={handlePlanUpdate}/>
     </div>
   )
 }
 
 interface WorkoutFormProps {
   days: string[],
-  handlePlanUpdate: (newDay: WorkoutTemplate) => void
+  handlePlanUpdate: (newDay: WorkoutTemplate) => void;
+  savePlan: () => void;
 }
 
 interface WorkoutPlanInput {
@@ -145,7 +151,7 @@ interface WorkoutPlanInput {
 }
 
 
-function WorkoutForm( {days, handlePlanUpdate} : WorkoutFormProps){
+function WorkoutForm( {days, handlePlanUpdate, savePlan} : WorkoutFormProps){
 
   if (days.length === 0){ return <div></div>}
 
@@ -161,11 +167,7 @@ function WorkoutForm( {days, handlePlanUpdate} : WorkoutFormProps){
     },
     })
 
-  function handleSubmit(event: React.MouseEvent<HTMLButtonElement>){
-    event.preventDefault()
 
-    //makePlan(newPlan)
-  }
   return(
     <div>
     <div className="container mx-auto px-4 py-8">
@@ -179,7 +181,7 @@ function WorkoutForm( {days, handlePlanUpdate} : WorkoutFormProps){
             </div>
           ))}
           <div className="mt-8">
-            <button onClick={handleSubmit} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>
+            <button onClick={savePlan} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>
           </div>
     </div>
     </div>
@@ -248,13 +250,14 @@ function NewExercise({exercises, setExercises}: NewExerciseProps){
 
 interface NewDayProps {
   day: string,
-  updatePlan: (newDay: WorkoutTemplate) => void
+  updatePlan: (newDay: WorkoutTemplate) => void;
 }
 
 function NewDay({day, updatePlan}: NewDayProps){
   const [exercises, setExercises] = useState<ExerciseTemplate[]>()
   const [description, setDescription] = useState('')
   const [submittedDescription, setSubmittedDescription] = useState("");
+  const [daySaved, setDaySaved] = useState(false)
 
   const handleDescriptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
   setDescription(event.target.value);
@@ -263,8 +266,22 @@ function NewDay({day, updatePlan}: NewDayProps){
 const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
   event.preventDefault();
   setSubmittedDescription(description);
-  setDescription("");
 };
+//need to have a running day plan and populate with exercises as they add
+const handleSetDay = () => {
+  if (description && exercises){
+    const dayWorkout: WorkoutTemplate = {
+      description: description,
+      nominalDay: day,
+      exercises: exercises,
+    }
+    console.log('newday comp')
+    console.log(dayWorkout)
+    setDescription("");
+    updatePlan(dayWorkout)
+    setDaySaved(true)
+  }
+}
 
   return(
     <div className="">
@@ -273,6 +290,7 @@ const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
           <label>Description: </label>
           <input
             type="text"
+            className="text-black"
             value={description}
             onChange={handleDescriptionChange}
           />
@@ -306,7 +324,8 @@ const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
       </div>
       }
 
-      <NewExercise exercises={exercises} setExercises={setExercises}/>
+      {(!daySaved) && <NewExercise exercises={exercises} setExercises={setExercises}/>}
+      {(!daySaved) && <button onClick={handleSetDay}>Save Day</button>}
     </div>
   )
 }
