@@ -104,6 +104,13 @@ function WeekForm(){
     }
   }
 
+  const [newPlan, setNewPlan] = useState<WorkoutTemplate[]>([])
+
+  const handlePlanUpdate = (newDay: WorkoutTemplate) => {
+    const updatedPlan = [...newPlan, newDay]
+    setNewPlan(updatedPlan)
+  }
+
   return(
     <div>
       <div className="text-3xl font-bold text-slate-300 text-center mb-4">Select Workout Days</div>
@@ -117,13 +124,14 @@ function WeekForm(){
           ))}
         </div>
       </div>
-      <WorkoutForm days={daysSelected}/>
+      <WorkoutForm days={daysSelected} handlePlanUpdate={handlePlanUpdate}/>
     </div>
   )
 }
 
 interface WorkoutFormProps {
-  days: string[]
+  days: string[],
+  handlePlanUpdate: (newDay: WorkoutTemplate) => void
 }
 
 interface WorkoutPlanInput {
@@ -137,7 +145,7 @@ interface WorkoutPlanInput {
 }
 
 
-function WorkoutForm( {days} : WorkoutFormProps){
+function WorkoutForm( {days, handlePlanUpdate} : WorkoutFormProps){
 
   if (days.length === 0){ return <div></div>}
 
@@ -146,15 +154,6 @@ function WorkoutForm( {days} : WorkoutFormProps){
     return order.indexOf(a) - order.indexOf(b);
   });
 
-  const newPlan : WorkoutPlanInput = {
-    sunday: "",
-    monday: "",
-    tuesday: "",
-    wednesday: "",
-    thursday: "",
-    friday: "",
-    saturday: "",
-  }
 
   const {mutate: makePlan, isLoading} = api.getWorkouts.newWorkoutPlan.useMutation({
     onSuccess(data, variables, context) {
@@ -164,35 +163,24 @@ function WorkoutForm( {days} : WorkoutFormProps){
 
   function handleSubmit(event: React.MouseEvent<HTMLButtonElement>){
     event.preventDefault()
-    const form = event.currentTarget.form;
-    if (!form){return}
-    const formData = new FormData(form)
-    const input = Object.fromEntries(formData.entries())
-    Object.keys(input).forEach((day) => {
-      if (input[day] !== undefined){
-        newPlan[day.toLowerCase() as keyof WorkoutPlanInput] = input[day] as string
-      }
-    })
-    console.log(newPlan)
+
     //makePlan(newPlan)
   }
   return(
     <div>
     <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-4">Create Your Weekly Workout Plan</h1>
-        <form>
           {sortedDays.map((day) => (
             <div className="flex flex-wrap mb-4" key={day}>
               <label htmlFor={day} className="w-full sm:w-1/4">{day}:</label>
               <div className="w-full sm:w-3/4">
-                <NewDay/>
+                <NewDay day={day} updatePlan={handlePlanUpdate}/>
               </div>
             </div>
           ))}
           <div className="mt-8">
             <button onClick={handleSubmit} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>
           </div>
-        </form>
     </div>
     </div>
   )
@@ -209,7 +197,7 @@ function NewExercise({exercises, setExercises}: NewExerciseProps){
   const [weight, setWeight] = useState(0)
   const [sets, setSets] = useState(0)
 
-  const handleSubmit = (event:React.MouseEvent<HTMLButtonElement>) => {
+  const handleSubmit = (event:React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const newExercise: ExerciseTemplate ={
       description: description,
@@ -217,7 +205,15 @@ function NewExercise({exercises, setExercises}: NewExerciseProps){
       sets: sets
     };
     console.log(newExercise)
-    //const newExercises = exercises?.push(newExercise)
+    if (exercises){
+      const newExercises: ExerciseTemplate[] = [...exercises, newExercise]
+      setExercises(newExercises)
+    } else {
+      setExercises([newExercise])
+    }
+    setDescription('')
+    setWeight(0)
+    setSets(0)
   }
   const handleDescriptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setDescription(event.target.value);
@@ -231,45 +227,85 @@ function NewExercise({exercises, setExercises}: NewExerciseProps){
 
   return(
     <div>
-      <div>
-        {exercises && exercises.map((exercise)=>(
-          <div key={exercise.description}>
-            <div>{exercise.description}</div>
-            <div>{exercise.weight}</div>
-            <div>{exercise.sets}</div>
-          </div>
-        ))}
-      </div>
+      <form onSubmit={handleSubmit}>
         <label>Description: </label>
-        <input className="text-black" type='text' onChange={handleDescriptionChange}></input>
+        <input required className="text-black" type='text' value={description} onChange={handleDescriptionChange}></input>
         <br></br>
         <br></br>
         <label>Weight: </label>
-        <input type="number" className="text-black" onChange={handleWeightChange}></input>
+        <input type="number" required  className="text-black"value={weight}  onChange={handleWeightChange}></input>
         <br></br>
         <br></br>
         <label>Sets: </label>
-        <input type="number" className="text-black" onChange={handleSetsChange}></input>
+        <input type="number" required  className="text-black" value={sets} onChange={handleSetsChange}></input>
         <br></br>
         <br></br>
-        <button onClick={handleSubmit}>Add Exercise</button>
+        <button type="submit">Add Exercise</button>
+      </form>
     </div>
   )
 }
 
-function NewDay(){
+interface NewDayProps {
+  day: string,
+  updatePlan: (newDay: WorkoutTemplate) => void
+}
+
+function NewDay({day, updatePlan}: NewDayProps){
   const [exercises, setExercises] = useState<ExerciseTemplate[]>()
+  const [description, setDescription] = useState('')
+  const [submittedDescription, setSubmittedDescription] = useState("");
+
+  const handleDescriptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  setDescription(event.target.value);
+};
+
+const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
+  setSubmittedDescription(description);
+  setDescription("");
+};
 
   return(
-    <div>
+    <div className="">
       <div>
-        {exercises && exercises.map((exercise)=>(
-          <div key={exercise.description}>
-          <div>{exercise.description}</div>
-          <div>{exercise.weight}</div>
-          <div>{exercise.sets}</div></div>
-        ))}
+        {!submittedDescription && <form onSubmit={handleSubmit}>
+          <label>Description: </label>
+          <input
+            type="text"
+            value={description}
+            onChange={handleDescriptionChange}
+          />
+          <button type="submit">Submit</button>
+        </form>}
+    {submittedDescription && (
+      <div>Description: {submittedDescription}</div>
+    )}
       </div>
+      {exercises &&
+      <div className="flex flex-col">
+        <table className="min-w-full divide-y">
+          <thead>
+            <tr>
+              <th className="py-2">Description</th>
+              <th className="py-2">Weight</th>
+              <th className="py-2">Sets</th>
+            </tr>
+          </thead>
+          <tbody className=" divide-y">
+            {exercises &&
+              exercises.map((exercise) => (
+                <tr key={exercise.description}>
+                  <td className="py-2">{exercise.description}</td>
+                  <td className="py-2">{exercise.weight}</td>
+                  <td className="py-2">{exercise.sets}</td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
+      }
+
       <NewExercise exercises={exercises} setExercises={setExercises}/>
     </div>
   )
