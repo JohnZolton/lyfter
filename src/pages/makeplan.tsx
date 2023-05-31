@@ -112,8 +112,37 @@ function WeekForm(){
     console.log(updatedPlan)
   }
 
-  const saveWorkout = ()=>{
+  const {mutate: makePlan, isLoading} = api.getWorkouts.newTestPlan.useMutation({
+    onSuccess(data, variables, context) {
+      console.log(data)
+    },
+    })
+    
+  const saveWorkout = () => {
+    console.log("workout saved: ")
     console.log(newPlan)
+    const updatedPlan: WorkoutTemplate[] = emptyWorkoutPlan.map((emptyWorkout)=>{
+      const matchingWorkout = newPlan.find((workout) => workout.nominalDay=== emptyWorkout.nominalDay)
+      if (matchingWorkout){
+        return matchingWorkout
+      }
+      return emptyWorkout
+    })
+    console.log(updatedPlan)
+    makePlan( { workouts: newPlan })
+  }
+
+  if (isLoading){
+    return(
+      <div
+        className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] text-primary motion-reduce:animate-[spin_1.5s_linear_infinite]"
+        role="status">
+        <span
+          className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]"
+          >Loading...</span
+        >
+    </div>
+    )
   }
 
   return(
@@ -161,11 +190,6 @@ function WorkoutForm( {days, handlePlanUpdate, savePlan} : WorkoutFormProps){
   });
 
 
-  const {mutate: makePlan, isLoading} = api.getWorkouts.newWorkoutPlan.useMutation({
-    onSuccess(data, variables, context) {
-      console.log(data)
-    },
-    })
 
 
   return(
@@ -256,7 +280,8 @@ interface NewDayProps {
 function NewDay({day, updatePlan}: NewDayProps){
   const [exercises, setExercises] = useState<ExerciseTemplate[]>()
   const [description, setDescription] = useState('')
-  const [submittedDescription, setSubmittedDescription] = useState("");
+  const [submittedDescription, setSubmittedDescription] = useState('');
+  const [descriptionset, setdescriptionset] = useState(false)
   const [daySaved, setDaySaved] = useState(false)
 
   const handleDescriptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -266,6 +291,7 @@ function NewDay({day, updatePlan}: NewDayProps){
 const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
   event.preventDefault();
   setSubmittedDescription(description);
+  setdescriptionset(true)
 };
 //need to have a running day plan and populate with exercises as they add
 const handleSetDay = () => {
@@ -324,8 +350,8 @@ const handleSetDay = () => {
       </div>
       }
 
-      {(!daySaved) && <NewExercise exercises={exercises} setExercises={setExercises}/>}
-      {(!daySaved) && <button onClick={handleSetDay}>Save Day</button>}
+      {(!daySaved && descriptionset) && <NewExercise exercises={exercises} setExercises={setExercises}/>}
+      {(!daySaved && descriptionset) && <button onClick={handleSetDay}>Save Day</button>}
     </div>
   )
 }
@@ -361,6 +387,43 @@ type WorkoutTemplate = {
   exercises: ExerciseTemplate[];
 }
 
+const emptyWorkoutPlan : WorkoutTemplate[]= [
+  {
+    description: '',
+    nominalDay: 'Sunday',
+    exercises: [],
+  },
+  {
+    description: '',
+    nominalDay: 'Monday',
+    exercises: [],
+  },
+  {
+    description: '',
+    nominalDay: 'Tuesday',
+    exercises: [],
+  },
+  {
+    description: '',
+    nominalDay: 'Wednesday',
+    exercises: [],
+  },
+  {
+    description: '',
+    nominalDay: 'Thursday',
+    exercises: [],
+  },
+  {
+    description: '',
+    nominalDay: 'Friday',
+    exercises: [],
+  },
+  {
+    description: '',
+    nominalDay: 'Saturday',
+    exercises: [],
+  },
+]
 const PushFirst = {
   description: "Push #1",
   nominalDay: "Monday",

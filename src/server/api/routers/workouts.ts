@@ -277,8 +277,24 @@ export const getAllWorkouts = createTRPCRouter({
       })
   ).mutation(async ({ ctx, input }) => {
     const {workouts} = input
-    const workoutplan = await ctx.prisma.modelWorkoutPlan.create({
-      data: {
+    const updateWorkouts = workouts.map((workout) => ({
+  where: { nominalDay: workout.nominalDay }, // Specify the workout to update based on the nominalDay
+  data: {
+    description: workout.description,
+    nominalDay: workout.nominalDay,
+    exercises: {
+      deleteMany: {}, // Delete all existing exercises for the workout
+      create: workout.exercises.map((exercise) => ({
+        description: exercise.description,
+        weight: exercise.weight,
+        sets: exercise.sets,
+      })),
+    },
+  },
+}));
+    const workoutplan = await ctx.prisma.modelWorkoutPlan.upsert({
+      where: {userId: ctx.userId},
+      create: {
         userId: ctx.userId,
         workouts: {
           create: workouts.map((workout)=>({
@@ -293,6 +309,25 @@ export const getAllWorkouts = createTRPCRouter({
             }
           }))
         },
+      }, //this is garbage ahhhh
+      update: {
+        userId: ctx.userId,
+        workouts: {
+          deleteMany: { nominalDay: { in: workouts.map((workout) => workout.nominalDay) } },
+          create: workouts.map((workout) => ({
+            where: { nominalDay: workout.nominalDay },
+            create: {
+              description: workout.description,
+              nominalDay: workout.nominalDay,
+              exercises: {
+                create: workout.exercises.map((exercise) => ({
+                  description: exercise.description,
+                  weight: exercise.weight,
+                  sets: exercise.sets,
+                })),
+              },
+            },
+          })),
       },
       include: {
         workouts: {
@@ -301,7 +336,7 @@ export const getAllWorkouts = createTRPCRouter({
           }
         }
       }
-    })
+    }),
     if (!workoutplan){
       throw new TRPCError({
         code: 'NOT_FOUND',

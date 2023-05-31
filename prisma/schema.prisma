@@ -131,7 +131,7 @@ model ModelWorkoutPlan {
 model ModelWorkout {
   workoutId  String    @id @default(cuid())
   date       DateTime   @default(now())
-  nominalDay String
+  nominalDay String @unique
   userId     String 
   description String
   exercises ModelExercise[]
@@ -139,7 +139,7 @@ model ModelWorkout {
 
 
   //maybe add mesocycles and weeks for clumping/display?
-  @@index([userId])
+  @@index([userId, nominalDay])
 }
 
 model ModelExercise {
