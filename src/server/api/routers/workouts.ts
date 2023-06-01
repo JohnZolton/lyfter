@@ -277,24 +277,18 @@ export const getAllWorkouts = createTRPCRouter({
       })
   ).mutation(async ({ ctx, input }) => {
     const {workouts} = input
-    const updateWorkouts = workouts.map((workout) => ({
-  where: { nominalDay: workout.nominalDay }, // Specify the workout to update based on the nominalDay
-  data: {
-    description: workout.description,
-    nominalDay: workout.nominalDay,
-    exercises: {
-      deleteMany: {}, // Delete all existing exercises for the workout
-      create: workout.exercises.map((exercise) => ({
-        description: exercise.description,
-        weight: exercise.weight,
-        sets: exercise.sets,
-      })),
-    },
-  },
-}));
-    const workoutplan = await ctx.prisma.modelWorkoutPlan.upsert({
-      where: {userId: ctx.userId},
-      create: {
+    const deleteExercises = await ctx.prisma.modelExercise.deleteMany({
+      where: {userId: ctx.userId}
+    })
+    const deleteWorkouts = await ctx.prisma.modelWorkout.deleteMany({
+      where: {userId: ctx.userId}
+    })
+    const deleteWorkoutPlan = await ctx.prisma.modelWorkoutPlan.deleteMany({
+      where: {userId: ctx.userId}
+    })
+
+    const workoutplan = await ctx.prisma.modelWorkoutPlan.create({
+      data: {
         userId: ctx.userId,
         workouts: {
           create: workouts.map((workout)=>({
@@ -305,38 +299,20 @@ export const getAllWorkouts = createTRPCRouter({
                 description: exercise.description,
                 weight: exercise.weight,
                 sets: exercise.sets,
+                userId: ctx.userId,
               }))
             }
           }))
-        },
-      }, //this is garbage ahhhh
-      update: {
-        userId: ctx.userId,
-        workouts: {
-          deleteMany: { nominalDay: { in: workouts.map((workout) => workout.nominalDay) } },
-          create: workouts.map((workout) => ({
-            where: { nominalDay: workout.nominalDay },
-            create: {
-              description: workout.description,
-              nominalDay: workout.nominalDay,
-              exercises: {
-                create: workout.exercises.map((exercise) => ({
-                  description: exercise.description,
-                  weight: exercise.weight,
-                  sets: exercise.sets,
-                })),
-              },
-            },
-          })),
-      },
-      include: {
-        workouts: {
-          include: {
-            exercises: true
+        }},
+        include: {
+          workouts: {
+            include: {
+              exercises: true
+            }
           }
         }
-      }
-    }),
+      })
+
     if (!workoutplan){
       throw new TRPCError({
         code: 'NOT_FOUND',

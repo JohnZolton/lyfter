@@ -129,7 +129,7 @@ function WeekForm(){
       return emptyWorkout
     })
     console.log(updatedPlan)
-    makePlan( { workouts: newPlan })
+    makePlan( { workouts: updatedPlan })
   }
 
   if (isLoading){

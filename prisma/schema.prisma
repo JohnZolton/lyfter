@@ -150,13 +150,14 @@ model ModelExercise {
   sets        Int
   workoutId String
   workout ModelWorkout    @relation(fields: [workoutId], references: [workoutId])
+  userId String
 
   previousExercise   ModelExercise? @relation("previousExercise", fields: [previousExerciseId], references: [exerciseId], onDelete: NoAction, onUpdate: NoAction)
   previousExerciseId String? @unique
   nextExercise       ModelExercise? @relation("previousExercise")
   nextExerciseId     String?
 
-  @@index([workoutId])
+  @@index([workoutId, userId])
 }
 
 model ActualWorkout {
