@@ -277,6 +277,16 @@ export const getAllWorkouts = createTRPCRouter({
       })
   ).mutation(async ({ ctx, input }) => {
     const {workouts} = input
+    const deleteExercises = await ctx.prisma.modelExercise.deleteMany({
+      where: {userId: ctx.userId}
+    })
+    const deleteWorkouts = await ctx.prisma.modelWorkout.deleteMany({
+      where: {userId: ctx.userId}
+    })
+    const deleteWorkoutPlan = await ctx.prisma.modelWorkoutPlan.deleteMany({
+      where: {userId: ctx.userId}
+    })
+
     const workoutplan = await ctx.prisma.modelWorkoutPlan.create({
       data: {
         userId: ctx.userId,
@@ -289,19 +299,20 @@ export const getAllWorkouts = createTRPCRouter({
                 description: exercise.description,
                 weight: exercise.weight,
                 sets: exercise.sets,
+                userId: ctx.userId,
               }))
             }
           }))
-        },
-      },
-      include: {
-        workouts: {
-          include: {
-            exercises: true
+        }},
+        include: {
+          workouts: {
+            include: {
+              exercises: true
+            }
           }
         }
-      }
-    })
+      })
+
     if (!workoutplan){
       throw new TRPCError({
         code: 'NOT_FOUND',
