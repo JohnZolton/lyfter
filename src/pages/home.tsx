@@ -177,6 +177,24 @@ function CurrentWorkout({workout, plan}: CurrentWorkoutProps){
   console.log("current exercise:")
   console.log(currentExercise)
 
+  function editExercise(oldExercise: ModelExercise, newExerciseDescription: string){
+    console.log(oldExercise, newExerciseDescription)
+    console.log('todays workout: ')
+    console.log(todaysWorkout)
+    if (todaysWorkout){
+      const updatedExercises = todaysWorkout.exercises.map((exercise)=>{
+        if (exercise === oldExercise){
+          return {...exercise, description: newExerciseDescription}
+        }
+        return exercise
+      }
+  )
+  const newWorkout = {...todaysWorkout, exercises: updatedExercises}
+  console.log(newWorkout)
+  setTodaysWorkout(newWorkout)
+}
+  }
+
   //populate exercises and weight
   if (!workoutActual && workout && workout[0] && workout[0].exercises){
     console.log(workout)
@@ -248,7 +266,7 @@ function CurrentWorkout({workout, plan}: CurrentWorkoutProps){
       <div key={index}>{exercise.description}: {exercise.weight} x {exercise.sets}</div>
     ))}
     {(!workoutStarted) && <StartWorkoutButton startWorkout={setWorkoutStarted}/>}
-    {(workoutStarted) && (!currentExercise) && <WorkoutHandler setCurrentExercise={setCurrentExercise} workout={todaysWorkout}/>}
+    {(workoutStarted) && (!currentExercise) && <WorkoutHandler editExercise={editExercise} setCurrentExercise={setCurrentExercise} workout={todaysWorkout}/>}
     {(workoutStarted) && (currentExercise) && <ExerciseForm 
     lastWorkout={lastWorkout}
     updateWorkout={updateWorkout}
@@ -289,26 +307,64 @@ function StartWorkoutButton( {startWorkout}: DoWorkoutProps){
 interface WorkoutHandlerProps{
   setCurrentExercise: React.Dispatch<React.SetStateAction<ModelExercise | undefined>>;
   workout: WorkoutWithExercise;
+  editExercise(oldExercise: ModelExercise, newExerciseDescription: string): void;
 }
 
-function WorkoutHandler( {workout, setCurrentExercise}: WorkoutHandlerProps){
+function WorkoutHandler( {editExercise, workout, setCurrentExercise}: WorkoutHandlerProps){
 
   function handleClick( thisexercise: ModelExercise){
     setCurrentExercise(thisexercise)
   }
+
+  const [editing, setEditing] = useState<ModelExercise | null>(null)
+  const [exerciseDescription, setExerciseDescription] = useState("");
+
+  function handleEdit(exercise: ModelExercise){
+    setEditing(exercise)
+  }
+  function handleSave( exercise: ModelExercise){
+    setEditing(null)
+    console.log(exerciseDescription)
+    editExercise(exercise, exerciseDescription)
+  }
+
   return(
-    <div>
-      <div className="flex flex-col items-center">{workout.exercises?.map((exercise, index)=>(
-        <div className="flex flex-row items-center m-2" key={index}>
-          <div>{exercise.description}</div>
-          <button
-          onClick={()=> handleClick(exercise)}
-      className="bg-gray-700  mx-4 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-          >Begin</button>
-        </div>
-      ))}</div>
-    </div>
-  )
+  <div>
+      <div className="flex flex-col items-center">
+        {workout.exercises?.map((exercise, index) => (
+          <div className="flex flex-row items-center m-2" key={index}>
+            {editing === exercise ? (
+              <>
+              <input
+                type="text"
+                className="text-black"
+                value={exerciseDescription}
+                onChange={(e) => {
+                  setExerciseDescription(e.target.value)
+                }}
+              />
+              <button
+                onClick={(e)=> {handleSave(exercise)}}
+                className="bg-gray-700  mx-4 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              >Save</button>
+              </>
+            ) : (
+              <>
+              <div>{exercise.description}</div>
+              <button
+                onClick={()=> handleEdit(exercise)}
+                className="bg-gray-700  mx-4 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              >Edit</button>
+                 <button
+                  onClick={() => handleClick(exercise)}
+                  className="bg-gray-700  mx-4 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                >
+                  Begin
+                </button>
+              </> 
+            )}
+      </div>)
+  )}</div></div>)
 }
 
 interface CurrentExerciseProps{
@@ -405,6 +461,8 @@ function ExerciseForm({lastWorkout, exercise, setCurrentExercise, updateExercise
   }
 
 
+
+
   return (
     <div className="p-4">
       <DisplayLastExercise plannedExercise={exercise} lastExercise={lastWeekExercise}/>
@@ -417,11 +475,14 @@ function ExerciseForm({lastWorkout, exercise, setCurrentExercise, updateExercise
       )}
       <button
       onClick={handleSaveExercise}
-      className="bg-gray-700 mt-4 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+      className="bg-gray-700 mt-4 mx-1 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
       >Next Exercise</button>
     </div>)
 
   }
+
+
+
 interface DisplayLastExerciseProps{
   lastExercise: ExerciseActual | undefined;
   plannedExercise: ModelExercise | undefined;
