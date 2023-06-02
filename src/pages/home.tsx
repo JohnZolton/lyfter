@@ -177,9 +177,18 @@ function CurrentWorkout({workout, plan}: CurrentWorkoutProps){
   console.log("current exercise:")
   console.log(currentExercise)
 
+  // need to also update the plan exercise name
+  const {mutate: editExerciseHistory, isLoading} = api.getWorkouts.editWorkoutPlan.useMutation({
+    onSuccess(data, variables, context) {
+      console.log(data)
+    },
+    })
+
   function editExercise(oldExercise: ModelExercise, newExerciseDescription: string){
-    console.log(oldExercise, newExerciseDescription)
-    console.log('todays workout: ')
+    console.log("we are here: ")
+    console.log(oldExercise.exerciseId)
+    console.log(todaysWorkout?.workoutId)
+    console.log(newExerciseDescription)
     console.log(todaysWorkout)
     if (todaysWorkout){
       const updatedExercises = todaysWorkout.exercises.map((exercise)=>{
@@ -187,12 +196,16 @@ function CurrentWorkout({workout, plan}: CurrentWorkoutProps){
           return {...exercise, description: newExerciseDescription}
         }
         return exercise
-      }
-  )
-  const newWorkout = {...todaysWorkout, exercises: updatedExercises}
-  console.log(newWorkout)
-  setTodaysWorkout(newWorkout)
-}
+      })
+      const newWorkout = {...todaysWorkout, exercises: updatedExercises}
+      console.log(newWorkout)
+      setTodaysWorkout(newWorkout)
+      editExerciseHistory({
+        workoutId: todaysWorkout.workoutId,
+        exerciseId: oldExercise.exerciseId,
+        description: newExerciseDescription,
+      })
+    }
   }
 
   //populate exercises and weight
