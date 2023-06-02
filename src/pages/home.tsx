@@ -185,11 +185,6 @@ function CurrentWorkout({workout, plan}: CurrentWorkoutProps){
     })
 
   function editExercise(oldExercise: ModelExercise, newExerciseDescription: string){
-    console.log("we are here: ")
-    console.log(oldExercise.exerciseId)
-    console.log(todaysWorkout?.workoutId)
-    console.log(newExerciseDescription)
-    console.log(todaysWorkout)
     if (todaysWorkout){
       const updatedExercises = todaysWorkout.exercises.map((exercise)=>{
         if (exercise === oldExercise){
@@ -199,6 +194,28 @@ function CurrentWorkout({workout, plan}: CurrentWorkoutProps){
       })
       const newWorkout = {...todaysWorkout, exercises: updatedExercises}
       console.log(newWorkout)
+      console.log("workout actual: ")
+      console.log(workoutActual)
+      if (workoutActual){
+      const newExerciseList = (workoutActual?.exercises.map((exercise)=>{
+        if (exercise.description === oldExercise.description){
+          return {...exercise, description: newExerciseDescription}
+        }
+        if (exercise.sets.length === 0){
+          return null
+        }
+        return exercise
+      }) as ExerciseActual[]).filter((exercise)=> exercise !==null)
+
+      console.log("this one: ")
+      console.log(newExerciseList)
+      const updatedWorkoutActual: WorkoutActual = {
+        nominalDay: workoutActual.nominalDay,
+        description: workoutActual.description,
+        exercises: newExerciseList,
+      }
+      setWorkoutActual(updatedWorkoutActual)
+      }
       setTodaysWorkout(newWorkout)
       editExerciseHistory({
         workoutId: todaysWorkout.workoutId,
