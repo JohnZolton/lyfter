@@ -174,25 +174,48 @@ function CurrentWorkout({workout, plan}: CurrentWorkoutProps){
   const today = new Date()
   const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const todayName = weekdays[today.getDay()];
-  console.log("current exercise:")
-  console.log(currentExercise)
+
+  // need to also update the plan exercise name
+  const {mutate: editExerciseHistory, isLoading} = api.getWorkouts.editWorkoutPlan.useMutation({
+    onSuccess(data, variables, context) {
+      console.log(data)
+    },
+    })
 
   function editExercise(oldExercise: ModelExercise, newExerciseDescription: string){
-    console.log(oldExercise, newExerciseDescription)
-    console.log('todays workout: ')
-    console.log(todaysWorkout)
     if (todaysWorkout){
       const updatedExercises = todaysWorkout.exercises.map((exercise)=>{
         if (exercise === oldExercise){
           return {...exercise, description: newExerciseDescription}
         }
         return exercise
+      })
+      const newWorkout = {...todaysWorkout, exercises: updatedExercises}
+      if (workoutActual){
+      const newExerciseList = (workoutActual?.exercises.map((exercise)=>{
+        if (exercise.description === oldExercise.description){
+          return {...exercise, description: newExerciseDescription}
+        }
+        if (exercise.sets.length === 0){
+          return null
+        }
+        return exercise
+      }) as ExerciseActual[]).filter((exercise)=> exercise !==null)
+
+      const updatedWorkoutActual: WorkoutActual = {
+        nominalDay: workoutActual.nominalDay,
+        description: workoutActual.description,
+        exercises: newExerciseList,
       }
-  )
-  const newWorkout = {...todaysWorkout, exercises: updatedExercises}
-  console.log(newWorkout)
-  setTodaysWorkout(newWorkout)
-}
+      setWorkoutActual(updatedWorkoutActual)
+      }
+      setTodaysWorkout(newWorkout)
+      editExerciseHistory({
+        workoutId: todaysWorkout.workoutId,
+        exerciseId: oldExercise.exerciseId,
+        description: newExerciseDescription,
+      })
+    }
   }
 
   //populate exercises and weight
@@ -252,7 +275,34 @@ function CurrentWorkout({workout, plan}: CurrentWorkoutProps){
     if (newWorkout){
       setTodaysWorkout(newWorkout)
     }
+  }  
+  const [addingExercise, setAddingExercise] = useState(false)
+  function startAddExercise(){
+    console.log('process started')
+    setAddingExercise(!addingExercise)
   }
+
+  const {mutate: addExercise} = api.getWorkouts.addExercise.useMutation({
+    onSuccess(data, variables, context) {
+      if (data){
+        const newExercise = data
+        const newWorkoutExercises = [...(todaysWorkout?.exercises)??[], newExercise]
+          if (todaysWorkout){
+          const newWorkout = {...todaysWorkout, 
+            workoutId: todaysWorkout?.workoutId ?? "",
+            exercises: newWorkoutExercises,
+          }
+          setTodaysWorkout(newWorkout)
+        }
+      }
+    },
+  })
+
+  function saveAddedExercise(description: string){
+    console.log(description)
+    if (todaysWorkout){
+    const newExercise = addExercise({description: description, workoutId: todaysWorkout.workoutId})
+  }}
 
   if (!todaysWorkout){
     return(<div>No Workout</div>)
@@ -274,8 +324,26 @@ function CurrentWorkout({workout, plan}: CurrentWorkoutProps){
     updateExercise={setExerciseActual}
     setWorkoutActual={updateWorkout}
     setCurrentExercise={setCurrentExercise} exercise={currentExercise}/>}
+    
+    {
+      workoutStarted ? (
+        !addingExercise ? (
+          <button
+            onClick={startAddExercise}
+            className="bg-gray-700 mx-4 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          >
+            Add Exercise
+          </button>
+        ) : (
+          <AddExerciseForm 
+          saveExercise={saveAddedExercise}
+          closeExerciseForm={startAddExercise} />
+        )
+      ) : null
+          }
     {(workoutStarted) && (workoutActual) && <CompletedWork workout={workoutActual}/>}
     <br></br>
+
     {(workoutStarted) && (workoutActual) && <EndWorkout workout={workoutActual}/>}
     </div>
   )
@@ -328,6 +396,7 @@ function WorkoutHandler( {editExercise, workout, setCurrentExercise}: WorkoutHan
     editExercise(exercise, exerciseDescription)
   }
 
+
   return(
   <div>
       <div className="flex flex-col items-center">
@@ -364,7 +433,39 @@ function WorkoutHandler( {editExercise, workout, setCurrentExercise}: WorkoutHan
               </> 
             )}
       </div>)
-  )}</div></div>)
+  )}</div>
+  </div>)
+}
+
+interface AddExerciseFormProps {
+  closeExerciseForm: ()=>void;
+  saveExercise: (description: string)=>void;
+}
+function AddExerciseForm( {closeExerciseForm, saveExercise }: AddExerciseFormProps){
+  const [description, setDescription] = useState("")
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>){
+    event.preventDefault()
+    closeExerciseForm()
+    // add to workout plan
+    saveExercise(description)
+
+    // add to workout actual?
+  }
+  return(
+    <div>
+      <form onSubmit={handleSubmit}>
+        <label>Description: </label>
+        <input type='text' 
+          value={description}
+          className="text-black"
+          required
+          onChange={(e)=>{setDescription(e.target.value)}}></input>
+          <button type="submit"
+            className="bg-gray-700 mt-4 mx-1 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          >Add</button>
+      </form>
+    </div>
+  )
 }
 
 interface CurrentExerciseProps{

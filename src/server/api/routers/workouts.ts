@@ -259,6 +259,40 @@ export const getAllWorkouts = createTRPCRouter({
     return workoutplan
   }),
 
+  editWorkoutPlan: privateProcedure.input(
+    z.object({
+      exerciseId: z.string(),
+      workoutId: z.string(),
+      description: z.string(),
+    })
+  ).mutation(async ({ctx, input }) => {
+    const workoutId = input.workoutId
+    const exerciseId = input.exerciseId
+    const workoutPlan = await ctx.prisma.modelWorkoutPlan.update({
+      where: {userId: ctx.userId},
+      data: {
+        workouts: {
+          update: [
+            {
+              where: {workoutId},
+              data: {
+                exercises: {
+                  update: [
+                    {
+                      where: {exerciseId},
+                      data: { description: input.description },
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    })
+    return workoutPlan
+  }),
+
   newTestPlan: privateProcedure.input(
     z.object({
         workouts: z.array(
@@ -365,6 +399,24 @@ export const getAllWorkouts = createTRPCRouter({
       
     })
     return savedWorkout
+  }),
+
+  addExercise: privateProcedure.input(
+    z.object({
+      description: z.string(),
+      workoutId: z.string(),
+    })
+  ).mutation(async ({ ctx, input }) => {
+    const addedExercise = await ctx.prisma.modelExercise.create({
+      data: {
+        userId: ctx.userId,
+        description: input.description,
+        weight: 0,
+        sets: 1,
+        workoutId: input.workoutId,
+      },
+    })
+    return addedExercise
   }),
 
 });
