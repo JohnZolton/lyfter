@@ -7,7 +7,7 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 
-import type { User, Workout, Exercise, WorkoutPlan, ModelWorkoutPlan, exerciseSet } from "@prisma/client"
+import type { User, Workout, Exercise, WorkoutPlan, ModelWorkoutPlan, exerciseSet, ActualWorkout } from "@prisma/client"
 import { prisma } from "~/server/db";
 import { Input } from "postcss";
 import internal from "stream";
@@ -291,6 +291,61 @@ export const getAllWorkouts = createTRPCRouter({
       }
     })
     return workoutPlan
+  }),
+
+  newTestPlanTwo: privateProcedure.input(
+    z.object({
+        workouts: z.array(
+          z.object({
+            description: z.string(),
+            nominalDay: z.string(),
+            exercises: z.array(
+              z.object({
+                description: z.string(),
+                weight: z.number(),
+                sets: z.array(
+                  z.object({
+                    weight: z.number(),
+                    reps: z.number(),
+                    rir: z.number(),
+                  })
+                ),
+              })
+            ),
+          })
+        ),
+      })
+  ).mutation(async ({ ctx, input }) => {
+    const {workouts} = input
+    const workoutArray : ActualWorkout[]= []
+
+    await Promise.all(
+      workouts.map(async (workout) => {
+        const recordedWorkout = await ctx.prisma.actualWorkout.create({
+          data: {
+            nominalDay: workout.nominalDay,
+            userId: ctx.userId,
+            description: workout.description,
+            exercises: { //think may need workoutId but might work out?
+              create: workout.exercises.map((exercise)=>({
+                description: exercise.description,
+                sets: {
+                }
+            }))
+            }}
+        })
+      workoutArray.push(recordedWorkout)
+      }
+      )
+    )
+
+    if (!workoutArray){
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: "Failed to create workout plan"
+      })
+    }
+    return workoutArray
   }),
 
   newTestPlan: privateProcedure.input(
