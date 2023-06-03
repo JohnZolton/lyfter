@@ -19,6 +19,7 @@ import { boolean, set } from "zod";
 import { ActualWorkout, ActualExercise, User, Workout, Exercise, TestExercise, TestWorkout, ModelWorkout, ModelExercise, exerciseSet, ModelWorkoutPlan} from "@prisma/client"
 import { prisma } from "~/server/db";
 import { start } from "repl";
+import { match } from "assert";
 
 
 const Home: NextPage = () => {
@@ -321,6 +322,7 @@ function CurrentWorkout({workout, plan}: CurrentWorkoutProps){
     lastWorkout={lastWorkout}
     updateWorkout={updateWorkout}
     exerciseActual={exerciseActual}
+    currentWorkout={workoutActual}
     updateExercise={setExerciseActual}
     setWorkoutActual={updateWorkout}
     setCurrentExercise={setCurrentExercise} exercise={currentExercise}/>}
@@ -476,6 +478,7 @@ interface CurrentExerciseProps{
   updateWorkout: (newExercise: ExerciseActual)=> void;
   setWorkoutActual: (newExercise: ExerciseActual)=> void;
   lastWorkout: WorkoutActual | undefined;
+  currentWorkout: WorkoutActual | undefined;
 }
 
 type resultOfSet = {
@@ -491,7 +494,7 @@ interface saveSetProps {
   event: React.FormEvent<HTMLFormElement>;
 }
 
-function ExerciseForm({lastWorkout, exercise, setCurrentExercise, updateExercise, exerciseActual, updateWorkout, setWorkoutActual} : CurrentExerciseProps) {
+function ExerciseForm({ currentWorkout, lastWorkout, exercise, setCurrentExercise, updateExercise, exerciseActual, updateWorkout, setWorkoutActual} : CurrentExerciseProps) {
   //needs to know current exercise, update exerciseActual
   const [data, setData] = useState<resultOfSet[]>([])
   const [lastWeekExercise, setLastWeekExercise] = useState<ExerciseActual>()
@@ -509,6 +512,14 @@ function ExerciseForm({lastWorkout, exercise, setCurrentExercise, updateExercise
 
   const handleSaveSet = ({weight, reps, rir, event}: saveSetProps ) => {
     event.preventDefault();
+
+    console.log("exercise ACtual: ")
+    console.log(exerciseActual)
+    console.log("exercise: ")
+    console.log(exercise)
+    console.log('current workout: ')
+    console.log(currentWorkout)
+
     const newSet : resultOfSet = {
       weight: weight,
       reps: reps,
@@ -523,11 +534,18 @@ function ExerciseForm({lastWorkout, exercise, setCurrentExercise, updateExercise
       updateExercise(newExerciseActual)
       setWorkoutActual(newExerciseActual)
     } else {
-      const newExerciseSets = [newSet]
+      let newExerciseSets = [newSet]
+      const matchingExercise = currentWorkout?.exercises.find(savedExercise => exercise?.description === savedExercise.description)
+      if (matchingExercise){
+        newExerciseSets = [...matchingExercise.sets, newSet]
+      }
       const newExerciseActual: ExerciseActual = {
         description: exercise?.description ??  "",
         sets: newExerciseSets,
       }
+
+
+      //add in
       updateExercise(newExerciseActual)
       setWorkoutActual(newExerciseActual)
     }
