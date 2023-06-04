@@ -16,8 +16,9 @@ import {
 import { userAgent } from "next/server";
 import { userInfo } from "os";
 import { boolean } from "zod";
-import type { User, Workout, WorkoutPlan } from "@prisma/client"
+import type { User, Workout, WorkoutPlan, ActualWorkout, ActualExercise, exerciseSet } from "@prisma/client"
 import { prisma } from "~/server/db";
+import { empty } from "@prisma/client/runtime";
 
 //@refresh reset
 
@@ -88,6 +89,7 @@ function NewWorkoutUi(){
       <div>or make your own</div>
       <br></br>
       <WeekForm></WeekForm>
+      <TestButton></TestButton>
     </div>
   )
 }
@@ -487,3 +489,83 @@ const PullSecond = {
   ]
 }
 const pplPlanArray = [PushFirst, PushSecond, LegFirst, LegSecond, PullFirst, PullSecond];
+const emptySet = {rir: 3, reps: 5, weight: 0}
+const PushFirstTwo = {
+  description: "Push #1",
+  nominalDay: "Monday",
+  exercises: [
+    {description: "Atlantis Side Raise", weight: 90, sets: Array(3).fill(emptySet)},
+    {description: "Calf Raise", weight: 220, sets: Array(3).fill(emptySet)},
+    {description: "Machine Press", weight: 185, sets: Array(3).fill(emptySet)},
+    {description: "Incline DB Press", weight: 60, sets: Array(3).fill(emptySet)},
+    {description: "Cable Pushdown", weight: 120, sets: Array(3).fill(emptySet)},
+  ]}
+const PushSecondTwo = {
+  description: "Push #2", 
+  nominalDay: "Thursday",
+  exercises: [
+    {description: "Machine Press", weight: 185, sets: Array(3).fill(emptySet)},
+    {description: "Incline DB Press", weight: 60, sets: Array(3).fill(emptySet)},
+    {description: "Cable Upright Row", weight: 70, sets: Array(3).fill(emptySet)},
+    {description: "Cable Pushdown", weight: 120, sets: Array(3).fill(emptySet)},
+    {description: "Leg Raise", weight: 0, sets: Array(3).fill(emptySet)},
+  ]
+}
+const LegFirstTwo = {
+  description: "Legs #1",
+  nominalDay: "Tuesday",
+  exercises: [
+    {description: "DB RDL", weight: 100, sets: Array(3).fill(emptySet)},
+    {description: "Belt Squat", weight: 135, sets: Array(3).fill(emptySet)},
+    {description: "Candlesticks", weight: 0, sets: Array(3).fill(emptySet)},
+  ]}
+
+const LegSecondTwo= {
+  description: "Legs #2",
+  nominalDay: "Friday",
+  exercises: [
+    {description: "Belt Squat", weight: 135, sets: Array(3).fill(emptySet)},
+    {description: "Ham Curl", weight: 100, sets: Array(3).fill(emptySet)},
+    {description: "Calf Raise", weight: 220, sets: Array(3).fill(emptySet)},
+  ]}
+
+const PullFirstTwo={
+  description: "Pull #1",
+  nominalDay: "Wednesday",
+  exercises:[
+    {description: "Calf Raise", weight: 220, sets: Array(3).fill(emptySet)},
+    {description: "Lat Pulldown", weight: 140, sets: Array(3).fill(emptySet)},
+    {description: "Machine Row", weight: 185, sets: Array(3).fill(emptySet)},
+    {description: "Bicep Curl", weight: 40, sets: Array(3).fill(emptySet)},
+  ]
+}
+
+const PullSecondTwo = {
+  description: "Push #2",
+  nominalDay: "Saturday",
+  exercises:[
+    {description: "Machine Row", weight: 185, sets: Array(3).fill(emptySet)},
+    {description: "Lat Pulldown", weight: 140, sets: Array(3).fill(emptySet)},
+    {description: "Atlantis Side Raise", weight: 90, sets: Array(3).fill(emptySet)},
+    {description: "Bicep Curl", weight: 40, sets: Array(3).fill(emptySet)},
+    {description: "Candlesticks", weight: 0, sets: Array(3).fill(emptySet)},
+  ]}
+
+
+const pplPlanArrayTwo= [PushFirstTwo, PushSecondTwo, LegFirstTwo, LegSecondTwo, PullFirstTwo, PullSecondTwo];
+
+function TestButton(){
+  const {mutate: makePlan, isLoading} = api.getWorkouts.newTestPlanTwo.useMutation({
+    onSuccess(data, variables, context) {
+      console.log(data)
+      console.log('WE DID IT')
+    }})
+
+  function handleClick(){
+    console.log('success')
+    makePlan( {workouts: pplPlanArrayTwo})
+  }
+  return(<div>
+    <button onClick={handleClick}>Make test plan</button>
+  </div>)
+}

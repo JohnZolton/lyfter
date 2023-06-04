@@ -330,9 +330,21 @@ export const getAllWorkouts = createTRPCRouter({
               create: workout.exercises.map((exercise)=>({
                 description: exercise.description,
                 sets: {
+                  create: exercise.sets.map((set) => ({
+                    rir: set.rir,
+                    weight: set.weight,
+                    reps: set.reps
+                  }))
                 }
             }))
-            }}
+            }},
+            include: {
+              exercises: {
+                include: {
+                  sets: true
+                }
+              }
+            }
         })
       workoutArray.push(recordedWorkout)
       }
