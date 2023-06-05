@@ -42,18 +42,7 @@ const Home: NextPage = () => {
             <div className="text-white   items-end flex p-6 items-right flex-col ">
                 <UserButton appearance={{ 
                   elements: { 
-                    userButtonAvatarBox: { width: 60, height: 60 } 
-                    }
-                  }} />
-            </div>
-        </SignedIn>
-  <div className="flex items-center flex-shrink-0 text-white mr-6">
-  </div>
-  <div className="w-full block flex-grow lg:flex lg:items-center lg:w-auto">
-    <div className="text-sm lg:flex-grow">
-      <Link href="home" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Home</Link>
-      <Link href="makeplan" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Edit Workout Plan</Link>
-      < Link href="allworkouts" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Workout History</Link>
+                    userButtonAvatarBox: { width: 60, height: 60 } } }} /> </div> </SignedIn> <div className="flex items-center flex-shrink-0 text-white mr-6"> </div> <div className="w-full block flex-grow lg:flex lg:items-center lg:w-auto"> <div className="text-sm lg:flex-grow"> <Link href="home" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Home</Link> <Link href="makeplan" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Edit Workout Plan</Link> < Link href="allworkouts" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Workout History</Link>
     </div>
     <div>
     </div>
@@ -90,6 +79,8 @@ function NewWorkoutUi(){
       <br></br>
       <WeekForm></WeekForm>
       <TestButton></TestButton>
+      <br></br>
+      <WorkoutDisplay/>
     </div>
   )
 }
@@ -558,14 +549,61 @@ function TestButton(){
   const {mutate: makePlan, isLoading} = api.getWorkouts.newTestPlanTwo.useMutation({
     onSuccess(data, variables, context) {
       console.log(data)
-      console.log('WE DID IT')
     }})
 
   function handleClick(){
-    console.log('success')
     makePlan( {workouts: pplPlanArrayTwo})
   }
   return(<div>
-    <button onClick={handleClick}>Make test plan</button>
+    <button 
+    className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
+    onClick={handleClick}>Make test plan</button>
+  </div>)
+}
+
+
+function WorkoutDisplay(){
+  const [workoutSchedule, setWorkoutSchedule] = useState<ActualWorkout[]>()
+  const {data: workoutPlan, isLoading} = api.getWorkouts.getWeekWorkouts.useQuery()
+
+  function sortWorkoutsByNominalDay(workouts: ActualWorkout[]) {
+  const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+  workouts.sort((a, b) => {
+    const dayA = daysOfWeek.indexOf(a.nominalDay);
+    const dayB = daysOfWeek.indexOf(b.nominalDay);
+    return dayA - dayB;
+  });
+
+  return workouts;
+}
+
+  if (workoutPlan && !workoutSchedule && !isLoading){
+    const workouts = sortWorkoutsByNominalDay(workoutPlan)
+    setWorkoutSchedule(workouts)
+    console.log("workouts: ")
+    console.log(workouts)
+  }
+  if (isLoading){
+    return(<div>Loading</div>)
+  }
+  if (workoutSchedule?.length === 0){return(<div>No Workouts</div>)}
+
+  return(<div>
+    {workoutSchedule?.map((workout: ActualWorkout)=>(
+      <div key={workout.workoutId}><div>{workout.description}</div>
+      <div>{workout.nominalDay}</div>
+        <div>
+          {
+            (workout.exercises as ActualExercise[]).map((exercise: ActualExercise) => (
+              <div key={exercise.exerciseId}>
+                {exercise.description}: {exercise.sets[0].weight} lbs x {exercise.sets.length}
+              </div>
+            ))
+          }
+        </div>
+      <br></br>
+      </div>
+    ))}
   </div>)
 }

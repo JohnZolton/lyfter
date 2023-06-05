@@ -180,7 +180,7 @@ model ActualExercise {
   sets        exerciseSet[]
   
   workoutId String
-  workout ActualWorkout    @relation(fields: [workoutId], references: [workoutId])
+  workout ActualWorkout    @relation(fields: [workoutId], references: [workoutId], onDelete: Cascade)
 
   previousExercise   ActualExercise? @relation("previousExercise", fields: [previousExerciseId], references: [exerciseId], onDelete: NoAction, onUpdate: NoAction)
   previousExerciseId String? @unique
@@ -196,7 +196,7 @@ model exerciseSet {
   weight Int
   reps Int
   rir Int
-  exercise  ActualExercise  @relation(fields: [exerciseId], references: [exerciseId])
+  exercise  ActualExercise  @relation(fields: [exerciseId], references: [exerciseId], onDelete: Cascade)
 
   @@index([exerciseId])
 }

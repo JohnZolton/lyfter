@@ -443,6 +443,7 @@ export const getAllWorkouts = createTRPCRouter({
         userId: ctx.userId,
         description: input.description,
         nominalDay: input.nominalDay,
+        workoutNumber: 0,
         exercises: {
           create: input.exercises.map((exercise)=>({
             description: exercise.description,
@@ -485,6 +486,24 @@ export const getAllWorkouts = createTRPCRouter({
     })
     return addedExercise
   }),
+
+  getWeekWorkouts: privateProcedure.query(async ({ctx}) => {
+  const workouts = await ctx.prisma.actualWorkout.findMany({
+    where: {
+      userId: ctx.userId,
+    },
+    include: {exercises: { include: {sets: true}}},
+    orderBy: [{ date: "asc"}],
+    take: 7,
+  })
+  if (!workouts){
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "No workout with that User"
+    })
+  }
+  return workouts
+}),
 
 });
 
