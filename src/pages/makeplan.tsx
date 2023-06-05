@@ -587,18 +587,18 @@ function WorkoutDisplay(){
   if (isLoading){
     return(<div>Loading</div>)
   }
-  if (workoutSchedule?.length === 0){return(<div>No Workouts</div>)}
+  if (!workoutPlan){return(<div>No Workouts</div>)}
 
   return(<div>
-    {workoutSchedule?.map((workout: ActualWorkout)=>(
+    {workoutSchedule?.map((workout: ActualWorkout & { exercises?: ActualExercise[] })=>(
       <div key={workout.workoutId}><div>{workout.description}</div>
       <div>{workout.nominalDay}</div>
         <div>
-          {
-            (workout.exercises as ActualExercise[]).map((exercise: ActualExercise) => (
-              <div key={exercise.exerciseId}>
-                {exercise.description}: {exercise.sets[0].weight} lbs x {exercise.sets.length}
-              </div>
+          { workout.exercises && workout.exercises.map((exercise: ActualExercise & {sets?: exerciseSet[]}) => (
+             exercise.sets && exercise.sets.length>0 &&
+              (<div key={exercise.exerciseId}>
+                {exercise.description}: {exercise.sets[0]?.weight} lbs x {exercise.sets.length}
+              </div>)
             ))
           }
         </div>
