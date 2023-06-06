@@ -11,6 +11,7 @@ import type { User, Workout, Exercise, WorkoutPlan, ModelWorkoutPlan, exerciseSe
 import { prisma } from "~/server/db";
 import { Input } from "postcss";
 import internal from "stream";
+import { setServers } from "dns";
 
 
 export const getAllWorkouts = createTRPCRouter({
@@ -319,37 +320,40 @@ export const getAllWorkouts = createTRPCRouter({
     const {workouts} = input
     const workoutArray : ActualWorkout[]= []
 
-    await Promise.all(
-      workouts.map(async (workout) => {
-        const recordedWorkout = await ctx.prisma.actualWorkout.create({
-          data: {
+    const plan = await ctx.prisma.workoutPlanTwo.create({
+      data: {
+        userId: ctx.userId,
+        workouts: {
+          create: workouts.map((workout)=>({
             nominalDay: workout.nominalDay,
             userId: ctx.userId,
             description: workout.description,
-            exercises: { //think may need workoutId but might work out?
+            exercises: {
               create: workout.exercises.map((exercise)=>({
                 description: exercise.description,
                 sets: {
-                  create: exercise.sets.map((set) => ({
+                  create: exercise.sets.map((set)=>({
                     rir: set.rir,
                     weight: set.weight,
-                    reps: set.reps
+                    reps: set.reps,
                   }))
                 }
-            }))
-            }},
-            include: {
-              exercises: {
-                include: {
-                  sets: true
-                }
-              }
+              }))
             }
-        })
-      workoutArray.push(recordedWorkout)
+          }))
+        }
+      },
+      include: {
+        workouts: {
+          include: {
+            exercises: {
+              include: { sets: true}
+            }
+          }
+        }
       }
-      )
-    )
+    })
+    workoutArray.push(...plan.workouts)
 
     if (!workoutArray){
       throw new TRPCError({
@@ -357,8 +361,34 @@ export const getAllWorkouts = createTRPCRouter({
         message: "Failed to create workout plan"
       })
     }
-    return workoutArray
+    return {workoutPlan: plan, workouts: workoutArray}
   }),
+
+  getPlanByUserId: privateProcedure.query(async ({ctx}) => {
+  const workouts = await ctx.prisma.workoutPlanTwo.findMany({
+    where: {
+      userId: ctx.userId,
+    },
+    orderBy: [{ date: "desc"}],
+    take: 7,
+    include: {
+      workouts: {
+        include: {
+          exercises: {
+            include: { sets: true}
+          }
+        }
+      }
+    }
+  })
+  if (!workouts){
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "No workout with that User"
+    })
+  }
+  return workouts
+}),
 
   newTestPlan: privateProcedure.input(
     z.object({

@@ -16,7 +16,7 @@ import {
 import { userAgent } from "next/server";
 import { userInfo } from "os";
 import { boolean } from "zod";
-import type { User, Workout, WorkoutPlan, ActualWorkout, ActualExercise, exerciseSet } from "@prisma/client"
+import type { User, Workout, WorkoutPlan, ActualWorkout, ActualExercise, exerciseSet, WorkoutPlanTwo } from "@prisma/client"
 import { prisma } from "~/server/db";
 import { empty } from "@prisma/client/runtime";
 
@@ -73,12 +73,11 @@ export default Home;
 function NewWorkoutUi(){
   return(
     <div>
-      <MakePplSplit></MakePplSplit>
+      <TestButton></TestButton>
       <br></br>
       <div>or make your own</div>
       <br></br>
       <WeekForm></WeekForm>
-      <TestButton></TestButton>
       <br></br>
       <WorkoutDisplay/>
     </div>
@@ -105,7 +104,7 @@ function WeekForm(){
     console.log(updatedPlan)
   }
 
-  const {mutate: makePlan, isLoading} = api.getWorkouts.newTestPlan.useMutation({
+  const {mutate: makePlan, isLoading} = api.getWorkouts.newTestPlanTwo.useMutation({
     onSuccess(data, variables, context) {
       console.log(data)
     },
@@ -113,7 +112,7 @@ function WeekForm(){
     
   const saveWorkout = () => {
     console.log("workout saved: ")
-    console.log(newPlan)
+    console.log(newPlan) //here
     const updatedPlan: WorkoutTemplate[] = emptyWorkoutPlan.map((emptyWorkout)=>{
       const matchingWorkout = newPlan.find((workout) => workout.nominalDay=== emptyWorkout.nominalDay)
       if (matchingWorkout){
@@ -214,14 +213,15 @@ interface NewExerciseProps {
 function NewExercise({exercises, setExercises}: NewExerciseProps){
   const [description, setDescription] = useState('')
   const [weight, setWeight] = useState(0)
-  const [sets, setSets] = useState(0)
+  const [sets, setSets] = useState<SetTemplate[]>()
 
   const handleSubmit = (event:React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (sets){
     const newExercise: ExerciseTemplate ={
       description: description,
       weight: weight,
-      sets: sets
+      sets: sets,
     };
     console.log(newExercise)
     if (exercises){
@@ -230,9 +230,10 @@ function NewExercise({exercises, setExercises}: NewExerciseProps){
     } else {
       setExercises([newExercise])
     }
+    }
     setDescription('')
     setWeight(0)
-    setSets(0)
+    setSets([])
   }
   const handleDescriptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setDescription(event.target.value);
@@ -241,7 +242,7 @@ function NewExercise({exercises, setExercises}: NewExerciseProps){
     setWeight(parseInt(event.target.value));
   };
   const handleSetsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSets(parseInt(event.target.value));
+    setSets(Array(parseInt(event.target.value)).fill({...emptySet, weight: weight}));
   };
 
   return(
@@ -256,7 +257,7 @@ function NewExercise({exercises, setExercises}: NewExerciseProps){
         <br></br>
         <br></br>
         <label>Sets: </label>
-        <input type="number" required  className="text-black" value={sets} onChange={handleSetsChange}></input>
+        <input type="number" required  className="text-black" value={sets?.length} onChange={handleSetsChange}></input>
         <br></br>
         <br></br>
         <button type="submit">Add Exercise</button>
@@ -335,7 +336,7 @@ const handleSetDay = () => {
                 <tr key={exercise.description}>
                   <td className="py-2">{exercise.description}</td>
                   <td className="py-2">{exercise.weight}</td>
-                  <td className="py-2">{exercise.sets}</td>
+                  <td className="py-2">{exercise.sets.length}</td>
                 </tr>
               ))}
           </tbody>
@@ -371,8 +372,14 @@ function MakePplSplit(){
 type ExerciseTemplate = {
   description: string;
   weight: number;
-  sets: number;
+  sets: SetTemplate[];
 };
+
+type SetTemplate = {
+  weight: number;
+  reps: number;
+  rir: number
+}
 
 type WorkoutTemplate = {
   description: string;
@@ -557,14 +564,14 @@ function TestButton(){
   return(<div>
     <button 
     className="p-5 hover:underline hover:bg-slate-300 rounded-full bg-slate-400"
-    onClick={handleClick}>Make test plan</button>
+    onClick={handleClick}>Use Recommended Plan</button>
   </div>)
 }
 
 
 function WorkoutDisplay(){
   const [workoutSchedule, setWorkoutSchedule] = useState<ActualWorkout[]>()
-  const {data: workoutPlan, isLoading} = api.getWorkouts.getWeekWorkouts.useQuery()
+  const {data: workoutPlan, isLoading} = api.getWorkouts.getPlanByUserId.useQuery()
 
   function sortWorkoutsByNominalDay(workouts: ActualWorkout[]) {
   const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -578,8 +585,8 @@ function WorkoutDisplay(){
   return workouts;
 }
 
-  if (workoutPlan && !workoutSchedule && !isLoading){
-    const workouts = sortWorkoutsByNominalDay(workoutPlan)
+  if (workoutPlan && workoutPlan[0] && !workoutSchedule && !isLoading){
+    const workouts = sortWorkoutsByNominalDay(workoutPlan[0].workouts)
     setWorkoutSchedule(workouts)
     console.log("workouts: ")
     console.log(workouts)
