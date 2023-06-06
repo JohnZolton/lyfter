@@ -36,13 +36,13 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="text-white text-center flex min-h-screen   flex-col  bg-gradient-to-b from-[#000000] to-[#44454b]">
-<nav className="flex items-center justify-between flex-wrap bg-black-500 p-6">
+<nav className="flex items-center justify-between flex-wrap bg-black-500">
         <SignedIn>
 
             <div className="text-white   items-end flex p-6 items-right flex-col ">
                 <UserButton appearance={{ 
                   elements: { 
-                    userButtonAvatarBox: { width: 60, height: 60 } } }} /> </div> </SignedIn> <div className="flex items-center flex-shrink-0 text-white mr-6"> </div> <div className="w-full block flex-grow lg:flex lg:items-center lg:w-auto"> <div className="text-sm lg:flex-grow"> <Link href="home" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Home</Link> <Link href="makeplan" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Edit Workout Plan</Link> < Link href="allworkouts" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Workout History</Link>
+                    userButtonAvatarBox: { width: 60, height: 60 } } }} /> </div> </SignedIn> <div className="flex items-center flex-shrink-0 text-white"> </div> <div className="w-full block flex-grow lg:flex lg:items-center lg:w-auto"> <div className="text-sm lg:flex-grow"> <Link href="home" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Home</Link> <Link href="makeplan" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Edit Workout Plan</Link> < Link href="allworkouts" className="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">Workout History</Link>
     </div>
     <div>
     </div>
@@ -138,19 +138,30 @@ function WeekForm(){
   }
 
   return(
-    <div>
-      <div className="text-3xl font-bold text-slate-300 text-center mb-4">Select Workout Days</div>
-      <div className="flex flex-col items-center">
-        <div className="flex flex-row items-center">
-          {daysOfWeek.map((day) => (
-            <div key={day} className="flex flex-col items-center">
-              <span className="ml-2 text-lg">{day}</span>
-              <input type="checkbox" onChange={(event)=>handleCheck(day, event.target.checked)} className="form-checkbox h-6 w-6"/>
-            </div>
-          ))}
-        </div>
+    <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="text-3xl font-bold text-slate-300 text-center mb-4">
+        Select Workout Days
       </div>
-      <WorkoutForm savePlan={saveWorkout} days={daysSelected} handlePlanUpdate={handlePlanUpdate}/>
+      <div className="flex flex-wrap justify-between">
+        {daysOfWeek.map((day) => (
+          <div key={day} className="flex items-end mb-4 sm:mb-0 sm:mr-4 mx-4">
+            <label htmlFor={day} className="text-lg mr-2">
+              {day}
+            </label>
+            <input
+              id={day}
+              type="checkbox"
+              onChange={(event) => handleCheck(day, event.target.checked)}
+              className="form-checkbox h-6 w-6"
+            />
+          </div>
+        ))}
+      </div>
+      <WorkoutForm
+        savePlan={saveWorkout}
+        days={daysSelected}
+        handlePlanUpdate={handlePlanUpdate}
+      />
     </div>
   )
 }
@@ -181,23 +192,19 @@ function WorkoutForm( {days, handlePlanUpdate, savePlan} : WorkoutFormProps){
     return order.indexOf(a) - order.indexOf(b);
   });
 
-
-
-
   return(
     <div>
     <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-4">Create Your Weekly Workout Plan</h1>
           {sortedDays.map((day) => (
             <div className="flex flex-wrap mb-4" key={day}>
-              <label htmlFor={day} className="w-full sm:w-1/4">{day}:</label>
               <div className="w-full sm:w-3/4">
                 <NewDay day={day} updatePlan={handlePlanUpdate}/>
               </div>
             </div>
           ))}
-          <div className="mt-8">
-            <button onClick={savePlan} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>
+          <div className="mt-4">
+            <button onClick={savePlan} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Save Plan</button>
           </div>
     </div>
     </div>
@@ -246,21 +253,50 @@ function NewExercise({exercises, setExercises}: NewExerciseProps){
   };
 
   return(
-    <div>
-      <form onSubmit={handleSubmit}>
-        <label>Description: </label>
-        <input required className="text-black" type='text' value={description} onChange={handleDescriptionChange}></input>
-        <br></br>
-        <br></br>
-        <label>Weight: </label>
-        <input type="number" required  className="text-black"value={weight}  onChange={handleWeightChange}></input>
-        <br></br>
-        <br></br>
-        <label>Sets: </label>
-        <input type="number" required  className="text-black" value={sets?.length} onChange={handleSetsChange}></input>
-        <br></br>
-        <br></br>
-        <button type="submit">Add Exercise</button>
+    <div className="w-full flex justify-end">
+      <form onSubmit={handleSubmit} className="flex flex-wrap">
+        <div className="flex items-center mb-4">
+          <label htmlFor="description" className="mr-2">Exercise:</label>
+          <input
+            id="description"
+            type="text"
+            required
+            className="text-black w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md"
+            value={description}
+            onChange={handleDescriptionChange}
+          />
+        </div>
+
+        <div className="flex items-center mb-4 ml-auto">
+          <label htmlFor="weight" className="mr-2">Weight:</label>
+          <input
+            id="weight"
+            type="number"
+            required
+            className="text-black w-20 sm:w-auto px-4 py-2 border ml-auto border-gray-300 rounded-md"
+            value={weight}
+            onChange={handleWeightChange}
+          />
+        </div>
+
+        <div className="flex items-center mb-4 mx-1 ml-auto">
+          <label htmlFor="sets" className="mr-2">Sets:</label>
+          <input
+            id="sets"
+            type="number"
+            min="1"
+            required
+            className="text-black w-20 sm:w-auto px-4 py-2 border border-gray-300 rounded-md"
+            value={sets?.length}
+            onChange={handleSetsChange}
+          />
+        </div>
+        <div className="ml-auto">
+          <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Add Exercise
+          </button>
+        </div>
+
       </form>
     </div>
   )
@@ -304,56 +340,80 @@ const handleSetDay = () => {
 }
 
   return(
-    <div className="">
+
+     <div className="max-w-md mx-auto">
+      <div className="w-full sm:w-1/4">{day}</div>
       <div>
-        {!submittedDescription && <form onSubmit={handleSubmit}>
-          <label>Description: </label>
-          <input
-            type="text"
-            className="text-black"
-            value={description}
-            onChange={handleDescriptionChange}
-          />
-          <button type="submit">Submit</button>
-        </form>}
-    {submittedDescription && (
-      <div>Description: {submittedDescription}</div>
-    )}
+        {!submittedDescription && (
+          <form onSubmit={handleSubmit} className="mb-4">
+            <div className="flex flex-wrap">
+              <div className="flex items-center mb-2 sm:mb-0 sm:w-1/4">
+                <label className="mr-2">Description:</label>
+                <input
+                  type="text"
+                  className="w-full max-w-xs px-4 py-2 border text-black border-gray-300 rounded-md"
+                  value={description}
+                  onChange={handleDescriptionChange}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end w-full sm:w-3/4">
+              <button
+                type="submit"
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Enter
+              </button>
+            </div>
+          </form>
+        )}
+        {submittedDescription && <div className="mb-4">{submittedDescription}</div>}
       </div>
-      {exercises &&
-      <div className="flex flex-col">
-        <table className="min-w-full divide-y">
-          <thead>
-            <tr>
-              <th className="py-2">Description</th>
-              <th className="py-2">Weight</th>
-              <th className="py-2">Sets</th>
-            </tr>
-          </thead>
-          <tbody className=" divide-y">
-            {exercises &&
-              exercises.map((exercise) => (
+
+      {exercises && (
+        <div className="flex flex-col mb-4">
+          <table className="min-w-full divide-y">
+            <thead>
+              <tr>
+                <th className="py-2">Description</th>
+                <th className="py-2">Weight</th>
+                <th className="py-2">Sets</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {exercises.map((exercise) => (
                 <tr key={exercise.description}>
                   <td className="py-2">{exercise.description}</td>
                   <td className="py-2">{exercise.weight}</td>
                   <td className="py-2">{exercise.sets.length}</td>
                 </tr>
               ))}
-          </tbody>
-        </table>
-      </div>
-      }
+            </tbody>
+          </table>
+        </div>
+      )}
 
-      {(!daySaved && descriptionset) && <NewExercise exercises={exercises} setExercises={setExercises}/>}
-      {(!daySaved && descriptionset) && <button onClick={handleSetDay}>Save Day</button>}
+      {!daySaved && descriptionset && (
+        <NewExercise exercises={exercises} setExercises={setExercises} />
+      )}
+
+      {!daySaved && descriptionset && (
+        <button
+          onClick={handleSetDay}
+          className="bg-blue-500 m-2 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        >
+          Save Day
+        </button>
+      )}
     </div>
-  )
+)
 }
 
 function MakePplSplit(){
   const {mutate: makePlan, isLoading} = api.getWorkouts.newTestPlan.useMutation({
     onSuccess(data, variables, context) {
       console.log(data)
+      window.location.reload()
     },
     })
 
@@ -556,6 +616,7 @@ function TestButton(){
   const {mutate: makePlan, isLoading} = api.getWorkouts.newTestPlanTwo.useMutation({
     onSuccess(data, variables, context) {
       console.log(data)
+      window.location.reload()
     }})
 
   function handleClick(){
@@ -597,6 +658,7 @@ function WorkoutDisplay(){
   if (!workoutPlan){return(<div>No Workouts</div>)}
 
   return(<div>
+      <div className="text-2xl font-bold text-slate-300 text-center mb-4">Current Workouts: </div>
     {workoutSchedule?.map((workout: ActualWorkout & { exercises?: ActualExercise[] })=>(
       <div key={workout.workoutId}><div>{workout.description}</div>
       <div>{workout.nominalDay}</div>
