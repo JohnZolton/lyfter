@@ -42,12 +42,7 @@ const Home: NextPage = () => {
         <nav className="bg-black-500 flex flex-wrap">
           <SignedIn>
             <div className="flex flex-col p-4 text-white ">
-              <UserButton
-                appearance={{
-                  elements: {
-                    userButtonAvatarBox: { width: 60, height: 60 },
-                  },
-                }}
+              <UserButton appearance={{ elements: { userButtonAvatarBox: { width: 60, height: 60 }, }, }}
               />
             </div>
           </SignedIn>
@@ -102,167 +97,106 @@ function NewWorkoutUi() {
       <br></br>
       <div>or make your own</div>
       <br></br>
-      <WeekForm></WeekForm>
+      <WorkoutPlanForm/>
       <br></br>
-      <WorkoutDisplay />
-    </div>
-  );
-}
-
-function WeekForm() {
-  const [daysSelected, setDaysSelected] = useState<string[]>([]);
-  const daysOfWeek: string[] = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
-
-  function handleCheck(newDay: string, checked: boolean) {
-    if (checked) {
-      setDaysSelected((prevDays) => [...prevDays, newDay]);
-    } else {
-      setDaysSelected((prevDays) => prevDays.filter((day) => day !== newDay));
+    {
+      //<WorkoutDisplay />
     }
-  }
+    </div>
+  );
+}
 
-  const [newPlan, setNewPlan] = useState<WorkoutTemplate[]>([]);
+function WorkoutPlanForm(){
+    const [workoutPlan, setWorkoutPlan] = useState<ActualWorkout[]>()
+    
+    return(
+    <div className="flex justify-center items-center">
+      <div className="bg-black p-5 max-w-fit">
+        <WorkoutDisplay3 workoutPlan={workoutPlan}/>
+        <WorkoutDayForm/>
+      </div>
+    </div>
+    )
+}
 
-  const handlePlanUpdate = (newDay: WorkoutTemplate) => {
-    const updatedPlan = [...newPlan, newDay];
-    setNewPlan(updatedPlan);
-    console.log(updatedPlan);
-  };
+function WorkoutDayForm(){
+    const [dayDescription, setDayDescription] = useState("")
+    const [nominalDay, setNominalDay] = useState("")
+    const [showAddExercises, setShowAddExercises] = useState(false)
+    const [workoutDayPlan, setWorkoutDayPlan] = useState<WorkoutTemplate | undefined>(undefined)
 
-  const { mutate: makePlan, isLoading } =
-    api.getWorkouts.newTestPlanTwo.useMutation({
-      onSuccess(data, variables, context) {
-        console.log(data);
-      },
-    });
-
-  const saveWorkout = () => {
-    console.log("workout saved: ");
-    console.log(newPlan); //here
-    const updatedPlan: WorkoutTemplate[] = emptyWorkoutPlan.map(
-      (emptyWorkout) => {
-        const matchingWorkout = newPlan.find(
-          (workout) => workout.nominalDay === emptyWorkout.nominalDay
-        );
-        if (matchingWorkout) {
-          return matchingWorkout;
+    function handleAddExercises(){
+        console.log(dayDescription, nominalDay)
+        if (dayDescription && nominalDay){
+            setShowAddExercises(true)
         }
-        return emptyWorkout;
-      }
-    );
-    console.log(updatedPlan);
-    makePlan({ workouts: updatedPlan });
-  };
-
-  if (isLoading) {
-    return (
-      <div
-        className="text-primary inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
-        role="status"
-      >
-        <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
-          Loading...
-        </span>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mx-auto max-w-xl px-4 sm:px-6 lg:px-8">
-      <div className="mb-4 text-center text-3xl font-bold text-slate-300">
-        Select Workout Days
-      </div>
-      <div className="flex flex-wrap justify-between">
-        {daysOfWeek.map((day) => (
-          <div key={day} className="mx-4 mb-4 flex items-end sm:mb-0 sm:mr-4">
-            <label htmlFor={day} className="mr-2 text-lg">
-              {day}
-            </label>
-            <input
-              id={day}
-              type="checkbox"
-              onChange={(event) => handleCheck(day, event.target.checked)}
-              className="form-checkbox h-6 w-6"
-            />
-          </div>
-        ))}
-      </div>
-      <WorkoutForm
-        savePlan={saveWorkout}
-        days={daysSelected}
-        handlePlanUpdate={handlePlanUpdate}
-      />
-    </div>
-  );
-}
-
-interface WorkoutFormProps {
-  days: string[];
-  handlePlanUpdate: (newDay: WorkoutTemplate) => void;
-  savePlan: () => void;
-}
-
-interface WorkoutPlanInput {
-  sunday: string;
-  monday: string;
-  tuesday: string;
-  wednesday: string;
-  thursday: string;
-  friday: string;
-  saturday: string;
-}
-
-function WorkoutForm({ days, handlePlanUpdate, savePlan }: WorkoutFormProps) {
-  if (days.length === 0) {
-    return <div></div>;
-  }
-
-  const sortedDays = [...days].sort((a, b) => {
-    const order = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ];
-    return order.indexOf(a) - order.indexOf(b);
-  });
-
-  return (
-    <div>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="mb-4 text-2xl font-bold">
-          Create Your Weekly Workout Plan
-        </h1>
-        {sortedDays.map((day) => (
-          <div className="mb-4 flex flex-wrap" key={day}>
-            <div className="w-full sm:w-3/4">
-              <NewDay day={day} updatePlan={handlePlanUpdate} />
-            </div>
-          </div>
-        ))}
-        <div className="mt-4">
-          <button
-            onClick={savePlan}
-            className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-          >
-            Save Plan
-          </button>
+    }
+    function updateWorkoutPlan(exercises: ExerciseTemplate[]){
+            if (dayDescription && nominalDay){
+                const newWorkoutPlan: WorkoutTemplate = {
+                    description: dayDescription,
+                    nominalDay: nominalDay,
+                    exercises: exercises
+                }
+                setWorkoutDayPlan(newWorkoutPlan)
+        }
+    }
+    
+    return(
+    <div className="flex justify-center items-center">
+      <div className="bg-black p-5 max-w-fit">
+        <label>Day Description:</label>
+        <input 
+        value={dayDescription}
+        onChange={(event)=>(setDayDescription(event.target.value))}
+        className="text-black"
+        type="text"></input>
+        <br></br>
+        <br></br>
+        <div>
+          <label>Nominal Day: </label>
+        <input 
+        value={nominalDay}
+        onChange={(event)=>(setNominalDay(event.target.value))}
+        className="text-black"
+        type="text"></input>
         </div>
+        <br></br>
+        <button onClick={handleAddExercises}
+            className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+        >Add Exercsies</button>
+        <br></br>
+        <br></br>
+        <AddExerciseForm updatePlan={updateWorkoutPlan}/>
       </div>
     </div>
-  );
+    )
 }
+
+interface AddExerciseFormProps {
+    updatePlan: (exercise: ExerciseTemplate[]) => void
+}
+
+function AddExerciseForm({updatePlan}: AddExerciseFormProps){
+    const [exercises, setExercises] = useState<ExerciseTemplate[]>()
+    function saveExercises(){
+        if(exercises){
+            updatePlan(exercises)
+        }
+    }
+    return(
+        <div>
+        <div>{exercises?.map((exercise)=>(
+            <div key={exercise.description}>{exercise.description}: {exercise?.sets[0]?.weight} x {exercise.sets.length}</div>
+        ))}
+        </div>
+        <div>
+        <NewExercise setExercises={setExercises} exercises={exercises}/>
+        </div>
+        </div>
+    )
+}
+
 
 interface NewExerciseProps {
   exercises: ExerciseTemplate[] | undefined;
@@ -274,6 +208,7 @@ interface NewExerciseProps {
 function NewExercise({ exercises, setExercises }: NewExerciseProps) {
   const [description, setDescription] = useState("");
   const [weight, setWeight] = useState(0);
+  const [reps, setReps] = useState(5);
   const [sets, setSets] = useState<SetTemplate[]>();
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -281,7 +216,6 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
     if (sets) {
       const newExercise: ExerciseTemplate = {
         description: description,
-        weight: weight,
         sets: sets,
       };
       console.log(newExercise);
@@ -301,12 +235,15 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
   ) => {
     setDescription(event.target.value);
   };
+  const handleRepsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setReps(parseInt(event.target.value));
+  };
   const handleWeightChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setWeight(parseInt(event.target.value));
   };
   const handleSetsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSets(
-      Array(parseInt(event.target.value)).fill({ ...emptySet, weight: weight })
+      Array(parseInt(event.target.value)).fill({ ...emptySet, weight: weight, reps: reps })
     );
   };
 
@@ -321,7 +258,7 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
             id="description"
             type="text"
             required
-            className="w-full rounded-md border border-gray-300 px-4 py-2 text-black sm:w-auto"
+            className="text-black w-48 flex-grow"
             value={description}
             onChange={handleDescriptionChange}
           />
@@ -335,9 +272,20 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
             id="weight"
             type="number"
             required
-            className="ml-auto w-20 rounded-md border border-gray-300 px-4 py-2 text-black sm:w-auto"
+            className="text-black w-12"
             value={weight}
             onChange={handleWeightChange}
+          />
+        </div>
+        <div className="mb-4 ml-auto flex items-center">
+          <label htmlFor="weight" className="mr-2">Reps:</label>
+          <input
+            id="weight"
+            type="number"
+            required
+            className="text-black w-12"
+            value={reps}
+            onChange={handleRepsChange}
           />
         </div>
 
@@ -350,7 +298,7 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
             type="number"
             min="1"
             required
-            className="w-20 rounded-md border border-gray-300 px-4 py-2 text-black sm:w-auto"
+            className="text-black w-12"
             value={sets?.length}
             onChange={handleSetsChange}
           />
@@ -453,7 +401,6 @@ function NewDay({ day, updatePlan }: NewDayProps) {
               {exercises.map((exercise) => (
                 <tr key={exercise.description}>
                   <td className="py-2">{exercise.description}</td>
-                  <td className="py-2">{exercise.weight}</td>
                   <td className="py-2">{exercise.sets.length}</td>
                 </tr>
               ))}
@@ -510,7 +457,6 @@ function MakePplSplit() {
 
 type ExerciseTemplate = {
   description: string;
-  weight: number;
   sets: SetTemplate[];
 };
 
@@ -763,6 +709,61 @@ function TestButton() {
       >
         Use Recommended Plan
       </button>
+    </div>
+  );
+}
+
+interface display3Props{
+    workoutPlan: ActualWorkout[] | undefined
+}
+function WorkoutDisplay3({workoutPlan}: display3Props) {
+  function sortWorkoutsByNominalDay(workouts: ActualWorkout[]) {
+    const daysOfWeek = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+
+    workouts.sort((a, b) => {
+      const dayA = daysOfWeek.indexOf(a.nominalDay);
+      const dayB = daysOfWeek.indexOf(b.nominalDay);
+      return dayA - dayB;
+    });
+
+    return workouts;
+  }
+
+  return (
+    <div>
+      <div className="mb-4 text-center text-2xl font-bold text-slate-300">
+        Current Workouts:
+      </div>
+      {workoutPlan?.map(
+        (workout: ActualWorkout & { exercises?: ActualExercise[] }) => (
+          <div key={workout.workoutId}>
+            <div>{workout.description}</div>
+            <div>{workout.nominalDay}</div>
+            <div>
+              {workout.exercises &&
+                workout.exercises.map(
+                  (exercise: ActualExercise & { sets?: exerciseSet[] }) =>
+                    exercise.sets &&
+                    exercise.sets.length > 0 && (
+                      <div key={exercise.exerciseId}>
+                        {exercise.description}: {exercise.sets[0]?.weight} lbs x{" "}
+                        {exercise.sets.length}
+                      </div>
+                    )
+                )}
+            </div>
+            <br></br>
+          </div>
+        )
+      )}
     </div>
   );
 }
