@@ -42,29 +42,32 @@ const Home: NextPage = () => {
         <nav className="bg-black-500 flex flex-wrap">
           <SignedIn>
             <div className="flex flex-col p-4 text-white ">
-              <UserButton appearance={{ elements: { userButtonAvatarBox: { width: 60, height: 60 }, }, }}
+              <UserButton
+                appearance={{
+                  elements: { userButtonAvatarBox: { width: 60, height: 60 } },
+                }}
               />
             </div>
           </SignedIn>
           <div className="flex items-center justify-between">
-              <Link
-                href="home"
-                className=" text-slate-200 hover:text-white hover:underline m-2"
-              >
-                Home
-              </Link>
-              <Link
-                href="makeplan"
-                className="text-slate-200 hover:text-white m-2"
-              >
-                Edit Plan
-              </Link>
-              <Link
-                href="allworkouts"
-                className="text-slate-200 hover:text-white m-2"
-              >
-                History
-              </Link>
+            <Link
+              href="home"
+              className=" m-2 text-slate-200 hover:text-white hover:underline"
+            >
+              Home
+            </Link>
+            <Link
+              href="makeplan"
+              className="m-2 text-slate-200 hover:text-white"
+            >
+              Edit Plan
+            </Link>
+            <Link
+              href="allworkouts"
+              className="m-2 text-slate-200 hover:text-white"
+            >
+              History
+            </Link>
           </div>
         </nav>
         <div>
@@ -97,106 +100,137 @@ function NewWorkoutUi() {
       <br></br>
       <div>or make your own</div>
       <br></br>
-      <WorkoutPlanForm/>
+      <WorkoutPlanForm />
       <br></br>
-    {
-      //<WorkoutDisplay />
-    }
+      {
+        //<WorkoutDisplay />
+      }
     </div>
   );
 }
 
-function WorkoutPlanForm(){
-    const [workoutPlan, setWorkoutPlan] = useState<ActualWorkout[]>()
-    
-    return(
-    <div className="flex justify-center items-center">
-      <div className="bg-black p-5 max-w-fit">
-        <WorkoutDisplay3 workoutPlan={workoutPlan}/>
-        <WorkoutDayForm/>
+function WorkoutPlanForm() {
+  const [workoutPlan, setWorkoutPlan] = useState<WorkoutTemplate[] | undefined>(
+    undefined
+  );
+  function addWorkout(workout: WorkoutTemplate) {
+    console.log(workout);
+    const newWorkoutPlan = workoutPlan ? [...workoutPlan, workout] : [workout];
+    setWorkoutPlan(newWorkoutPlan);
+  }
+
+  return (
+    <div className="flex items-center justify-center">
+      <div className="max-w-fit bg-black p-5">
+        <WorkoutDisplay3 workoutPlan={workoutPlan} />
+        <WorkoutDayForm addWorkout={addWorkout} />
       </div>
     </div>
-    )
+  );
 }
 
-function WorkoutDayForm(){
-    const [dayDescription, setDayDescription] = useState("")
-    const [nominalDay, setNominalDay] = useState("")
-    const [showAddExercises, setShowAddExercises] = useState(false)
-    const [workoutDayPlan, setWorkoutDayPlan] = useState<WorkoutTemplate | undefined>(undefined)
+interface WorkoutDayFormProps {
+  addWorkout: (workout: WorkoutTemplate) => void;
+}
 
-    function handleAddExercises(){
-        console.log(dayDescription, nominalDay)
-        if (dayDescription && nominalDay){
-            setShowAddExercises(true)
-        }
+function WorkoutDayForm({ addWorkout }: WorkoutDayFormProps) {
+  const [dayDescription, setDayDescription] = useState("");
+  const [nominalDay, setNominalDay] = useState("");
+  const [showAddExercises, setShowAddExercises] = useState(false);
+  const [workoutDayPlan, setWorkoutDayPlan] = useState<
+    WorkoutTemplate | undefined
+  >(undefined);
+
+  function handleAddExercises() {
+    console.log(dayDescription, nominalDay);
+    if (dayDescription && nominalDay) {
+      setShowAddExercises(true);
     }
-    function updateWorkoutPlan(exercises: ExerciseTemplate[]){
-            if (dayDescription && nominalDay){
-                const newWorkoutPlan: WorkoutTemplate = {
-                    description: dayDescription,
-                    nominalDay: nominalDay,
-                    exercises: exercises
-                }
-                setWorkoutDayPlan(newWorkoutPlan)
-        }
+  }
+  function updateWorkoutPlan(exercises: ExerciseTemplate[]) {
+    if (dayDescription && nominalDay) {
+      const newWorkoutPlan: WorkoutTemplate = {
+        description: dayDescription,
+        nominalDay: nominalDay,
+        exercises: exercises,
+      };
+      setWorkoutDayPlan(newWorkoutPlan);
+      console.log(newWorkoutPlan);
+      addWorkout(newWorkoutPlan);
     }
-    
-    return(
-    <div className="flex justify-center items-center">
-      <div className="bg-black p-5 max-w-fit">
+  }
+
+  return (
+    <div className="flex items-center justify-center">
+      <div className="max-w-fit bg-black p-5">
         <label>Day Description:</label>
-        <input 
-        value={dayDescription}
-        onChange={(event)=>(setDayDescription(event.target.value))}
-        className="text-black"
-        type="text"></input>
+        <input
+          value={dayDescription}
+          onChange={(event) => setDayDescription(event.target.value)}
+          className="text-black"
+          type="text"
+        ></input>
         <br></br>
         <br></br>
         <div>
           <label>Nominal Day: </label>
-        <input 
-        value={nominalDay}
-        onChange={(event)=>(setNominalDay(event.target.value))}
-        className="text-black"
-        type="text"></input>
+          <input
+            value={nominalDay}
+            onChange={(event) => setNominalDay(event.target.value)}
+            className="text-black"
+            type="text"
+          ></input>
         </div>
         <br></br>
-        <button onClick={handleAddExercises}
-            className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-        >Add Exercsies</button>
+        <button
+          onClick={handleAddExercises}
+          className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+        >
+          Add Exercsies
+        </button>
         <br></br>
         <br></br>
-        <AddExerciseForm updatePlan={updateWorkoutPlan}/>
+        <AddExerciseForm updatePlan={updateWorkoutPlan} />
+        <br></br>
       </div>
     </div>
-    )
+  );
 }
 
 interface AddExerciseFormProps {
-    updatePlan: (exercise: ExerciseTemplate[]) => void
+  updatePlan: (exercise: ExerciseTemplate[]) => void;
 }
 
-function AddExerciseForm({updatePlan}: AddExerciseFormProps){
-    const [exercises, setExercises] = useState<ExerciseTemplate[]>()
-    function saveExercises(){
-        if(exercises){
-            updatePlan(exercises)
-        }
+function AddExerciseForm({ updatePlan }: AddExerciseFormProps) {
+  const [exercises, setExercises] = useState<ExerciseTemplate[]>();
+  function saveExercises() {
+    if (exercises) {
+      updatePlan(exercises);
+      setExercises([]);
     }
-    return(
-        <div>
-        <div>{exercises?.map((exercise)=>(
-            <div key={exercise.description}>{exercise.description}: {exercise?.sets[0]?.weight} x {exercise.sets.length}</div>
+  }
+  return (
+    <div>
+      <div>
+        {exercises?.map((exercise) => (
+          <div key={exercise.description}>
+            {exercise.description}: {exercise?.sets[0]?.weight} x{" "}
+            {exercise.sets.length}
+          </div>
         ))}
-        </div>
-        <div>
-        <NewExercise setExercises={setExercises} exercises={exercises}/>
-        </div>
-        </div>
-    )
+      </div>
+      <div>
+        <NewExercise setExercises={setExercises} exercises={exercises} />
+      </div>
+      <button
+        onClick={saveExercises}
+        className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+      >
+        Save Day
+      </button>
+    </div>
+  );
 }
-
 
 interface NewExerciseProps {
   exercises: ExerciseTemplate[] | undefined;
@@ -218,7 +252,6 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
         description: description,
         sets: sets,
       };
-      console.log(newExercise);
       if (exercises) {
         const newExercises: ExerciseTemplate[] = [...exercises, newExercise];
         setExercises(newExercises);
@@ -243,66 +276,82 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
   };
   const handleSetsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSets(
-      Array(parseInt(event.target.value)).fill({ ...emptySet, weight: weight, reps: reps })
+      Array(parseInt(event.target.value)).fill({
+        ...emptySet,
+        weight: weight,
+        reps: reps,
+      })
     );
   };
 
   return (
-    <div className="flex w-full justify-end">
-      <form onSubmit={handleSubmit} className="flex flex-wrap">
-        <div className="mb-4 flex items-center">
+    <div className="flex justify-center flex-row ">
+      <form onSubmit={handleSubmit} className="justify-center items-center">
+        <div className="mb-4 w-full sm:w-auto bg-red-500 p-1">
           <label htmlFor="description" className="mr-2">
             Exercise:
           </label>
-          <input
-            id="description"
-            type="text"
-            required
-            className="text-black w-48 flex-grow"
-            value={description}
-            onChange={handleDescriptionChange}
-          />
+          <div className="flex items-center">
+            <input
+              id="description"
+              type="text"
+              required
+              className="sm:w-48  text-black"
+              value={description}
+              onChange={handleDescriptionChange}
+            />
+          </div>
+        </div>
+          <div className="flex flex-row w-full">
+          <div className="mb-4 w-full sm:w-auto bg-slate-400">
+            <label htmlFor="weight" className="mr-2">
+              Weight:
+            </label>
+            <div className="flex items-center">
+              <input
+                id="weight"
+                type="number"
+                required
+                className="w-14  text-black"
+                value={weight}
+                onChange={handleWeightChange}
+              />
+            </div>
+          </div>
+          <div className="mb-4 w-full sm:w-auto bg-slate-700">
+            <label htmlFor="weight" className="mr-2">
+              Reps:
+            </label>
+            <div className="flex items-center">
+              <input
+                id="weight"
+                type="number"
+                required
+                className="w-12 text-black"
+                value={reps}
+                onChange={handleRepsChange}
+              />
+            </div>
+          </div>
+
+          <div className="mb-4 w-full sm:w-auto bg-slate-400">
+            <label htmlFor="sets" className="mr-2">
+              Sets:
+            </label>
+            <div className="flex items-center">
+              <input
+                id="sets"
+                type="number"
+                min="1"
+                required
+                className="w-12 text-black"
+                value={sets?.length}
+                onChange={handleSetsChange}
+              />
+            </div>
+          </div>
         </div>
 
-        <div className="mb-4 ml-auto flex items-center">
-          <label htmlFor="weight" className="mr-2">
-            Weight:
-          </label>
-          <input
-            id="weight"
-            type="number"
-            required
-            className="text-black w-12"
-            value={weight}
-            onChange={handleWeightChange}
-          />
-        </div>
-        <div className="mb-4 ml-auto flex items-center">
-          <label htmlFor="weight" className="mr-2">Reps:</label>
-          <input
-            id="weight"
-            type="number"
-            required
-            className="text-black w-12"
-            value={reps}
-            onChange={handleRepsChange}
-          />
-        </div>
-
-        <div className="mx-1 mb-4 ml-auto flex items-center">
-          <label htmlFor="sets" className="mr-2">
-            Sets:
-          </label>
-          <input
-            id="sets"
-            type="number"
-            min="1"
-            required
-            className="text-black w-12"
-            value={sets?.length}
-            onChange={handleSetsChange}
-          />
-        </div>
         <div className="ml-auto">
           <button
             type="submit"
@@ -713,10 +762,10 @@ function TestButton() {
   );
 }
 
-interface display3Props{
-    workoutPlan: ActualWorkout[] | undefined
+interface display3Props {
+  workoutPlan: WorkoutTemplate[] | undefined;
 }
-function WorkoutDisplay3({workoutPlan}: display3Props) {
+function WorkoutDisplay3({ workoutPlan }: display3Props) {
   function sortWorkoutsByNominalDay(workouts: ActualWorkout[]) {
     const daysOfWeek = [
       "Sunday",
@@ -742,28 +791,29 @@ function WorkoutDisplay3({workoutPlan}: display3Props) {
       <div className="mb-4 text-center text-2xl font-bold text-slate-300">
         Current Workouts:
       </div>
-      {workoutPlan?.map(
-        (workout: ActualWorkout & { exercises?: ActualExercise[] }) => (
-          <div key={workout.workoutId}>
-            <div>{workout.description}</div>
-            <div>{workout.nominalDay}</div>
-            <div>
-              {workout.exercises &&
-                workout.exercises.map(
-                  (exercise: ActualExercise & { sets?: exerciseSet[] }) =>
-                    exercise.sets &&
-                    exercise.sets.length > 0 && (
-                      <div key={exercise.exerciseId}>
-                        {exercise.description}: {exercise.sets[0]?.weight} lbs x{" "}
-                        {exercise.sets.length}
-                      </div>
-                    )
-                )}
+      {workoutPlan &&
+        workoutPlan?.map(
+          (workout: WorkoutTemplate & { exercises?: ExerciseTemplate[] }) => (
+            <div key={workout.description}>
+              <div>{workout.description}</div>
+              <div>{workout.nominalDay}</div>
+              <div>
+                {workout.exercises &&
+                  workout.exercises.map(
+                    (exercise: ExerciseTemplate & { sets: SetTemplate[] }) =>
+                      exercise.sets &&
+                      exercise.sets.length > 0 && (
+                        <div key={exercise.description}>
+                          {exercise.description}: {exercise.sets[0]?.weight} lbs
+                          x {exercise.sets.length}
+                        </div>
+                      )
+                  )}
+              </div>
+              <br></br>
             </div>
-            <br></br>
-          </div>
-        )
-      )}
+          )
+        )}
     </div>
   );
 }
