@@ -307,12 +307,12 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
             <label htmlFor="weight" className="mr-2">
               Weight:
             </label>
-            <div className="flex items-center">
+            <div className="flex items-center justify-center">
               <input
                 id="weight"
                 type="number"
                 required
-                className="w-14  text-black"
+                className="w-14 text-black text-center"
                 value={weight}
                 onChange={handleWeightChange}
               />
@@ -322,12 +322,12 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
             <label htmlFor="weight" className="mr-2">
               Reps:
             </label>
-            <div className="flex items-center">
+            <div className="flex items-center justify-center">
               <input
                 id="weight"
                 type="number"
                 required
-                className="w-12 text-black"
+                className="w-12 text-black text-center"
                 value={reps}
                 onChange={handleRepsChange}
               />
@@ -338,14 +338,14 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
             <label htmlFor="sets" className="mr-2">
               Sets:
             </label>
-            <div className="flex items-center">
+            <div className="flex items-center justify-center">
               <input
                 id="sets"
                 type="number"
                 min="1"
                 required
-                className="w-12 text-black"
-                value={sets?.length}
+                className="w-12 text-black text-center"
+                value={sets?.length || 1}
                 onChange={handleSetsChange}
               />
             </div>
