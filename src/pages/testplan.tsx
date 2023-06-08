@@ -2,7 +2,7 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { api } from "~/utils/api";
-import React, { useState, useTransition } from "react";
+import React, { useState, useTransition, useRef, useEffect } from "react";
 import {
   ClerkProvider,
   RedirectToOrganizationProfile,
@@ -157,17 +157,29 @@ function WorkoutDayForm({ addWorkout }: WorkoutDayFormProps) {
       setWorkoutDayPlan(newWorkoutPlan);
       console.log(newWorkoutPlan);
       addWorkout(newWorkoutPlan);
+      setShowAddExercises(false)
+      setDayDescription("")
+      setNominalDay("")
     }
   }
+  const inputRef = useRef<HTMLInputElement | null>(null)
+
+  useEffect(()=>{
+    inputRef.current?.focus();
+  }, [])
 
   return (
     <div className="flex items-center justify-center">
+      {!showAddExercises && 
+      <form onSubmit={handleAddExercises}>
       <div className="max-w-fit bg-black p-5">
         <label>Day Description:</label>
         <input
+          required
+          ref={inputRef}
           value={dayDescription}
           onChange={(event) => setDayDescription(event.target.value)}
-          className="text-black"
+          className="text-black rounded-md"
           type="text"
         ></input>
         <br></br>
@@ -177,22 +189,25 @@ function WorkoutDayForm({ addWorkout }: WorkoutDayFormProps) {
           <input
             value={nominalDay}
             onChange={(event) => setNominalDay(event.target.value)}
-            className="text-black"
+            required
+            className="text-black rounded-md"
             type="text"
           ></input>
         </div>
         <br></br>
         <button
-          onClick={handleAddExercises}
+          type="submit"
           className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
         >
           Add Exercsies
         </button>
         <br></br>
-        <br></br>
-        <AddExerciseForm updatePlan={updateWorkoutPlan} />
-        <br></br>
       </div>
+      </form>
+      }
+        <br></br>
+        {showAddExercises && <AddExerciseForm updatePlan={updateWorkoutPlan} />}
+        <br></br>
     </div>
   );
 }
@@ -203,6 +218,7 @@ interface AddExerciseFormProps {
 
 function AddExerciseForm({ updatePlan }: AddExerciseFormProps) {
   const [exercises, setExercises] = useState<ExerciseTemplate[]>();
+
   function saveExercises() {
     if (exercises) {
       updatePlan(exercises);
@@ -212,8 +228,8 @@ function AddExerciseForm({ updatePlan }: AddExerciseFormProps) {
   return (
     <div>
       <div>
-        {exercises?.map((exercise) => (
-          <div key={exercise.description}>
+        {exercises?.map((exercise, index) => (
+          <div key={index}>
             {exercise.description}: {exercise?.sets[0]?.weight} x{" "}
             {exercise.sets.length}
           </div>
@@ -243,25 +259,37 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
   const [description, setDescription] = useState("");
   const [weight, setWeight] = useState(0);
   const [reps, setReps] = useState(5);
-  const [sets, setSets] = useState<SetTemplate[]>();
+  const [sets, setSets] = useState(1)
+  const inputRef = useRef<HTMLInputElement | null>(null)
+
+  useEffect(()=>{
+    inputRef.current?.focus();
+  }, [])
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (sets) {
       const newExercise: ExerciseTemplate = {
         description: description,
-        sets: sets,
+        sets: Array(sets).fill({
+          ...emptySet,
+          weight: weight,
+          reps: reps
+        }),
       };
       if (exercises) {
         const newExercises: ExerciseTemplate[] = [...exercises, newExercise];
         setExercises(newExercises);
+        console.log(newExercises)
       } else {
         setExercises([newExercise]);
+        console.log(newExercise)
       }
     }
+    inputRef.current?.focus()
     setDescription("");
     setWeight(0);
-    setSets([]);
+    setSets(1);
   };
   const handleDescriptionChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -275,19 +303,13 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
     setWeight(parseInt(event.target.value));
   };
   const handleSetsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSets(
-      Array(parseInt(event.target.value)).fill({
-        ...emptySet,
-        weight: weight,
-        reps: reps,
-      })
-    );
+    setSets(parseInt(event.target.value));
   };
 
   return (
     <div className="flex justify-center flex-row ">
       <form onSubmit={handleSubmit} className="justify-center items-center">
-        <div className="mb-4 w-full sm:w-auto bg-red-500 p-1">
+        <div className="mb-4 w-full sm:w-auto  p-1">
           <label htmlFor="description" className="mr-2">
             Exercise:
           </label>
@@ -295,15 +317,16 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
             <input
               id="description"
               type="text"
+              ref={inputRef}
               required
-              className="sm:w-48  text-black"
+              className="sm:w-48  text-black rounded-md p-1"
               value={description}
               onChange={handleDescriptionChange}
             />
           </div>
         </div>
           <div className="flex flex-row w-full">
-          <div className="mb-4 w-full sm:w-auto bg-slate-400">
+          <div className="mb-4 w-full sm:w-auto">
             <label htmlFor="weight" className="mr-2">
               Weight:
             </label>
@@ -312,13 +335,13 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
                 id="weight"
                 type="number"
                 required
-                className="w-14 text-black text-center"
+                className="w-14 text-black text-center rounded-md p-1"
                 value={weight}
                 onChange={handleWeightChange}
               />
             </div>
           </div>
-          <div className="mb-4 w-full sm:w-auto bg-slate-700">
+          <div className="mb-4 w-full sm:w-auto ">
             <label htmlFor="weight" className="mr-2">
               Reps:
             </label>
@@ -327,14 +350,14 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
                 id="weight"
                 type="number"
                 required
-                className="w-12 text-black text-center"
+                className="w-12 text-black text-center rounded-md p-1"
                 value={reps}
                 onChange={handleRepsChange}
               />
             </div>
           </div>
 
-          <div className="mb-4 w-full sm:w-auto bg-slate-400">
+          <div className="mb-4 w-full sm:w-auto ">
             <label htmlFor="sets" className="mr-2">
               Sets:
             </label>
@@ -344,8 +367,8 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
                 type="number"
                 min="1"
                 required
-                className="w-12 text-black text-center"
-                value={sets?.length || 1}
+                className="w-12 text-black text-center rounded-md p-1"
+                value={sets}
                 onChange={handleSetsChange}
               />
             </div>
@@ -793,10 +816,9 @@ function WorkoutDisplay3({ workoutPlan }: display3Props) {
       </div>
       {workoutPlan &&
         workoutPlan?.map(
-          (workout: WorkoutTemplate & { exercises?: ExerciseTemplate[] }) => (
-            <div key={workout.description}>
-              <div>{workout.description}</div>
-              <div>{workout.nominalDay}</div>
+          (workout: WorkoutTemplate & { exercises?: ExerciseTemplate[] }, index) => (
+            <div key={index}>
+              <div>{workout.description}: {workout.nominalDay}</div>
               <div>
                 {workout.exercises &&
                   workout.exercises.map(
