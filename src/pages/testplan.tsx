@@ -283,7 +283,7 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
           ...emptySet,
           weight: weight,
           reps: reps
-        }),
+        }) as SetTemplate[],
       };
       if (exercises) {
         const newExercises: ExerciseTemplate[] = [...exercises, newExercise];
@@ -831,8 +831,8 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
               <div>
                 {workout.exercises &&
                   workout.exercises.map(
-                    (exercise: ExerciseTemplate & { sets: SetTemplate[] }) =>
-                      <ExerciseDisplay exercise={exercise}/>
+                    (exercise: ExerciseTemplate & { sets: SetTemplate[] }, index) =>
+                      <ExerciseDisplay key={index} exercise={exercise}/>
                       )
                   }
               </div>
@@ -870,8 +870,8 @@ function ExerciseDisplay({exercise} : ExerciseDisplayProps){
         />
     </div>
     <div>
-    {sets.map((set)=>(
-      <SetDisplay set={set}/>
+    {sets.map((set, index)=>(
+      <SetDisplay key={index} set={set}/>
     ))}
     </div>
     </div>
