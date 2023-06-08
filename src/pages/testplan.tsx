@@ -818,6 +818,16 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
     return workouts;
   }
 
+  function updateWorkoutPlan( exercise: ExerciseTemplate & {sets:SetTemplate[]}, workoutNumber: number, exerciseNumber: number ){
+    console.log(exercise, workoutNumber, exerciseNumber)
+    if (workoutPlan){
+      console.log(workoutPlan[workoutNumber]?.exercises[exerciseNumber])
+      const newWorkoutPlan = [...workoutPlan]
+      newWorkoutPlan[workoutNumber]?.exercises.splice(exerciseNumber, 1, exercise)
+      setWorkoutPlan(newWorkoutPlan)
+    }
+  }
+
   return (
     <div>
       <div className="mb-4 text-center text-2xl font-bold text-slate-300">
@@ -825,14 +835,14 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
       </div>
       {workoutPlan &&
         sortWorkoutsByNominalDay(workoutPlan).map(
-          (workout: WorkoutTemplate & { exercises?: ExerciseTemplate[] }, index) => (
-            <div key={index}>
+          (workout: WorkoutTemplate & { exercises?: ExerciseTemplate[] }, workoutNumber) => (
+            <div key={workoutNumber}>
               <div>{workout.description}: {workout.nominalDay}</div>
               <div>
                 {workout.exercises &&
                   workout.exercises.map(
-                    (exercise: ExerciseTemplate & { sets: SetTemplate[] }, index) =>
-                      <ExerciseDisplay key={index} exercise={exercise}/>
+                    (exercise: ExerciseTemplate & { sets: SetTemplate[] }, exerciseNumber) =>
+                      <ExerciseDisplay workoutNumber={workoutNumber} exerciseNumber={exerciseNumber} updatePlan={updateWorkoutPlan} key={workoutNumber.toString() + exerciseNumber.toString()} exercise={exercise}/>
                       )
                   }
               </div>
@@ -845,19 +855,32 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
 }
 interface ExerciseDisplayProps {
   exercise: ExerciseTemplate & {sets: SetTemplate[]}
+  workoutNumber: number
+  exerciseNumber: number
+  updatePlan: (exercise: ExerciseTemplate & {sets: SetTemplate[];}, workoutNumber: number, exerciseNumber: number) => void
 }
 
-function ExerciseDisplay({exercise} : ExerciseDisplayProps){
+function ExerciseDisplay({exercise, workoutNumber, exerciseNumber, updatePlan} : ExerciseDisplayProps){
   const [description, setDescription] = useState(exercise.description)
   const [sets, setSets] = useState(exercise.sets)
-  const [weight, setWeight] = useState(exercise.sets[0]?.weight)
-  const [reps, setReps] = useState(exercise.sets[0]?.reps)
 
   const handleDescriptionChange = (event: React.ChangeEvent<HTMLInputElement>)=>{
     setDescription(event.target.value)
   }
-  const handleWeightChange = (event: React.ChangeEvent<HTMLInputElement>)=>{
-    setWeight(parseInt(event.target.value))
+
+  function handleSetChange(set: SetTemplate, index: number){
+    const newSets = [...sets] 
+    newSets[index] = set
+    setSets(newSets)
+    console.log(newSets)
+  }
+  function handleSaveButton(){
+    const newData: ExerciseTemplate & {sets:SetTemplate[]} = {
+      description: description,
+      sets: sets,
+    }
+    console.log(newData)
+    updatePlan(newData, workoutNumber, exerciseNumber)
   }
 
   return(
@@ -871,30 +894,54 @@ function ExerciseDisplay({exercise} : ExerciseDisplayProps){
     </div>
     <div>
     {sets.map((set, index)=>(
-      <SetDisplay key={index} set={set}/>
+      <SetDisplay key={index} set={set} index={index} updateSets={handleSetChange}/>
     ))}
     </div>
+    <button
+      onClick={handleSaveButton}
+      className="rounded m-2 bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+    >Save</button>
     </div>
   )
 }
 
 interface SetDisplayProps {
-  set: SetTemplate
+  index: number
+  set: SetTemplate;
+  updateSets: (set: SetTemplate, index: number) => void;
 }
 
-function SetDisplay({set}: SetDisplayProps){
+function SetDisplay({ index, set, updateSets }: SetDisplayProps){
   const [weight, setWeight] = useState(set.weight)
   const [reps, setReps] = useState(set.reps)
   const [rir, setRir] = useState(set.rir)
 
   const handleWeightChange = (event: React.ChangeEvent<HTMLInputElement>)=>{
     setWeight(parseInt(event.target.value))
+    const newSet: SetTemplate = {
+      weight: parseInt(event.target.value),
+      reps: reps,
+      rir: rir,
+    }
+    updateSets(newSet, index)
   }
   const handleRepsChange = (event: React.ChangeEvent<HTMLInputElement>)=>{
     setReps(parseInt(event.target.value))
+    const newSet: SetTemplate = {
+      weight: weight,
+      reps: parseInt(event.target.value),
+      rir: rir,
+    }
+    updateSets(newSet, index)
   }
   const handleRirChange = (event: React.ChangeEvent<HTMLInputElement>)=>{
     setRir(parseInt(event.target.value))
+    const newSet: SetTemplate = {
+      weight: rir,
+      reps: reps,
+      rir: parseInt(event.target.value),
+    }
+    updateSets(newSet, index)
   }
 
   return(
@@ -916,73 +963,4 @@ function SetDisplay({set}: SetDisplayProps){
         /> RIR
     </div>
   )
-}
-
-function WorkoutDisplay() {
-  const [workoutSchedule, setWorkoutSchedule] = useState<ActualWorkout[]>();
-  const { data: workoutPlan, isLoading } =
-    api.getWorkouts.getPlanByUserId.useQuery();
-
-  function sortWorkoutsByNominalDay(workouts: ActualWorkout[]) {
-    const daysOfWeek = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ];
-
-    workouts.sort((a, b) => {
-      const dayA = daysOfWeek.indexOf(a.nominalDay);
-      const dayB = daysOfWeek.indexOf(b.nominalDay);
-      return dayA - dayB;
-    });
-
-    return workouts;
-  }
-
-  if (workoutPlan && workoutPlan[0] && !workoutSchedule && !isLoading) {
-    const workouts = sortWorkoutsByNominalDay(workoutPlan[0].workouts);
-    setWorkoutSchedule(workouts);
-    console.log("workouts: ");
-    console.log(workouts);
-  }
-  if (isLoading) {
-    return <div>Loading</div>;
-  }
-  if (!workoutPlan) {
-    return <div>No Workouts</div>;
-  }
-
-  return (
-    <div>
-      <div className="mb-4 text-center text-2xl font-bold text-slate-300">
-        Current Workouts:{" "}
-      </div>
-      {workoutSchedule?.map(
-        (workout: ActualWorkout & { exercises?: ActualExercise[] }) => (
-          <div key={workout.workoutId}>
-            <div>{workout.description}</div>
-            <div>{workout.nominalDay}</div>
-            <div>
-              {workout.exercises &&
-                workout.exercises.map(
-                  (exercise: ActualExercise & { sets?: exerciseSet[] }) =>
-                    exercise.sets &&
-                    exercise.sets.length > 0 && (
-                      <div key={exercise.exerciseId}>
-                        {exercise.description}: {exercise.sets[0]?.weight} lbs x{" "}
-                        {exercise.sets.length}
-                      </div>
-                    )
-                )}
-            </div>
-            <br></br>
-          </div>
-        )
-      )}
-    </div>
-  );
 }
