@@ -122,7 +122,7 @@ function WorkoutPlanForm() {
   return (
     <div className="flex items-center justify-center">
       <div className="max-w-fit bg-black p-5">
-        <WorkoutDisplay3 workoutPlan={workoutPlan} />
+        <WorkoutDisplay3 workoutPlan={pplPlanArrayTwo} setWorkoutPlan={setWorkoutPlan} />
         <WorkoutDayForm addWorkout={addWorkout} />
       </div>
     </div>
@@ -179,20 +179,28 @@ function WorkoutDayForm({ addWorkout }: WorkoutDayFormProps) {
           ref={inputRef}
           value={dayDescription}
           onChange={(event) => setDayDescription(event.target.value)}
-          className="text-black rounded-md"
+          className="text-black rounded-md p-1"
           type="text"
         ></input>
         <br></br>
         <br></br>
         <div>
           <label>Nominal Day: </label>
-          <input
+          <select
             value={nominalDay}
             onChange={(event) => setNominalDay(event.target.value)}
             required
-            className="text-black rounded-md"
-            type="text"
-          ></input>
+            className="text-black rounded-md bg-white p-1"
+          >
+              <option value="">Select Day</option>
+              <option value="Monday">Monday</option>
+              <option value="Tuesday">Tuesday</option>
+              <option value="Wednesday">Wednesday</option>
+              <option value="Thursday">Thursday</option>
+              <option value="Friday">Friday</option>
+              <option value="Saturday">Saturday</option>
+              <option value="Sunday">Sunday</option>
+          </select>
         </div>
         <br></br>
         <button
@@ -787,9 +795,10 @@ function TestButton() {
 
 interface display3Props {
   workoutPlan: WorkoutTemplate[] | undefined;
+  setWorkoutPlan: React.Dispatch<React.SetStateAction<WorkoutTemplate[] | undefined>>
 }
-function WorkoutDisplay3({ workoutPlan }: display3Props) {
-  function sortWorkoutsByNominalDay(workouts: ActualWorkout[]) {
+function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
+  function sortWorkoutsByNominalDay(workouts: WorkoutTemplate[]) {
     const daysOfWeek = [
       "Sunday",
       "Monday",
@@ -815,7 +824,7 @@ function WorkoutDisplay3({ workoutPlan }: display3Props) {
         Current Workouts:
       </div>
       {workoutPlan &&
-        workoutPlan?.map(
+        sortWorkoutsByNominalDay(workoutPlan).map(
           (workout: WorkoutTemplate & { exercises?: ExerciseTemplate[] }, index) => (
             <div key={index}>
               <div>{workout.description}: {workout.nominalDay}</div>
@@ -823,14 +832,9 @@ function WorkoutDisplay3({ workoutPlan }: display3Props) {
                 {workout.exercises &&
                   workout.exercises.map(
                     (exercise: ExerciseTemplate & { sets: SetTemplate[] }) =>
-                      exercise.sets &&
-                      exercise.sets.length > 0 && (
-                        <div key={exercise.description}>
-                          {exercise.description}: {exercise.sets[0]?.weight} lbs
-                          x {exercise.sets.length}
-                        </div>
+                      <ExerciseDisplay exercise={exercise}/>
                       )
-                  )}
+                  }
               </div>
               <br></br>
             </div>
@@ -838,6 +842,80 @@ function WorkoutDisplay3({ workoutPlan }: display3Props) {
         )}
     </div>
   );
+}
+interface ExerciseDisplayProps {
+  exercise: ExerciseTemplate & {sets: SetTemplate[]}
+}
+
+function ExerciseDisplay({exercise} : ExerciseDisplayProps){
+  const [description, setDescription] = useState(exercise.description)
+  const [sets, setSets] = useState(exercise.sets)
+  const [weight, setWeight] = useState(exercise.sets[0]?.weight)
+  const [reps, setReps] = useState(exercise.sets[0]?.reps)
+
+  const handleDescriptionChange = (event: React.ChangeEvent<HTMLInputElement>)=>{
+    setDescription(event.target.value)
+  }
+  const handleWeightChange = (event: React.ChangeEvent<HTMLInputElement>)=>{
+    setWeight(parseInt(event.target.value))
+  }
+
+  return(
+    <div key={exercise.description}>
+    <div>
+      <input type="text"
+        value={description}
+        onChange={handleDescriptionChange}
+        className="text-black rounded-md"
+        />
+    </div>
+    <div>
+    {sets.map((set)=>(
+      <SetDisplay set={set}/>
+    ))}
+    </div>
+    </div>
+  )
+}
+
+interface SetDisplayProps {
+  set: SetTemplate
+}
+
+function SetDisplay({set}: SetDisplayProps){
+  const [weight, setWeight] = useState(set.weight)
+  const [reps, setReps] = useState(set.reps)
+  const [rir, setRir] = useState(set.rir)
+
+  const handleWeightChange = (event: React.ChangeEvent<HTMLInputElement>)=>{
+    setWeight(parseInt(event.target.value))
+  }
+  const handleRepsChange = (event: React.ChangeEvent<HTMLInputElement>)=>{
+    setReps(parseInt(event.target.value))
+  }
+  const handleRirChange = (event: React.ChangeEvent<HTMLInputElement>)=>{
+    setRir(parseInt(event.target.value))
+  }
+
+  return(
+    <div className="m-1">
+      <input type="number"
+        value={weight}
+        onChange={handleWeightChange}
+        className="text-black rounded-md w-12 text-center"
+        /> lbs x
+      <input type="number"
+        value={reps}
+        onChange={handleRepsChange}
+        className="text-black rounded-md w-12 text-center"
+        /> reps @ 
+      <input type="number"
+        value={rir}
+        onChange={handleRirChange}
+        className="text-black rounded-md w-12 text-center"
+        /> RIR
+    </div>
+  )
 }
 
 function WorkoutDisplay() {
