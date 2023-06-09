@@ -828,6 +828,33 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
     }
   }
 
+  function removeExercise( workoutNumber: number, exerciseNumber: number ){
+    console.log(workoutNumber, exerciseNumber)
+    //if (
+      //workoutPlan !== undefined &&
+      //workoutNumber >= 0 &&
+      //workoutNumber < workoutPlan.length &&
+      //workoutPlan[workoutNumber] !== undefined &&
+      //workoutPlan[workoutNumber].exercises !== undefined &&
+      //workoutPlan[workoutNumber].exercises.length > 0
+    //) {
+      //console.log(workoutPlan[workoutNumber]?.exercises.length)
+      //const newExercises: ExerciseTemplate[] = [...workoutPlan[workoutNumber]?.exercises]
+      //if (exerciseNumber >= 0 && exerciseNumber < newExercises.length){
+        //newExercises.splice(exerciseNumber, 1)
+      //}
+
+      //if (workoutPlan && workoutPlan[workoutNumber]){
+        //const newWorkoutPlan = [...workoutPlan]
+        //newWorkoutPlan[workoutNumber] = {
+          //...newWorkoutPlan[workoutNumber],
+          //exercises: newExercises
+        //}
+        //setWorkoutPlan(newWorkoutPlan)
+      //}
+    //}
+  }
+
   return (
     <div>
       <div className="mb-4 text-center text-2xl font-bold text-slate-300">
@@ -842,7 +869,7 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
                 {workout.exercises &&
                   workout.exercises.map(
                     (exercise: ExerciseTemplate & { sets: SetTemplate[] }, exerciseNumber) =>
-                      <ExerciseDisplay workoutNumber={workoutNumber} exerciseNumber={exerciseNumber} updatePlan={updateWorkoutPlan} key={workoutNumber.toString() + exerciseNumber.toString()} exercise={exercise}/>
+                      <ExerciseDisplay removeExercise={removeExercise} workoutNumber={workoutNumber} exerciseNumber={exerciseNumber} updatePlan={updateWorkoutPlan} key={workoutNumber.toString() + exerciseNumber.toString()} exercise={exercise}/>
                       )
                   }
               </div>
@@ -858,9 +885,10 @@ interface ExerciseDisplayProps {
   workoutNumber: number
   exerciseNumber: number
   updatePlan: (exercise: ExerciseTemplate & {sets: SetTemplate[];}, workoutNumber: number, exerciseNumber: number) => void
+  removeExercise: (workoutNumber: number, exerciseNumber: number) => void
 }
 
-function ExerciseDisplay({exercise, workoutNumber, exerciseNumber, updatePlan} : ExerciseDisplayProps){
+function ExerciseDisplay({ removeExercise, exercise, workoutNumber, exerciseNumber, updatePlan} : ExerciseDisplayProps){
   const [description, setDescription] = useState(exercise.description)
   const [sets, setSets] = useState(exercise.sets)
 
@@ -882,6 +910,34 @@ function ExerciseDisplay({exercise, workoutNumber, exerciseNumber, updatePlan} :
     console.log(newData)
     updatePlan(newData, workoutNumber, exerciseNumber)
   }
+  function handleAddSet(){
+    let newSet = emptySet
+    const lastSet = sets[sets.length-1]
+    if (lastSet!==undefined){
+      newSet.reps = lastSet.reps
+      newSet.rir = lastSet.rir
+      newSet.weight = lastSet.weight
+    }
+    const newSets = [...sets, newSet]
+    setSets(newSets)
+  }
+  function handleAddExercise(){
+    console.log('fired')
+    console.log('workout index: ' + workoutNumber)
+    console.log('exercise index: ' + exerciseNumber)
+  }
+  function handleRemoveExercise(){
+    console.log('remove exercise')
+    removeExercise(workoutNumber, exerciseNumber)
+  }
+  function handleRemoveSet(index: number){
+    console.log('remove set')
+    const newSets = [...sets]
+    if (index >= 0 && index<newSets.length){
+      newSets.splice(index, 1)
+    }
+    setSets(newSets)
+  }
 
   return(
     <div key={exercise.description}>
@@ -891,27 +947,42 @@ function ExerciseDisplay({exercise, workoutNumber, exerciseNumber, updatePlan} :
         onChange={handleDescriptionChange}
         className="text-black rounded-md"
         />
+    <button
+      onClick={handleRemoveExercise}
+      className="rounded m-2 bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+    >Remove</button>
     </div>
     <div>
     {sets.map((set, index)=>(
-      <SetDisplay key={index} set={set} index={index} updateSets={handleSetChange}/>
+      <SetDisplay key={index} set={set} index={index} removeSet={handleRemoveSet} updateSets={handleSetChange}/>
     ))}
     </div>
+    <button
+      onClick={handleAddSet}
+      className="rounded m-2 bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+    >Add Set</button>
     <button
       onClick={handleSaveButton}
       className="rounded m-2 bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
     >Save</button>
+    <div>
+    <button
+      onClick={handleAddExercise}
+      className="rounded m-2 bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+    >Add Exercise</button>
+    </div>
     </div>
   )
 }
 
 interface SetDisplayProps {
-  index: number
+  index: number;
   set: SetTemplate;
   updateSets: (set: SetTemplate, index: number) => void;
+  removeSet: (index: number) => void;
 }
 
-function SetDisplay({ index, set, updateSets }: SetDisplayProps){
+function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps){
   const [weight, setWeight] = useState(set.weight)
   const [reps, setReps] = useState(set.reps)
   const [rir, setRir] = useState(set.rir)
@@ -943,6 +1014,9 @@ function SetDisplay({ index, set, updateSets }: SetDisplayProps){
     }
     updateSets(newSet, index)
   }
+  function handleRemoveSet(){
+    removeSet(index)
+  }
 
   return(
     <div className="m-1">
@@ -953,14 +1027,20 @@ function SetDisplay({ index, set, updateSets }: SetDisplayProps){
         /> lbs x
       <input type="number"
         value={reps}
+        min={0}
         onChange={handleRepsChange}
         className="text-black rounded-md w-12 text-center"
         /> reps @ 
       <input type="number"
         value={rir}
+        min={0}
         onChange={handleRirChange}
         className="text-black rounded-md w-12 text-center"
         /> RIR
-    </div>
+      <button
+        onClick={handleRemoveSet}
+        className="rounded bg-blue-500 mx-1 px-2 py-2 font-bold text-white hover:bg-blue-700"
+      >--</button>
+      </div>
   )
 }
