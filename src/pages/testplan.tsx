@@ -29,6 +29,8 @@ import { prisma } from "~/server/db";
 import { empty } from "@prisma/client/runtime";
 import { SourceTextModule } from "vm";
 import { v4 } from 'uuid';
+import { existsSync } from "fs";
+import { create } from "domain";
 
 //@refresh reset
 
@@ -880,6 +882,38 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
     })
   }
 
+  function addExercise(workoutNumber: string, exerciseIndex: number){
+    console.log("workout", workoutNumber)
+    console.log("exercise", exerciseIndex)
+    const newExercise: ExerciseTemplate = {
+      description: "New Exercise",
+      id: createUniqueId(),
+      sets: [emptySet],
+    }
+
+    setWorkoutPlan((prevWorkoutPlan) => {
+      const updatedWorkoutPlan = [...(prevWorkoutPlan ??[])]
+      const workoutIndex = updatedWorkoutPlan.findIndex(
+        (workout) => workout.workoutId === workoutNumber
+      )
+      if (workoutIndex !== -1){
+        const workout = updatedWorkoutPlan[workoutIndex]
+        if (workout){
+        const newExercises = [
+          ...workout.exercises.slice(0, exerciseIndex + 1),
+          newExercise,
+          ...workout.exercises.slice(exerciseIndex+1),
+        ]
+        updatedWorkoutPlan[workoutIndex] = {
+          ...workout,
+          exercises: newExercises,
+        }
+        }
+      }
+      return updatedWorkoutPlan
+    })
+  }
+
   return (
     <div>
       <div className="mb-4 text-center text-2xl font-bold text-slate-300">
@@ -906,7 +940,9 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
                         removeExercise={removeExercise}
                         workoutNumber={workout.workoutId}
                         exerciseNumber={exercise.id}
+                        exerciseIndex={exerciseNumber}
                         updatePlan={updateWorkoutPlan}
+                        addExercise={addExercise}
                         key={
                           workoutNumber.toString() + exerciseNumber.toString()
                         }
@@ -926,6 +962,8 @@ interface ExerciseDisplayProps {
   exercise: ExerciseTemplate & { sets: SetTemplate[] };
   workoutNumber: string;
   exerciseNumber: string;
+  exerciseIndex: number;
+  addExercise: (workoutNumber: string, exerciseIndex: number) => void
   updatePlan: (
     exercise: ExerciseTemplate & { sets: SetTemplate[] },
     workoutNumber: string,
@@ -939,6 +977,8 @@ function ExerciseDisplay({
   exercise,
   workoutNumber,
   exerciseNumber,
+  exerciseIndex,
+  addExercise,
   updatePlan,
 }: ExerciseDisplayProps) {
   const [description, setDescription] = useState(exercise.description);
@@ -946,7 +986,8 @@ function ExerciseDisplay({
 
   useEffect(()=>{
     setDescription(exercise.description)
-  }, [exercise.description])
+    setSets(exercise.sets)
+  }, [exercise.description, exercise.sets])
 
   const handleDescriptionChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -981,9 +1022,7 @@ function ExerciseDisplay({
     setSets(newSets);
   }
   function handleAddExercise() {
-    console.log("fired");
-    console.log("workout index: ", workoutNumber);
-    console.log("exercise index: ", exerciseNumber);
+    addExercise(workoutNumber, exerciseIndex)
   }
   function handleRemoveExercise() {
     removeExercise(workoutNumber, exercise.id);
@@ -994,6 +1033,7 @@ function ExerciseDisplay({
     if (index >= 0 && index < newSets.length) {
       newSets.splice(index, 1);
     }
+    console.log(newSets)
     setSets(newSets);
   }
 
@@ -1059,6 +1099,12 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
   const [weight, setWeight] = useState(set.weight);
   const [reps, setReps] = useState(set.reps);
   const [rir, setRir] = useState(set.rir);
+
+  useEffect(()=>{
+    setWeight(set.weight)
+    setReps(set.reps)
+    setRir(set.rir)
+  }, [set.weight, set.reps, set.rir])
 
   const handleWeightChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setWeight(parseInt(event.target.value));
