@@ -27,6 +27,8 @@ import type {
 } from "@prisma/client";
 import { prisma } from "~/server/db";
 import { empty } from "@prisma/client/runtime";
+import { SourceTextModule } from "vm";
+import { v4 } from 'uuid';
 
 //@refresh reset
 
@@ -123,14 +125,15 @@ function WorkoutPlanForm() {
       "Friday",
       "Saturday",
     ];
+    const sortedWorkouts = [...workouts]
 
-    workouts.sort((a, b) => {
+    sortedWorkouts.sort((a, b) => {
       const dayA = daysOfWeek.indexOf(a.nominalDay);
       const dayB = daysOfWeek.indexOf(b.nominalDay);
       return dayA - dayB;
     });
 
-    return workouts;
+    return sortedWorkouts;
   }
   
   if (!workoutPlan) {
@@ -176,6 +179,7 @@ function WorkoutDayForm({ addWorkout }: WorkoutDayFormProps) {
   function updateWorkoutPlan(exercises: ExerciseTemplate[]) {
     if (dayDescription && nominalDay) {
       const newWorkoutPlan: WorkoutTemplate = {
+        workoutId: createUniqueId(),
         description: dayDescription,
         nominalDay: nominalDay,
         exercises: exercises,
@@ -304,6 +308,7 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
     event.preventDefault();
     if (sets) {
       const newExercise: ExerciseTemplate = {
+        id: createUniqueId(),
         description: description,
         sets: Array(sets).fill({
           ...emptySet,
@@ -449,6 +454,7 @@ function NewDay({ day, updatePlan }: NewDayProps) {
   const handleSetDay = () => {
     if (description && exercises) {
       const dayWorkout: WorkoutTemplate = {
+        workoutId: createUniqueId(),
         description: description,
         nominalDay: day,
         exercises: exercises,
@@ -561,7 +567,12 @@ function MakePplSplit() {
   );
 }
 
+function createUniqueId():string {
+  return v4()
+}
+
 type ExerciseTemplate = {
+  id: string;
   description: string;
   sets: SetTemplate[];
 };
@@ -575,41 +586,49 @@ type SetTemplate = {
 type WorkoutTemplate = {
   description: string;
   nominalDay: string;
+  workoutId: string;
   exercises: ExerciseTemplate[];
 };
 
 const emptyWorkoutPlan: WorkoutTemplate[] = [
   {
+    workoutId: createUniqueId(),
     description: "",
     nominalDay: "Sunday",
     exercises: [],
   },
   {
+    workoutId: createUniqueId(),
     description: "",
     nominalDay: "Monday",
     exercises: [],
   },
   {
+    workoutId: createUniqueId(),
     description: "",
     nominalDay: "Tuesday",
     exercises: [],
   },
   {
+    workoutId: createUniqueId(),
     description: "",
     nominalDay: "Wednesday",
     exercises: [],
   },
   {
+    workoutId: createUniqueId(),
     description: "",
     nominalDay: "Thursday",
     exercises: [],
   },
   {
+    workoutId: createUniqueId(),
     description: "",
     nominalDay: "Friday",
     exercises: [],
   },
   {
+    workoutId: createUniqueId(),
     description: "",
     nominalDay: "Saturday",
     exercises: [],
@@ -618,6 +637,7 @@ const emptyWorkoutPlan: WorkoutTemplate[] = [
 const PushFirst = {
   description: "Push #1",
   nominalDay: "Monday",
+  workoutId: createUniqueId(),
   exercises: [
     { description: "Atlantis Side Raise", weight: 90, sets: 4 },
     { description: "Calf Raise", weight: 220, sets: 4 },
@@ -628,6 +648,7 @@ const PushFirst = {
 };
 const PushSecond = {
   description: "Push #2",
+  workoutId: createUniqueId(),
   nominalDay: "Thursday",
   exercises: [
     { description: "Machine Press", weight: 185, sets: 3 },
@@ -640,6 +661,7 @@ const PushSecond = {
 const LegFirst = {
   description: "Legs #1",
   nominalDay: "Tuesday",
+  workoutId: createUniqueId(),
   exercises: [
     { description: "DB RDL", weight: 100, sets: 2 },
     { description: "Belt Squat", weight: 135, sets: 4 },
@@ -648,6 +670,7 @@ const LegFirst = {
 };
 const LegSecond = {
   description: "Legs #2",
+  workoutId: createUniqueId(),
   nominalDay: "Friday",
   exercises: [
     { description: "Belt Squat", weight: 135, sets: 4 },
@@ -657,6 +680,7 @@ const LegSecond = {
 };
 const PullFirst = {
   description: "Pull #1",
+  workoutId: createUniqueId(),
   nominalDay: "Wednesday",
   exercises: [
     { description: "Calf Raise", weight: 220, sets: 4 },
@@ -668,6 +692,7 @@ const PullFirst = {
 const PullSecond = {
   description: "Pull #2",
   nominalDay: "Saturday",
+  workoutId: createUniqueId(),
   exercises: [
     { description: "Machine Row", weight: 185, sets: 4 },
     { description: "Lat Pulldown", weight: 140, sets: 4 },
@@ -688,21 +713,24 @@ const emptySet = { rir: 3, reps: 5, weight: 0 };
 const PushFirstTwo = {
   description: "Push #1",
   nominalDay: "Monday",
+  workoutId: createUniqueId(),
   exercises: [
     {
+      id: createUniqueId(),
       description: "Atlantis Side Raise",
       sets: Array(3).fill(emptySet),
     },
-    { description: "Calf Raise", weight: 220, sets: Array(3).fill(emptySet) },
+    { id: createUniqueId(),description: "Calf Raise", weight: 220, sets: Array(3).fill(emptySet) },
     {
-      description: "Machine Press",
+      id: createUniqueId(),description: "Machine Press",
       sets: Array(3).fill(emptySet),
     },
     {
+id: createUniqueId(),
       description: "Incline DB Press",
       sets: Array(3).fill(emptySet),
     },
-    {
+    {id: createUniqueId(),
       description: "Cable Pushdown",
       sets: Array(3).fill(emptySet),
     },
@@ -710,70 +738,75 @@ const PushFirstTwo = {
 };
 const PushSecondTwo = {
   description: "Push #2",
+  workoutId: createUniqueId(),
   nominalDay: "Thursday",
   exercises: [
-    {
+    {id: createUniqueId(),
       description: "Machine Press",
       sets: Array(3).fill(emptySet),
     },
-    {
+    {id: createUniqueId(),
       description: "Incline DB Press",
       sets: Array(3).fill(emptySet),
     },
-    {
+    {id: createUniqueId(),
       description: "Cable Upright Row",
       sets: Array(3).fill(emptySet),
     },
-    {
+    {id: createUniqueId(),
       description: "Cable Pushdown",
       sets: Array(3).fill(emptySet),
     },
-    { description: "Leg Raise", weight: 0, sets: Array(3).fill(emptySet) },
+    { description: "Leg Raise", id: createUniqueId(),weight: 0, sets: Array(3).fill(emptySet) },
   ],
 };
 const LegFirstTwo = {
   description: "Legs #1",
+  workoutId: createUniqueId(),
   nominalDay: "Tuesday",
   exercises: [
-    { description: "DB RDL", sets: Array(3).fill(emptySet) },
-    { description: "Belt Squat", sets: Array(3).fill(emptySet) },
-    { description: "Candlesticks", sets: Array(3).fill(emptySet) },
+    { id: createUniqueId(),description: "DB RDL", sets: Array(3).fill(emptySet) },
+    {id: createUniqueId(), description: "Belt Squat", sets: Array(3).fill(emptySet) },
+    {id: createUniqueId(), description: "Candlesticks", sets: Array(3).fill(emptySet) },
   ],
 };
 
 const LegSecondTwo = {
   description: "Legs #2",
   nominalDay: "Friday",
+  workoutId: createUniqueId(),
   exercises: [
-    { description: "Belt Squat", sets: Array(3).fill(emptySet) },
-    { description: "Ham Curl", sets: Array(3).fill(emptySet) },
-    { description: "Calf Raise", sets: Array(3).fill(emptySet) },
+    { description: "Belt Squat", id: createUniqueId(),sets: Array(3).fill(emptySet) },
+    { description: "Ham Curl", id: createUniqueId(),sets: Array(3).fill(emptySet) },
+    { description: "Calf Raise", id: createUniqueId(),sets: Array(3).fill(emptySet) },
   ],
 };
 
 const PullFirstTwo = {
   description: "Pull #1",
   nominalDay: "Wednesday",
+  workoutId: createUniqueId(),
   exercises: [
-    { description: "Calf Raise",  sets: Array(3).fill(emptySet) },
-    { description: "Lat Pulldown",  sets: Array(3).fill(emptySet) },
-    { description: "Machine Row",  sets: Array(3).fill(emptySet) },
-    { description: "Bicep Curl",  sets: Array(3).fill(emptySet) },
+    { description: "Calf Raise",  id: createUniqueId(),sets: Array(3).fill(emptySet) },
+    { description: "Lat Pulldown",  id: createUniqueId(),sets: Array(3).fill(emptySet) },
+    { description: "Machine Row", id: createUniqueId(), sets: Array(3).fill(emptySet) },
+    { description: "Bicep Curl", id: createUniqueId(), sets: Array(3).fill(emptySet) },
   ],
 };
 
 const PullSecondTwo = {
   description: "Push #2",
   nominalDay: "Saturday",
+  workoutId: createUniqueId(),
   exercises: [
-    { description: "Machine Row",  sets: Array(3).fill(emptySet) },
-    { description: "Lat Pulldown",  sets: Array(3).fill(emptySet) },
-    {
+    { description: "Machine Row",  id: createUniqueId(),sets: Array(3).fill(emptySet) },
+    { description: "Lat Pulldown", id: createUniqueId(), sets: Array(3).fill(emptySet) },
+    {id: createUniqueId(),
       description: "Atlantis Side Raise",
       sets: Array(3).fill(emptySet),
     },
-    { description: "Bicep Curl", sets: Array(3).fill(emptySet) },
-    { description: "Candlesticks",  sets: Array(3).fill(emptySet) },
+    { id: createUniqueId(),description: "Bicep Curl", sets: Array(3).fill(emptySet) },
+    { id: createUniqueId(),description: "Candlesticks",  sets: Array(3).fill(emptySet) },
   ],
 };
 
@@ -821,40 +854,30 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
 
   function updateWorkoutPlan(
     exercise: ExerciseTemplate & { sets: SetTemplate[] },
-    workoutNumber: number,
-    exerciseNumber: number
+    workoutId: string,
+    exerciseId: string
   ) {
-    console.log(exercise, workoutNumber, exerciseNumber);
-    if (workoutPlan) {
-      console.log(workoutPlan[workoutNumber]?.exercises[exerciseNumber]);
-      const newWorkoutPlan = [...workoutPlan];
-      newWorkoutPlan[workoutNumber]?.exercises.splice(exerciseNumber,1, exercise);
-      setWorkoutPlan(newWorkoutPlan);
-    }
+    console.log('updateworkoutplan unfinished')
+    console.log(exercise, workoutId, exerciseId);
+    //if (workoutPlan) {
+      //console.log(workoutPlan[workoutNumber]?.exercises[exerciseNumber]);
+      //const newWorkoutPlan = [...workoutPlan];
+      //newWorkoutPlan[workoutNumber]?.exercises.splice(exerciseNumber,1, exercise);
+      //setWorkoutPlan(newWorkoutPlan);
+    //}
   }
 
-  function removeExercise(workoutNumber: number, exerciseNumber: number) {
-    if (
-      workoutPlan &&
-      workoutNumber >= 0 &&
-      workoutNumber < workoutPlan.length &&
-      workoutPlan[workoutNumber] !== undefined &&
-      workoutPlan[workoutNumber]?.exercises !== undefined
-    ) {
-      console.log("remove: ");
-      console.log(workoutPlan[workoutNumber]?.exercises[exerciseNumber]);
-      const newWorkoutPlan = [...workoutPlan];
-      const workout = newWorkoutPlan[workoutNumber];
-      if (
-        workout &&
-        exerciseNumber >= 0 &&
-        exerciseNumber < workout.exercises.length
-      ) {
-        workout.exercises.splice(exerciseNumber, 1);
-        setWorkoutPlan(newWorkoutPlan);
-        console.log(newWorkoutPlan);
-      }
-    }
+  function removeExercise(workoutNumber: string, exerciseId: string) {
+    setWorkoutPlan((prevWorkoutPlan)=>{
+      const updateWorkoutPlan = prevWorkoutPlan?.map((workout)=>{
+        const updatedExercises = workout.exercises.filter(
+          (exercise)=> exercise.id !== exerciseId
+        )
+        return {...workout, exercises: updatedExercises}
+      })
+      console.log(updateWorkoutPlan)
+      return updateWorkoutPlan
+    })
   }
 
   return (
@@ -881,8 +904,8 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
                     ) => (
                       <ExerciseDisplay
                         removeExercise={removeExercise}
-                        workoutNumber={workoutNumber}
-                        exerciseNumber={exerciseNumber}
+                        workoutNumber={workout.workoutId}
+                        exerciseNumber={exercise.id}
                         updatePlan={updateWorkoutPlan}
                         key={
                           workoutNumber.toString() + exerciseNumber.toString()
@@ -901,14 +924,14 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
 }
 interface ExerciseDisplayProps {
   exercise: ExerciseTemplate & { sets: SetTemplate[] };
-  workoutNumber: number;
-  exerciseNumber: number;
+  workoutNumber: string;
+  exerciseNumber: string;
   updatePlan: (
     exercise: ExerciseTemplate & { sets: SetTemplate[] },
-    workoutNumber: number,
-    exerciseNumber: number
+    workoutNumber: string,
+    exerciseNumber: string,
   ) => void;
-  removeExercise: (workoutNumber: number, exerciseNumber: number) => void;
+  removeExercise: (workoutNumber: string, exerciseNumber: string) => void;
 }
 
 function ExerciseDisplay({
@@ -920,6 +943,10 @@ function ExerciseDisplay({
 }: ExerciseDisplayProps) {
   const [description, setDescription] = useState(exercise.description);
   const [sets, setSets] = useState(exercise.sets);
+
+  useEffect(()=>{
+    setDescription(exercise.description)
+  }, [exercise.description])
 
   const handleDescriptionChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -937,6 +964,7 @@ function ExerciseDisplay({
     const newData: ExerciseTemplate & { sets: SetTemplate[] } = {
       description: description,
       sets: sets,
+      id: exercise.id,
     };
     console.log(newData);
     updatePlan(newData, workoutNumber, exerciseNumber);
@@ -958,7 +986,7 @@ function ExerciseDisplay({
     console.log("exercise index: ", exerciseNumber);
   }
   function handleRemoveExercise() {
-    removeExercise(workoutNumber, exerciseNumber);
+    removeExercise(workoutNumber, exercise.id);
   }
   function handleRemoveSet(index: number) {
     console.log("remove set");
