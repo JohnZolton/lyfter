@@ -303,7 +303,6 @@ export const getAllWorkouts = createTRPCRouter({
             exercises: z.array(
               z.object({
                 description: z.string(),
-                weight: z.number(),
                 sets: z.array(
                   z.object({
                     weight: z.number(),

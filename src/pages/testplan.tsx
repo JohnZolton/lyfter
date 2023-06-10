@@ -113,6 +113,29 @@ function WorkoutPlanForm() {
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutTemplate[] | undefined>(
     undefined
   );
+  function sortWorkoutsByNominalDay(workouts: WorkoutTemplate[]) {
+    const daysOfWeek = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+
+    workouts.sort((a, b) => {
+      const dayA = daysOfWeek.indexOf(a.nominalDay);
+      const dayB = daysOfWeek.indexOf(b.nominalDay);
+      return dayA - dayB;
+    });
+
+    return workouts;
+  }
+  
+  if (!workoutPlan) {
+    setWorkoutPlan(sortWorkoutsByNominalDay(pplPlanArrayTwo));
+  }
   function addWorkout(workout: WorkoutTemplate) {
     console.log(workout);
     const newWorkoutPlan = workoutPlan ? [...workoutPlan, workout] : [workout];
@@ -122,7 +145,10 @@ function WorkoutPlanForm() {
   return (
     <div className="flex items-center justify-center">
       <div className="max-w-fit bg-black p-5">
-        <WorkoutDisplay3 workoutPlan={pplPlanArrayTwo} setWorkoutPlan={setWorkoutPlan} />
+        <WorkoutDisplay3
+          workoutPlan={workoutPlan}
+          setWorkoutPlan={setWorkoutPlan}
+        />
         <WorkoutDayForm addWorkout={addWorkout} />
       </div>
     </div>
@@ -157,65 +183,65 @@ function WorkoutDayForm({ addWorkout }: WorkoutDayFormProps) {
       setWorkoutDayPlan(newWorkoutPlan);
       console.log(newWorkoutPlan);
       addWorkout(newWorkoutPlan);
-      setShowAddExercises(false)
-      setDayDescription("")
-      setNominalDay("")
+      setShowAddExercises(false);
+      setDayDescription("");
+      setNominalDay("");
     }
   }
-  const inputRef = useRef<HTMLInputElement | null>(null)
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(()=>{
+  useEffect(() => {
     inputRef.current?.focus();
-  }, [])
+  }, []);
 
   return (
     <div className="flex items-center justify-center">
-      {!showAddExercises && 
-      <form onSubmit={handleAddExercises}>
-      <div className="max-w-fit bg-black p-5">
-        <label>Day Description:</label>
-        <input
-          required
-          ref={inputRef}
-          value={dayDescription}
-          onChange={(event) => setDayDescription(event.target.value)}
-          className="text-black rounded-md p-1"
-          type="text"
-        ></input>
-        <br></br>
-        <br></br>
-        <div>
-          <label>Nominal Day: </label>
-          <select
-            value={nominalDay}
-            onChange={(event) => setNominalDay(event.target.value)}
-            required
-            className="text-black rounded-md bg-white p-1"
-          >
-              <option value="">Select Day</option>
-              <option value="Monday">Monday</option>
-              <option value="Tuesday">Tuesday</option>
-              <option value="Wednesday">Wednesday</option>
-              <option value="Thursday">Thursday</option>
-              <option value="Friday">Friday</option>
-              <option value="Saturday">Saturday</option>
-              <option value="Sunday">Sunday</option>
-          </select>
-        </div>
-        <br></br>
-        <button
-          type="submit"
-          className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-        >
-          Add Exercsies
-        </button>
-        <br></br>
-      </div>
-      </form>
-      }
-        <br></br>
-        {showAddExercises && <AddExerciseForm updatePlan={updateWorkoutPlan} />}
-        <br></br>
+      {!showAddExercises && (
+        <form onSubmit={handleAddExercises}>
+          <div className="max-w-fit bg-black p-5">
+            <label>Day Description:</label>
+            <input
+              required
+              ref={inputRef}
+              value={dayDescription}
+              onChange={(event) => setDayDescription(event.target.value)}
+              className="rounded-md p-1 text-black"
+              type="text"
+            ></input>
+            <br></br>
+            <br></br>
+            <div>
+              <label>Nominal Day: </label>
+              <select
+                value={nominalDay}
+                onChange={(event) => setNominalDay(event.target.value)}
+                required
+                className="rounded-md bg-white p-1 text-black"
+              >
+                <option value="">Select Day</option>
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+                <option value="Sunday">Sunday</option>
+              </select>
+            </div>
+            <br></br>
+            <button
+              type="submit"
+              className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+            >
+              Add Exercsies
+            </button>
+            <br></br>
+          </div>
+        </form>
+      )}
+      <br></br>
+      {showAddExercises && <AddExerciseForm updatePlan={updateWorkoutPlan} />}
+      <br></br>
     </div>
   );
 }
@@ -267,12 +293,12 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
   const [description, setDescription] = useState("");
   const [weight, setWeight] = useState(0);
   const [reps, setReps] = useState(5);
-  const [sets, setSets] = useState(1)
-  const inputRef = useRef<HTMLInputElement | null>(null)
+  const [sets, setSets] = useState(1);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(()=>{
+  useEffect(() => {
     inputRef.current?.focus();
-  }, [])
+  }, []);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -282,19 +308,19 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
         sets: Array(sets).fill({
           ...emptySet,
           weight: weight,
-          reps: reps
+          reps: reps,
         }) as SetTemplate[],
       };
       if (exercises) {
         const newExercises: ExerciseTemplate[] = [...exercises, newExercise];
         setExercises(newExercises);
-        console.log(newExercises)
+        console.log(newExercises);
       } else {
         setExercises([newExercise]);
-        console.log(newExercise)
+        console.log(newExercise);
       }
     }
-    inputRef.current?.focus()
+    inputRef.current?.focus();
     setDescription("");
     setWeight(0);
     setSets(1);
@@ -315,9 +341,9 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
   };
 
   return (
-    <div className="flex justify-center flex-row ">
-      <form onSubmit={handleSubmit} className="justify-center items-center">
-        <div className="mb-4 w-full sm:w-auto  p-1">
+    <div className="flex flex-row justify-center ">
+      <form onSubmit={handleSubmit} className="items-center justify-center">
+        <div className="mb-4 w-full p-1  sm:w-auto">
           <label htmlFor="description" className="mr-2">
             Exercise:
           </label>
@@ -327,13 +353,13 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
               type="text"
               ref={inputRef}
               required
-              className="sm:w-48  text-black rounded-md p-1"
+              className="rounded-md  p-1 text-black sm:w-48"
               value={description}
               onChange={handleDescriptionChange}
             />
           </div>
         </div>
-          <div className="flex flex-row w-full">
+        <div className="flex w-full flex-row">
           <div className="mb-4 w-full sm:w-auto">
             <label htmlFor="weight" className="mr-2">
               Weight:
@@ -343,7 +369,7 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
                 id="weight"
                 type="number"
                 required
-                className="w-14 text-black text-center rounded-md p-1"
+                className="w-14 rounded-md p-1 text-center text-black"
                 value={weight}
                 onChange={handleWeightChange}
               />
@@ -358,7 +384,7 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
                 id="weight"
                 type="number"
                 required
-                className="w-12 text-black text-center rounded-md p-1"
+                className="w-12 rounded-md p-1 text-center text-black"
                 value={reps}
                 onChange={handleRepsChange}
               />
@@ -375,7 +401,7 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
                 type="number"
                 min="1"
                 required
-                className="w-12 text-black text-center rounded-md p-1"
+                className="w-12 rounded-md p-1 text-center text-black"
                 value={sets}
                 onChange={handleSetsChange}
               />
@@ -665,23 +691,19 @@ const PushFirstTwo = {
   exercises: [
     {
       description: "Atlantis Side Raise",
-      weight: 90,
       sets: Array(3).fill(emptySet),
     },
     { description: "Calf Raise", weight: 220, sets: Array(3).fill(emptySet) },
     {
       description: "Machine Press",
-      weight: 185,
       sets: Array(3).fill(emptySet),
     },
     {
       description: "Incline DB Press",
-      weight: 60,
       sets: Array(3).fill(emptySet),
     },
     {
       description: "Cable Pushdown",
-      weight: 120,
       sets: Array(3).fill(emptySet),
     },
   ],
@@ -692,22 +714,18 @@ const PushSecondTwo = {
   exercises: [
     {
       description: "Machine Press",
-      weight: 185,
       sets: Array(3).fill(emptySet),
     },
     {
       description: "Incline DB Press",
-      weight: 60,
       sets: Array(3).fill(emptySet),
     },
     {
       description: "Cable Upright Row",
-      weight: 70,
       sets: Array(3).fill(emptySet),
     },
     {
       description: "Cable Pushdown",
-      weight: 120,
       sets: Array(3).fill(emptySet),
     },
     { description: "Leg Raise", weight: 0, sets: Array(3).fill(emptySet) },
@@ -717,9 +735,9 @@ const LegFirstTwo = {
   description: "Legs #1",
   nominalDay: "Tuesday",
   exercises: [
-    { description: "DB RDL", weight: 100, sets: Array(3).fill(emptySet) },
-    { description: "Belt Squat", weight: 135, sets: Array(3).fill(emptySet) },
-    { description: "Candlesticks", weight: 0, sets: Array(3).fill(emptySet) },
+    { description: "DB RDL", sets: Array(3).fill(emptySet) },
+    { description: "Belt Squat", sets: Array(3).fill(emptySet) },
+    { description: "Candlesticks", sets: Array(3).fill(emptySet) },
   ],
 };
 
@@ -727,9 +745,9 @@ const LegSecondTwo = {
   description: "Legs #2",
   nominalDay: "Friday",
   exercises: [
-    { description: "Belt Squat", weight: 135, sets: Array(3).fill(emptySet) },
-    { description: "Ham Curl", weight: 100, sets: Array(3).fill(emptySet) },
-    { description: "Calf Raise", weight: 220, sets: Array(3).fill(emptySet) },
+    { description: "Belt Squat", sets: Array(3).fill(emptySet) },
+    { description: "Ham Curl", sets: Array(3).fill(emptySet) },
+    { description: "Calf Raise", sets: Array(3).fill(emptySet) },
   ],
 };
 
@@ -737,10 +755,10 @@ const PullFirstTwo = {
   description: "Pull #1",
   nominalDay: "Wednesday",
   exercises: [
-    { description: "Calf Raise", weight: 220, sets: Array(3).fill(emptySet) },
-    { description: "Lat Pulldown", weight: 140, sets: Array(3).fill(emptySet) },
-    { description: "Machine Row", weight: 185, sets: Array(3).fill(emptySet) },
-    { description: "Bicep Curl", weight: 40, sets: Array(3).fill(emptySet) },
+    { description: "Calf Raise",  sets: Array(3).fill(emptySet) },
+    { description: "Lat Pulldown",  sets: Array(3).fill(emptySet) },
+    { description: "Machine Row",  sets: Array(3).fill(emptySet) },
+    { description: "Bicep Curl",  sets: Array(3).fill(emptySet) },
   ],
 };
 
@@ -748,15 +766,14 @@ const PullSecondTwo = {
   description: "Push #2",
   nominalDay: "Saturday",
   exercises: [
-    { description: "Machine Row", weight: 185, sets: Array(3).fill(emptySet) },
-    { description: "Lat Pulldown", weight: 140, sets: Array(3).fill(emptySet) },
+    { description: "Machine Row",  sets: Array(3).fill(emptySet) },
+    { description: "Lat Pulldown",  sets: Array(3).fill(emptySet) },
     {
       description: "Atlantis Side Raise",
-      weight: 90,
       sets: Array(3).fill(emptySet),
     },
-    { description: "Bicep Curl", weight: 40, sets: Array(3).fill(emptySet) },
-    { description: "Candlesticks", weight: 0, sets: Array(3).fill(emptySet) },
+    { description: "Bicep Curl", sets: Array(3).fill(emptySet) },
+    { description: "Candlesticks",  sets: Array(3).fill(emptySet) },
   ],
 };
 
@@ -795,64 +812,49 @@ function TestButton() {
 
 interface display3Props {
   workoutPlan: WorkoutTemplate[] | undefined;
-  setWorkoutPlan: React.Dispatch<React.SetStateAction<WorkoutTemplate[] | undefined>>
+  setWorkoutPlan: React.Dispatch<
+    React.SetStateAction<WorkoutTemplate[] | undefined>
+  >;
 }
 function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
-  function sortWorkoutsByNominalDay(workouts: WorkoutTemplate[]) {
-    const daysOfWeek = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ];
 
-    workouts.sort((a, b) => {
-      const dayA = daysOfWeek.indexOf(a.nominalDay);
-      const dayB = daysOfWeek.indexOf(b.nominalDay);
-      return dayA - dayB;
-    });
 
-    return workouts;
-  }
-
-  function updateWorkoutPlan( exercise: ExerciseTemplate & {sets:SetTemplate[]}, workoutNumber: number, exerciseNumber: number ){
-    console.log(exercise, workoutNumber, exerciseNumber)
-    if (workoutPlan){
-      console.log(workoutPlan[workoutNumber]?.exercises[exerciseNumber])
-      const newWorkoutPlan = [...workoutPlan]
-      newWorkoutPlan[workoutNumber]?.exercises.splice(exerciseNumber, 1, exercise)
-      setWorkoutPlan(newWorkoutPlan)
+  function updateWorkoutPlan(
+    exercise: ExerciseTemplate & { sets: SetTemplate[] },
+    workoutNumber: number,
+    exerciseNumber: number
+  ) {
+    console.log(exercise, workoutNumber, exerciseNumber);
+    if (workoutPlan) {
+      console.log(workoutPlan[workoutNumber]?.exercises[exerciseNumber]);
+      const newWorkoutPlan = [...workoutPlan];
+      newWorkoutPlan[workoutNumber]?.exercises.splice(exerciseNumber,1, exercise);
+      setWorkoutPlan(newWorkoutPlan);
     }
   }
 
-  function removeExercise( workoutNumber: number, exerciseNumber: number ){
-    console.log(workoutNumber, exerciseNumber)
-    //if (
-      //workoutPlan !== undefined &&
-      //workoutNumber >= 0 &&
-      //workoutNumber < workoutPlan.length &&
-      //workoutPlan[workoutNumber] !== undefined &&
-      //workoutPlan[workoutNumber].exercises !== undefined &&
-      //workoutPlan[workoutNumber].exercises.length > 0
-    //) {
-      //console.log(workoutPlan[workoutNumber]?.exercises.length)
-      //const newExercises: ExerciseTemplate[] = [...workoutPlan[workoutNumber]?.exercises]
-      //if (exerciseNumber >= 0 && exerciseNumber < newExercises.length){
-        //newExercises.splice(exerciseNumber, 1)
-      //}
-
-      //if (workoutPlan && workoutPlan[workoutNumber]){
-        //const newWorkoutPlan = [...workoutPlan]
-        //newWorkoutPlan[workoutNumber] = {
-          //...newWorkoutPlan[workoutNumber],
-          //exercises: newExercises
-        //}
-        //setWorkoutPlan(newWorkoutPlan)
-      //}
-    //}
+  function removeExercise(workoutNumber: number, exerciseNumber: number) {
+    if (
+      workoutPlan &&
+      workoutNumber >= 0 &&
+      workoutNumber < workoutPlan.length &&
+      workoutPlan[workoutNumber] !== undefined &&
+      workoutPlan[workoutNumber]?.exercises !== undefined
+    ) {
+      console.log("remove: ");
+      console.log(workoutPlan[workoutNumber]?.exercises[exerciseNumber]);
+      const newWorkoutPlan = [...workoutPlan];
+      const workout = newWorkoutPlan[workoutNumber];
+      if (
+        workout &&
+        exerciseNumber >= 0 &&
+        exerciseNumber < workout.exercises.length
+      ) {
+        workout.exercises.splice(exerciseNumber, 1);
+        setWorkoutPlan(newWorkoutPlan);
+        console.log(newWorkoutPlan);
+      }
+    }
   }
 
   return (
@@ -861,17 +863,34 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
         Current Workouts:
       </div>
       {workoutPlan &&
-        sortWorkoutsByNominalDay(workoutPlan).map(
-          (workout: WorkoutTemplate & { exercises?: ExerciseTemplate[] }, workoutNumber) => (
-            <div key={workoutNumber}>
-              <div>{workout.description}: {workout.nominalDay}</div>
+        workoutPlan.map(
+          (
+            workout: WorkoutTemplate & { exercises?: ExerciseTemplate[] },
+            workoutNumber
+          ) => (
+            <div key={'w'+workoutNumber.toString()}>
+              <div>
+                {workout.description}: {workout.nominalDay}
+              </div>
               <div>
                 {workout.exercises &&
                   workout.exercises.map(
-                    (exercise: ExerciseTemplate & { sets: SetTemplate[] }, exerciseNumber) =>
-                      <ExerciseDisplay removeExercise={removeExercise} workoutNumber={workoutNumber} exerciseNumber={exerciseNumber} updatePlan={updateWorkoutPlan} key={workoutNumber.toString() + exerciseNumber.toString()} exercise={exercise}/>
-                      )
-                  }
+                    (
+                      exercise: ExerciseTemplate & { sets: SetTemplate[] },
+                      exerciseNumber
+                    ) => (
+                      <ExerciseDisplay
+                        removeExercise={removeExercise}
+                        workoutNumber={workoutNumber}
+                        exerciseNumber={exerciseNumber}
+                        updatePlan={updateWorkoutPlan}
+                        key={
+                          workoutNumber.toString() + exerciseNumber.toString()
+                        }
+                        exercise={exercise}
+                      />
+                    )
+                  )}
               </div>
               <br></br>
             </div>
@@ -881,98 +900,124 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
   );
 }
 interface ExerciseDisplayProps {
-  exercise: ExerciseTemplate & {sets: SetTemplate[]}
-  workoutNumber: number
-  exerciseNumber: number
-  updatePlan: (exercise: ExerciseTemplate & {sets: SetTemplate[];}, workoutNumber: number, exerciseNumber: number) => void
-  removeExercise: (workoutNumber: number, exerciseNumber: number) => void
+  exercise: ExerciseTemplate & { sets: SetTemplate[] };
+  workoutNumber: number;
+  exerciseNumber: number;
+  updatePlan: (
+    exercise: ExerciseTemplate & { sets: SetTemplate[] },
+    workoutNumber: number,
+    exerciseNumber: number
+  ) => void;
+  removeExercise: (workoutNumber: number, exerciseNumber: number) => void;
 }
 
-function ExerciseDisplay({ removeExercise, exercise, workoutNumber, exerciseNumber, updatePlan} : ExerciseDisplayProps){
-  const [description, setDescription] = useState(exercise.description)
-  const [sets, setSets] = useState(exercise.sets)
+function ExerciseDisplay({
+  removeExercise,
+  exercise,
+  workoutNumber,
+  exerciseNumber,
+  updatePlan,
+}: ExerciseDisplayProps) {
+  const [description, setDescription] = useState(exercise.description);
+  const [sets, setSets] = useState(exercise.sets);
 
-  const handleDescriptionChange = (event: React.ChangeEvent<HTMLInputElement>)=>{
-    setDescription(event.target.value)
-  }
+  const handleDescriptionChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setDescription(event.target.value);
+  };
 
-  function handleSetChange(set: SetTemplate, index: number){
-    const newSets = [...sets] 
-    newSets[index] = set
-    setSets(newSets)
-    console.log(newSets)
+  function handleSetChange(set: SetTemplate, index: number) {
+    const newSets = [...sets];
+    newSets[index] = set;
+    setSets(newSets);
+    console.log(newSets);
   }
-  function handleSaveButton(){
-    const newData: ExerciseTemplate & {sets:SetTemplate[]} = {
+  function handleSaveButton() {
+    const newData: ExerciseTemplate & { sets: SetTemplate[] } = {
       description: description,
       sets: sets,
+    };
+    console.log(newData);
+    updatePlan(newData, workoutNumber, exerciseNumber);
+  }
+  function handleAddSet() {
+    const newSet = emptySet;
+    const lastSet = sets[sets.length - 1];
+    if (lastSet !== undefined) {
+      newSet.reps = lastSet.reps;
+      newSet.rir = lastSet.rir;
+      newSet.weight = lastSet.weight;
     }
-    console.log(newData)
-    updatePlan(newData, workoutNumber, exerciseNumber)
+    const newSets = [...sets, newSet];
+    setSets(newSets);
   }
-  function handleAddSet(){
-    let newSet = emptySet
-    const lastSet = sets[sets.length-1]
-    if (lastSet!==undefined){
-      newSet.reps = lastSet.reps
-      newSet.rir = lastSet.rir
-      newSet.weight = lastSet.weight
+  function handleAddExercise() {
+    console.log("fired");
+    console.log("workout index: ", workoutNumber);
+    console.log("exercise index: ", exerciseNumber);
+  }
+  function handleRemoveExercise() {
+    removeExercise(workoutNumber, exerciseNumber);
+  }
+  function handleRemoveSet(index: number) {
+    console.log("remove set");
+    const newSets = [...sets];
+    if (index >= 0 && index < newSets.length) {
+      newSets.splice(index, 1);
     }
-    const newSets = [...sets, newSet]
-    setSets(newSets)
-  }
-  function handleAddExercise(){
-    console.log('fired')
-    console.log('workout index: ' + workoutNumber)
-    console.log('exercise index: ' + exerciseNumber)
-  }
-  function handleRemoveExercise(){
-    console.log('remove exercise')
-    removeExercise(workoutNumber, exerciseNumber)
-  }
-  function handleRemoveSet(index: number){
-    console.log('remove set')
-    const newSets = [...sets]
-    if (index >= 0 && index<newSets.length){
-      newSets.splice(index, 1)
-    }
-    setSets(newSets)
+    setSets(newSets);
   }
 
-  return(
+  return (
     <div key={exercise.description}>
-    <div>
-      <input type="text"
-        value={description}
-        onChange={handleDescriptionChange}
-        className="text-black rounded-md"
+      <div>
+        <input
+          type="text"
+          value={description}
+          onChange={handleDescriptionChange}
+          className="rounded-md text-black"
         />
-    <button
-      onClick={handleRemoveExercise}
-      className="rounded m-2 bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-    >Remove</button>
+        <button
+          onClick={handleRemoveExercise}
+          className="m-2 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+        >
+          --
+        </button>
+      </div>
+      <div>
+        {sets.map((set, index) => (
+          <SetDisplay
+            key={index}
+            set={set}
+            index={index}
+            removeSet={handleRemoveSet}
+            updateSets={handleSetChange}
+          />
+        ))}
+      </div>
+      <button
+        onClick={handleAddSet}
+        className="m-2 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+      >
+        Add Set
+      </button>
+      <button
+        onClick={handleSaveButton}
+        className="m-2 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+      >
+        Save
+      </button>
+      <div>
+        <button
+          onClick={handleAddExercise}
+          className="m-2 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+        >
+          Add Exercise
+        </button>
+      </div>
     </div>
-    <div>
-    {sets.map((set, index)=>(
-      <SetDisplay key={index} set={set} index={index} removeSet={handleRemoveSet} updateSets={handleSetChange}/>
-    ))}
-    </div>
-    <button
-      onClick={handleAddSet}
-      className="rounded m-2 bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-    >Add Set</button>
-    <button
-      onClick={handleSaveButton}
-      className="rounded m-2 bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-    >Save</button>
-    <div>
-    <button
-      onClick={handleAddExercise}
-      className="rounded m-2 bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-    >Add Exercise</button>
-    </div>
-    </div>
-  )
+  );
 }
 
 interface SetDisplayProps {
@@ -982,65 +1027,73 @@ interface SetDisplayProps {
   removeSet: (index: number) => void;
 }
 
-function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps){
-  const [weight, setWeight] = useState(set.weight)
-  const [reps, setReps] = useState(set.reps)
-  const [rir, setRir] = useState(set.rir)
+function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
+  const [weight, setWeight] = useState(set.weight);
+  const [reps, setReps] = useState(set.reps);
+  const [rir, setRir] = useState(set.rir);
 
-  const handleWeightChange = (event: React.ChangeEvent<HTMLInputElement>)=>{
-    setWeight(parseInt(event.target.value))
+  const handleWeightChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setWeight(parseInt(event.target.value));
     const newSet: SetTemplate = {
       weight: parseInt(event.target.value),
       reps: reps,
       rir: rir,
-    }
-    updateSets(newSet, index)
-  }
-  const handleRepsChange = (event: React.ChangeEvent<HTMLInputElement>)=>{
-    setReps(parseInt(event.target.value))
+    };
+    updateSets(newSet, index);
+  };
+  const handleRepsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setReps(parseInt(event.target.value));
     const newSet: SetTemplate = {
       weight: weight,
       reps: parseInt(event.target.value),
       rir: rir,
-    }
-    updateSets(newSet, index)
-  }
-  const handleRirChange = (event: React.ChangeEvent<HTMLInputElement>)=>{
-    setRir(parseInt(event.target.value))
+    };
+    updateSets(newSet, index);
+  };
+  const handleRirChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRir(parseInt(event.target.value));
     const newSet: SetTemplate = {
       weight: rir,
       reps: reps,
       rir: parseInt(event.target.value),
-    }
-    updateSets(newSet, index)
-  }
-  function handleRemoveSet(){
-    removeSet(index)
+    };
+    updateSets(newSet, index);
+  };
+  function handleRemoveSet() {
+    removeSet(index);
   }
 
-  return(
+  return (
     <div className="m-1">
-      <input type="number"
+      <input
+        type="number"
         value={weight}
         onChange={handleWeightChange}
-        className="text-black rounded-md w-12 text-center"
-        /> lbs x
-      <input type="number"
+        className="w-12 rounded-md text-center text-black"
+      />{" "}
+      lbs x
+      <input
+        type="number"
         value={reps}
         min={0}
         onChange={handleRepsChange}
-        className="text-black rounded-md w-12 text-center"
-        /> reps @ 
-      <input type="number"
+        className="w-12 rounded-md text-center text-black"
+      />{" "}
+      reps @
+      <input
+        type="number"
         value={rir}
         min={0}
         onChange={handleRirChange}
-        className="text-black rounded-md w-12 text-center"
-        /> RIR
+        className="w-12 rounded-md text-center text-black"
+      />{" "}
+      RIR
       <button
         onClick={handleRemoveSet}
-        className="rounded bg-blue-500 mx-1 px-2 py-2 font-bold text-white hover:bg-blue-700"
-      >--</button>
-      </div>
-  )
+        className="mx-1 rounded bg-blue-500 px-2 py-2 font-bold text-white hover:bg-blue-700"
+      >
+        --
+      </button>
+    </div>
+  );
 }
