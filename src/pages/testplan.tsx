@@ -31,8 +31,9 @@ import { SourceTextModule } from "vm";
 import { v4 } from 'uuid';
 import { existsSync } from "fs";
 import { create } from "domain";
+import { useRouter } from "next/router";
 
-//@refresh reset
+
 
 const Home: NextPage = () => {
   return (
@@ -196,9 +197,9 @@ function WorkoutDayForm({ addWorkout }: WorkoutDayFormProps) {
   }
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+  //useEffect(() => {
+    //inputRef.current?.focus();
+  //}, []);
 
   return (
     <div className="flex items-center justify-center">
@@ -859,14 +860,29 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
     workoutId: string,
     exerciseId: string
   ) {
-    console.log('updateworkoutplan unfinished')
     console.log(exercise, workoutId, exerciseId);
-    //if (workoutPlan) {
-      //console.log(workoutPlan[workoutNumber]?.exercises[exerciseNumber]);
-      //const newWorkoutPlan = [...workoutPlan];
-      //newWorkoutPlan[workoutNumber]?.exercises.splice(exerciseNumber,1, exercise);
-      //setWorkoutPlan(newWorkoutPlan);
-    //}
+    if (workoutPlan){
+      //exercise in workout to update
+      setWorkoutPlan((prevWorkoutPlan)=>{
+        const newWorkoutPlan = [...(prevWorkoutPlan ?? [])]
+        const workoutIndex = newWorkoutPlan.findIndex(
+          (workout) => workout.workoutId === workoutId
+        )
+        if (workoutIndex !== -1){
+          const workout = newWorkoutPlan[workoutIndex]
+          if (workout && newWorkoutPlan[workoutIndex] !== undefined){
+            const exerciseIndex = workout.exercises.findIndex(
+              (oldExercise)=> oldExercise.id === exerciseId
+            )
+            if (exerciseIndex !== -1){
+              newWorkoutPlan[workoutIndex]!.exercises[exerciseIndex] = exercise
+            }
+          }
+        }
+        console.log(newWorkoutPlan)
+        return newWorkoutPlan
+      })
+    }
   }
 
   function removeExercise(workoutNumber: string, exerciseId: string) {
@@ -1038,17 +1054,17 @@ function ExerciseDisplay({
   }
 
   return (
-    <div key={exercise.description}>
+    <div key={exercise.description} className="bg-red-700 m-1">
       <div>
         <input
           type="text"
           value={description}
           onChange={handleDescriptionChange}
-          className="rounded-md text-black"
+          className="rounded-md px-1 text-black"
         />
         <button
           onClick={handleRemoveExercise}
-          className="m-2 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+          className="m-1 rounded bg-blue-500 px-2 py-1 font-bold text-white hover:bg-blue-700"
         >
           --
         </button>
@@ -1066,20 +1082,20 @@ function ExerciseDisplay({
       </div>
       <button
         onClick={handleAddSet}
-        className="m-2 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+        className="m-1 rounded bg-blue-500 px-1 py-1 font-bold text-white hover:bg-blue-700"
       >
         Add Set
       </button>
       <button
         onClick={handleSaveButton}
-        className="m-2 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+        className=" m-1 rounded bg-blue-500 px-2 py-1 font-bold text-white hover:bg-blue-700"
       >
         Save
       </button>
       <div>
         <button
           onClick={handleAddExercise}
-          className="m-2 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+          className=" m-1 rounded bg-blue-500 px-1 py-1 font-bold text-white hover:bg-blue-700"
         >
           Add Exercise
         </button>
@@ -1127,7 +1143,7 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
   const handleRirChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRir(parseInt(event.target.value));
     const newSet: SetTemplate = {
-      weight: rir,
+      weight: weight,
       reps: reps,
       rir: parseInt(event.target.value),
     };
@@ -1164,7 +1180,7 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
       RIR
       <button
         onClick={handleRemoveSet}
-        className="mx-1 rounded bg-blue-500 px-2 py-2 font-bold text-white hover:bg-blue-700"
+        className="mx-1 rounded bg-blue-500 px-2 py-1 font-bold text-white hover:bg-blue-700"
       >
         --
       </button>
