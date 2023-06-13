@@ -2,7 +2,7 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { api } from "~/utils/api";
-import React, { useState, useTransition, useRef, useEffect } from "react";
+import React, { useState, useTransition, useRef, useEffect, HtmlHTMLAttributes } from "react";
 import {
   ClerkProvider,
   RedirectToOrganizationProfile,
@@ -1116,6 +1116,27 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
   const [reps, setReps] = useState(set.reps);
   const [rir, setRir] = useState(set.rir);
 
+  const handleWeightClick = () => {
+    setWeightInputActive(true)
+  }
+  const handleRepsClick = () => {
+    setRepsInputActive(true)
+  }
+  const handleRirClick = () => {
+    setRirInputActive(true)
+  }
+  const handleBlur = ()=>{
+    setWeightInputActive(false)
+    setRepsInputActive(false)
+    setRirInputActive(false)
+    const newSet: SetTemplate = {
+      weight: weight,
+      reps: reps,
+      rir: rir,
+    }
+    updateSets(newSet, index)
+  }
+
   useEffect(()=>{
     setWeight(set.weight)
     setReps(set.reps)
@@ -1124,59 +1145,52 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
 
   const handleWeightChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setWeight(parseInt(event.target.value));
-    const newSet: SetTemplate = {
-      weight: parseInt(event.target.value),
-      reps: reps,
-      rir: rir,
-    };
-    updateSets(newSet, index);
   };
+
   const handleRepsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setReps(parseInt(event.target.value));
-    const newSet: SetTemplate = {
-      weight: weight,
-      reps: parseInt(event.target.value),
-      rir: rir,
-    };
-    updateSets(newSet, index);
   };
+  
   const handleRirChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRir(parseInt(event.target.value));
-    const newSet: SetTemplate = {
-      weight: weight,
-      reps: reps,
-      rir: parseInt(event.target.value),
-    };
-    updateSets(newSet, index);
   };
+
   function handleRemoveSet() {
     removeSet(index);
   }
 
+  const [weightInputActive, setWeightInputActive] = useState(false)
+  const [repsInputActive, setRepsInputActive] = useState(false)
+  const [rirInputActive, setRirInputActive] = useState(false)
+
   return (
     <div className="m-1">
-      <input
+      {weightInputActive ? (<input
         type="number"
         value={weight}
         onChange={handleWeightChange}
+        onBlur={handleBlur}
         className="w-12 rounded-md text-center text-black"
-      />{" "}
+        autoFocus
+      />): (<span onClick={handleWeightClick}>{weight}</span>)}
       lbs x
-      <input
+      {repsInputActive ? (<input
         type="number"
         value={reps}
-        min={0}
         onChange={handleRepsChange}
+        onBlur={handleBlur}
         className="w-12 rounded-md text-center text-black"
-      />{" "}
+        autoFocus
+      />): (<span onClick={handleRepsClick}>{reps}</span>)}
       reps @
-      <input
+      {rirInputActive ? (<input
         type="number"
         value={rir}
-        min={0}
         onChange={handleRirChange}
+        onBlur={handleBlur}
         className="w-12 rounded-md text-center text-black"
-      />{" "}
+        autoFocus
+      />): (<span onClick={handleRirClick}>{rir}</span>)}
       RIR
       <button
         onClick={handleRemoveSet}
