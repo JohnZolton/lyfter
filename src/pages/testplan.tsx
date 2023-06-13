@@ -2,7 +2,13 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { api } from "~/utils/api";
-import React, { useState, useTransition, useRef, useEffect, HtmlHTMLAttributes } from "react";
+import React, {
+  useState,
+  useTransition,
+  useRef,
+  useEffect,
+  HtmlHTMLAttributes,
+} from "react";
 import {
   ClerkProvider,
   RedirectToOrganizationProfile,
@@ -28,12 +34,11 @@ import type {
 import { prisma } from "~/server/db";
 import { empty } from "@prisma/client/runtime";
 import { SourceTextModule } from "vm";
-import { v4 } from 'uuid';
+import { v4 } from "uuid";
 import { existsSync } from "fs";
 import { create } from "domain";
 import { useRouter } from "next/router";
-
-
+import { describe } from "node:test";
 
 const Home: NextPage = () => {
   return (
@@ -128,7 +133,7 @@ function WorkoutPlanForm() {
       "Friday",
       "Saturday",
     ];
-    const sortedWorkouts = [...workouts]
+    const sortedWorkouts = [...workouts];
 
     sortedWorkouts.sort((a, b) => {
       const dayA = daysOfWeek.indexOf(a.nominalDay);
@@ -138,7 +143,7 @@ function WorkoutPlanForm() {
 
     return sortedWorkouts;
   }
-  
+
   if (!workoutPlan) {
     setWorkoutPlan(sortWorkoutsByNominalDay(pplPlanArrayTwo));
   }
@@ -198,7 +203,7 @@ function WorkoutDayForm({ addWorkout }: WorkoutDayFormProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   //useEffect(() => {
-    //inputRef.current?.focus();
+  //inputRef.current?.focus();
   //}, []);
 
   return (
@@ -570,8 +575,8 @@ function MakePplSplit() {
   );
 }
 
-function createUniqueId():string {
-  return v4()
+function createUniqueId(): string {
+  return v4();
 }
 
 type ExerciseTemplate = {
@@ -723,17 +728,24 @@ const PushFirstTwo = {
       description: "Atlantis Side Raise",
       sets: Array(3).fill(emptySet),
     },
-    { id: createUniqueId(),description: "Calf Raise", weight: 220, sets: Array(3).fill(emptySet) },
     {
-      id: createUniqueId(),description: "Machine Press",
+      id: createUniqueId(),
+      description: "Calf Raise",
+      weight: 220,
       sets: Array(3).fill(emptySet),
     },
     {
-id: createUniqueId(),
+      id: createUniqueId(),
+      description: "Machine Press",
+      sets: Array(3).fill(emptySet),
+    },
+    {
+      id: createUniqueId(),
       description: "Incline DB Press",
       sets: Array(3).fill(emptySet),
     },
-    {id: createUniqueId(),
+    {
+      id: createUniqueId(),
       description: "Cable Pushdown",
       sets: Array(3).fill(emptySet),
     },
@@ -744,23 +756,32 @@ const PushSecondTwo = {
   workoutId: createUniqueId(),
   nominalDay: "Thursday",
   exercises: [
-    {id: createUniqueId(),
+    {
+      id: createUniqueId(),
       description: "Machine Press",
       sets: Array(3).fill(emptySet),
     },
-    {id: createUniqueId(),
+    {
+      id: createUniqueId(),
       description: "Incline DB Press",
       sets: Array(3).fill(emptySet),
     },
-    {id: createUniqueId(),
+    {
+      id: createUniqueId(),
       description: "Cable Upright Row",
       sets: Array(3).fill(emptySet),
     },
-    {id: createUniqueId(),
+    {
+      id: createUniqueId(),
       description: "Cable Pushdown",
       sets: Array(3).fill(emptySet),
     },
-    { description: "Leg Raise", id: createUniqueId(),weight: 0, sets: Array(3).fill(emptySet) },
+    {
+      description: "Leg Raise",
+      id: createUniqueId(),
+      weight: 0,
+      sets: Array(3).fill(emptySet),
+    },
   ],
 };
 const LegFirstTwo = {
@@ -768,9 +789,21 @@ const LegFirstTwo = {
   workoutId: createUniqueId(),
   nominalDay: "Tuesday",
   exercises: [
-    { id: createUniqueId(),description: "DB RDL", sets: Array(3).fill(emptySet) },
-    {id: createUniqueId(), description: "Belt Squat", sets: Array(3).fill(emptySet) },
-    {id: createUniqueId(), description: "Candlesticks", sets: Array(3).fill(emptySet) },
+    {
+      id: createUniqueId(),
+      description: "DB RDL",
+      sets: Array(3).fill(emptySet),
+    },
+    {
+      id: createUniqueId(),
+      description: "Belt Squat",
+      sets: Array(3).fill(emptySet),
+    },
+    {
+      id: createUniqueId(),
+      description: "Candlesticks",
+      sets: Array(3).fill(emptySet),
+    },
   ],
 };
 
@@ -779,9 +812,21 @@ const LegSecondTwo = {
   nominalDay: "Friday",
   workoutId: createUniqueId(),
   exercises: [
-    { description: "Belt Squat", id: createUniqueId(),sets: Array(3).fill(emptySet) },
-    { description: "Ham Curl", id: createUniqueId(),sets: Array(3).fill(emptySet) },
-    { description: "Calf Raise", id: createUniqueId(),sets: Array(3).fill(emptySet) },
+    {
+      description: "Belt Squat",
+      id: createUniqueId(),
+      sets: Array(3).fill(emptySet),
+    },
+    {
+      description: "Ham Curl",
+      id: createUniqueId(),
+      sets: Array(3).fill(emptySet),
+    },
+    {
+      description: "Calf Raise",
+      id: createUniqueId(),
+      sets: Array(3).fill(emptySet),
+    },
   ],
 };
 
@@ -790,10 +835,26 @@ const PullFirstTwo = {
   nominalDay: "Wednesday",
   workoutId: createUniqueId(),
   exercises: [
-    { description: "Calf Raise",  id: createUniqueId(),sets: Array(3).fill(emptySet) },
-    { description: "Lat Pulldown",  id: createUniqueId(),sets: Array(3).fill(emptySet) },
-    { description: "Machine Row", id: createUniqueId(), sets: Array(3).fill(emptySet) },
-    { description: "Bicep Curl", id: createUniqueId(), sets: Array(3).fill(emptySet) },
+    {
+      description: "Calf Raise",
+      id: createUniqueId(),
+      sets: Array(3).fill(emptySet),
+    },
+    {
+      description: "Lat Pulldown",
+      id: createUniqueId(),
+      sets: Array(3).fill(emptySet),
+    },
+    {
+      description: "Machine Row",
+      id: createUniqueId(),
+      sets: Array(3).fill(emptySet),
+    },
+    {
+      description: "Bicep Curl",
+      id: createUniqueId(),
+      sets: Array(3).fill(emptySet),
+    },
   ],
 };
 
@@ -802,14 +863,31 @@ const PullSecondTwo = {
   nominalDay: "Saturday",
   workoutId: createUniqueId(),
   exercises: [
-    { description: "Machine Row",  id: createUniqueId(),sets: Array(3).fill(emptySet) },
-    { description: "Lat Pulldown", id: createUniqueId(), sets: Array(3).fill(emptySet) },
-    {id: createUniqueId(),
+    {
+      description: "Machine Row",
+      id: createUniqueId(),
+      sets: Array(3).fill(emptySet),
+    },
+    {
+      description: "Lat Pulldown",
+      id: createUniqueId(),
+      sets: Array(3).fill(emptySet),
+    },
+    {
+      id: createUniqueId(),
       description: "Atlantis Side Raise",
       sets: Array(3).fill(emptySet),
     },
-    { id: createUniqueId(),description: "Bicep Curl", sets: Array(3).fill(emptySet) },
-    { id: createUniqueId(),description: "Candlesticks",  sets: Array(3).fill(emptySet) },
+    {
+      id: createUniqueId(),
+      description: "Bicep Curl",
+      sets: Array(3).fill(emptySet),
+    },
+    {
+      id: createUniqueId(),
+      description: "Candlesticks",
+      sets: Array(3).fill(emptySet),
+    },
   ],
 };
 
@@ -853,81 +931,79 @@ interface display3Props {
   >;
 }
 function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
-
-
   function updateWorkoutPlan(
     exercise: ExerciseTemplate & { sets: SetTemplate[] },
     workoutId: string,
     exerciseId: string
   ) {
     console.log(exercise, workoutId, exerciseId);
-    if (workoutPlan){
+    if (workoutPlan) {
       //exercise in workout to update
-      setWorkoutPlan((prevWorkoutPlan)=>{
-        const newWorkoutPlan = [...(prevWorkoutPlan ?? [])]
+      setWorkoutPlan((prevWorkoutPlan) => {
+        const newWorkoutPlan = [...(prevWorkoutPlan ?? [])];
         const workoutIndex = newWorkoutPlan.findIndex(
           (workout) => workout.workoutId === workoutId
-        )
-        if (workoutIndex !== -1){
-          const workout = newWorkoutPlan[workoutIndex]
-          if (workout && newWorkoutPlan[workoutIndex] !== undefined){
+        );
+        if (workoutIndex !== -1) {
+          const workout = newWorkoutPlan[workoutIndex];
+          if (workout && newWorkoutPlan[workoutIndex] !== undefined) {
             const exerciseIndex = workout.exercises.findIndex(
-              (oldExercise)=> oldExercise.id === exerciseId
-            )
-            if (exerciseIndex !== -1){
-              newWorkoutPlan[workoutIndex]!.exercises[exerciseIndex] = exercise
+              (oldExercise) => oldExercise.id === exerciseId
+            );
+            if (exerciseIndex !== -1) {
+              newWorkoutPlan[workoutIndex]!.exercises[exerciseIndex] = exercise;
             }
           }
         }
-        console.log(newWorkoutPlan)
-        return newWorkoutPlan
-      })
+        console.log(newWorkoutPlan);
+        return newWorkoutPlan;
+      });
     }
   }
 
   function removeExercise(workoutNumber: string, exerciseId: string) {
-    setWorkoutPlan((prevWorkoutPlan)=>{
-      const updateWorkoutPlan = prevWorkoutPlan?.map((workout)=>{
+    setWorkoutPlan((prevWorkoutPlan) => {
+      const updateWorkoutPlan = prevWorkoutPlan?.map((workout) => {
         const updatedExercises = workout.exercises.filter(
-          (exercise)=> exercise.id !== exerciseId
-        )
-        return {...workout, exercises: updatedExercises}
-      })
-      console.log(updateWorkoutPlan)
-      return updateWorkoutPlan
-    })
+          (exercise) => exercise.id !== exerciseId
+        );
+        return { ...workout, exercises: updatedExercises };
+      });
+      console.log(updateWorkoutPlan);
+      return updateWorkoutPlan;
+    });
   }
 
-  function addExercise(workoutNumber: string, exerciseIndex: number){
-    console.log("workout", workoutNumber)
-    console.log("exercise", exerciseIndex)
+  function addExercise(workoutNumber: string, exerciseIndex: number) {
+    console.log("workout", workoutNumber);
+    console.log("exercise", exerciseIndex);
     const newExercise: ExerciseTemplate = {
       description: "New Exercise",
       id: createUniqueId(),
       sets: [emptySet],
-    }
+    };
 
     setWorkoutPlan((prevWorkoutPlan) => {
-      const updatedWorkoutPlan = [...(prevWorkoutPlan ??[])]
+      const updatedWorkoutPlan = [...(prevWorkoutPlan ?? [])];
       const workoutIndex = updatedWorkoutPlan.findIndex(
         (workout) => workout.workoutId === workoutNumber
-      )
-      if (workoutIndex !== -1){
-        const workout = updatedWorkoutPlan[workoutIndex]
-        if (workout){
-        const newExercises = [
-          ...workout.exercises.slice(0, exerciseIndex + 1),
-          newExercise,
-          ...workout.exercises.slice(exerciseIndex+1),
-        ]
-        updatedWorkoutPlan[workoutIndex] = {
-          ...workout,
-          exercises: newExercises,
-        }
+      );
+      if (workoutIndex !== -1) {
+        const workout = updatedWorkoutPlan[workoutIndex];
+        if (workout) {
+          const newExercises = [
+            ...workout.exercises.slice(0, exerciseIndex + 1),
+            newExercise,
+            ...workout.exercises.slice(exerciseIndex + 1),
+          ];
+          updatedWorkoutPlan[workoutIndex] = {
+            ...workout,
+            exercises: newExercises,
+          };
         }
       }
-      return updatedWorkoutPlan
-    })
+      return updatedWorkoutPlan;
+    });
   }
 
   return (
@@ -941,7 +1017,7 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
             workout: WorkoutTemplate & { exercises?: ExerciseTemplate[] },
             workoutNumber
           ) => (
-            <div key={'w'+workoutNumber.toString()}>
+            <div key={"w" + workoutNumber.toString()}>
               <div>
                 {workout.description}: {workout.nominalDay}
               </div>
@@ -979,11 +1055,11 @@ interface ExerciseDisplayProps {
   workoutNumber: string;
   exerciseNumber: string;
   exerciseIndex: number;
-  addExercise: (workoutNumber: string, exerciseIndex: number) => void
+  addExercise: (workoutNumber: string, exerciseIndex: number) => void;
   updatePlan: (
     exercise: ExerciseTemplate & { sets: SetTemplate[] },
     workoutNumber: string,
-    exerciseNumber: string,
+    exerciseNumber: string
   ) => void;
   removeExercise: (workoutNumber: string, exerciseNumber: string) => void;
 }
@@ -1000,15 +1076,16 @@ function ExerciseDisplay({
   const [description, setDescription] = useState(exercise.description);
   const [sets, setSets] = useState(exercise.sets);
 
-  useEffect(()=>{
-    setDescription(exercise.description)
-    setSets(exercise.sets)
-  }, [exercise.description, exercise.sets])
+  useEffect(() => {
+    setDescription(exercise.description);
+    setSets(exercise.sets);
+  }, [exercise.description, exercise.sets]);
 
   const handleDescriptionChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setDescription(event.target.value);
+    const value = event.target.value;
+    setDescription(value);
   };
 
   function handleSetChange(set: SetTemplate, index: number) {
@@ -1038,7 +1115,7 @@ function ExerciseDisplay({
     setSets(newSets);
   }
   function handleAddExercise() {
-    addExercise(workoutNumber, exerciseIndex)
+    addExercise(workoutNumber, exerciseIndex);
   }
   function handleRemoveExercise() {
     removeExercise(workoutNumber, exercise.id);
@@ -1049,19 +1126,41 @@ function ExerciseDisplay({
     if (index >= 0 && index < newSets.length) {
       newSets.splice(index, 1);
     }
-    console.log(newSets)
+    console.log(newSets);
     setSets(newSets);
   }
+  const [descriptionInputActive, setDescriptionInputActive] = useState(false);
+  const handleBlur = () => {
+    if (description.length > 0) {
+      setDescriptionInputActive(false);
+      console.log(description);
+    }
+  };
+  const handleDescriptionClick = () => {
+    setDescriptionInputActive(true);
+  };
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      handleBlur();
+    }
+  };
 
   return (
-    <div key={exercise.description} className="bg-red-700 m-1">
+    <div key={exercise.description} className="m-1 bg-red-700">
       <div>
-        <input
-          type="text"
-          value={description}
-          onChange={handleDescriptionChange}
-          className="rounded-md px-1 text-black"
-        />
+        {descriptionInputActive ? (
+          <input
+            type="text"
+            value={description}
+            onChange={handleDescriptionChange}
+            onKeyDown={handleKeyDown}
+            onBlur={handleBlur}
+            className="rounded-md px-1 text-black"
+            autoFocus
+          />
+        ) : (
+          <span onClick={handleDescriptionClick}>{description}</span>
+        )}
         <button
           onClick={handleRemoveExercise}
           className="m-1 rounded bg-blue-500 px-2 py-1 font-bold text-white hover:bg-blue-700"
@@ -1117,81 +1216,115 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
   const [rir, setRir] = useState(set.rir);
 
   const handleWeightClick = () => {
-    setWeightInputActive(true)
-  }
+    setWeightInputActive(true);
+  };
   const handleRepsClick = () => {
-    setRepsInputActive(true)
-  }
+    setRepsInputActive(true);
+  };
   const handleRirClick = () => {
-    setRirInputActive(true)
-  }
-  const handleBlur = ()=>{
-    setWeightInputActive(false)
-    setRepsInputActive(false)
-    setRirInputActive(false)
+    setRirInputActive(true);
+  };
+  const handleBlur = () => {
+    setWeightInputActive(false);
+    setRepsInputActive(false);
+    setRirInputActive(false);
     const newSet: SetTemplate = {
       weight: weight,
       reps: reps,
       rir: rir,
-    }
-    updateSets(newSet, index)
-  }
+    };
+    updateSets(newSet, index);
+  };
 
-  useEffect(()=>{
-    setWeight(set.weight)
-    setReps(set.reps)
-    setRir(set.rir)
-  }, [set.weight, set.reps, set.rir])
+  useEffect(() => {
+    setWeight(set.weight);
+    setReps(set.reps);
+    setRir(set.rir);
+  }, [set.weight, set.reps, set.rir]);
 
   const handleWeightChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setWeight(parseInt(event.target.value));
+    const value = parseInt(event.target.value);
+    if (!isNaN(value) && value >= 0) {
+      setWeight(parseInt(event.target.value));
+    }
   };
 
   const handleRepsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setReps(parseInt(event.target.value));
+    const value = parseInt(event.target.value);
+    if (!isNaN(value) && value >= 0) {
+      setReps(parseInt(event.target.value));
+    }
   };
-  
+
   const handleRirChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRir(parseInt(event.target.value));
+    const value = parseInt(event.target.value);
+    if (!isNaN(value) && value >= 0) {
+      setRir(parseInt(event.target.value));
+    }
   };
 
   function handleRemoveSet() {
     removeSet(index);
   }
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      handleBlur();
+    }
+  };
 
-  const [weightInputActive, setWeightInputActive] = useState(false)
-  const [repsInputActive, setRepsInputActive] = useState(false)
-  const [rirInputActive, setRirInputActive] = useState(false)
+  const [weightInputActive, setWeightInputActive] = useState(false);
+  const [repsInputActive, setRepsInputActive] = useState(false);
+  const [rirInputActive, setRirInputActive] = useState(false);
 
   return (
     <div className="m-1">
-      {weightInputActive ? (<input
-        type="number"
-        value={weight}
-        onChange={handleWeightChange}
-        onBlur={handleBlur}
-        className="w-12 rounded-md text-center text-black"
-        autoFocus
-      />): (<span onClick={handleWeightClick}>{weight}</span>)}
-      lbs x
-      {repsInputActive ? (<input
-        type="number"
-        value={reps}
-        onChange={handleRepsChange}
-        onBlur={handleBlur}
-        className="w-12 rounded-md text-center text-black"
-        autoFocus
-      />): (<span onClick={handleRepsClick}>{reps}</span>)}
-      reps @
-      {rirInputActive ? (<input
-        type="number"
-        value={rir}
-        onChange={handleRirChange}
-        onBlur={handleBlur}
-        className="w-12 rounded-md text-center text-black"
-        autoFocus
-      />): (<span onClick={handleRirClick}>{rir}</span>)}
-      RIR
+      {weightInputActive ? (
+        <input
+          type="number"
+          value={weight}
+          onChange={handleWeightChange}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          className="w-12 rounded-md text-center text-black"
+          autoFocus
+        />
+      ) : (
+        <span className="underline" onClick={handleWeightClick}>
+          {weight} lbs
+        </span>
+      )}{" "}
+      x{" "}
+      {repsInputActive ? (
+        <input
+          type="number"
+          value={reps}
+          onKeyDown={handleKeyDown}
+          onChange={handleRepsChange}
+          onBlur={handleBlur}
+          className="w-12 rounded-md text-center text-black"
+          autoFocus
+        />
+      ) : (
+        <span className="underline" onClick={handleRepsClick}>
+          {reps} reps
+        </span>
+      )}{" "}
+      @{" "}
+      {rirInputActive ? (
+        <input
+          type="number"
+          value={rir}
+          onChange={handleRirChange}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          className="w-12 rounded-md text-center text-black"
+          autoFocus
+        />
+      ) : (
+        <span className="underline" onClick={handleRirClick}>
+          {rir} RIR
+        </span>
+      )}
       <button
         onClick={handleRemoveSet}
         className="mx-1 rounded bg-blue-500 px-2 py-1 font-bold text-white hover:bg-blue-700"
