@@ -1092,7 +1092,6 @@ function ExerciseDisplay({
     const newSets = [...sets];
     newSets[index] = set;
     setSets(newSets);
-    console.log(newSets);
   }
   function handleSaveButton() {
     const newData: ExerciseTemplate & { sets: SetTemplate[] } = {
@@ -1100,7 +1099,6 @@ function ExerciseDisplay({
       sets: sets,
       id: exercise.id,
     };
-    console.log(newData);
     updatePlan(newData, workoutNumber, exerciseNumber);
   }
   function handleAddSet() {
@@ -1133,20 +1131,22 @@ function ExerciseDisplay({
   const handleBlur = () => {
     if (description.length > 0) {
       setDescriptionInputActive(false);
-      console.log(description);
     }
   };
   const handleDescriptionClick = () => {
     setDescriptionInputActive(true);
   };
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter") {
+    if (event.key === "Enter" || event.key ==="Escape") {
       handleBlur();
     }
   };
+  useEffect(()=>{
+    handleSaveButton()
+  }, [sets, description])
 
   return (
-    <div key={exercise.description} className="m-1 bg-red-700">
+    <div key={exercise.description} className="m-1  bg-red-700">
       <div>
         {descriptionInputActive ? (
           <input
@@ -1159,13 +1159,20 @@ function ExerciseDisplay({
             autoFocus
           />
         ) : (
-          <span onClick={handleDescriptionClick}>{description}</span>
+          <span className="hover:bg-slate-500 bg-slate-700" onClick={handleDescriptionClick}>{description}
+          </span>
         )}
         <button
           onClick={handleRemoveExercise}
-          className="m-1 rounded bg-blue-500 px-2 py-1 font-bold text-white hover:bg-blue-700"
+          className="m-1 rounded bg-slate-400 px-1 py-1 font-bold text-white hover:bg-slate-700 inline-flex items-center"
         >
-          --
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-600" viewBox="0 0 20 20" fill="currentColor">
+    <path
+      fillRule="evenodd"
+      d="M10 11.414L15.657 17.071l1.414-1.414L11.414 10l5.657-5.657L15.657 2.93 10 8.586 4.343 2.93 2.93 4.343 8.586 10l-5.657 5.657 1.414 1.414L10 11.414z"
+      clipRule="evenodd"
+    />
+  </svg>
         </button>
       </div>
       <div>
@@ -1185,20 +1192,12 @@ function ExerciseDisplay({
       >
         Add Set
       </button>
-      <button
-        onClick={handleSaveButton}
-        className=" m-1 rounded bg-blue-500 px-2 py-1 font-bold text-white hover:bg-blue-700"
-      >
-        Save
-      </button>
-      <div>
         <button
           onClick={handleAddExercise}
           className=" m-1 rounded bg-blue-500 px-1 py-1 font-bold text-white hover:bg-blue-700"
         >
           Add Exercise
         </button>
-      </div>
     </div>
   );
 }
@@ -1289,7 +1288,7 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
           autoFocus
         />
       ) : (
-        <span className="underline" onClick={handleWeightClick}>
+        <span className="underline bg-slate-700  px-1 py-0.5 hover:bg-slate-500" onClick={handleWeightClick}>
           {weight} lbs
         </span>
       )}{" "}
@@ -1305,7 +1304,7 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
           autoFocus
         />
       ) : (
-        <span className="underline" onClick={handleRepsClick}>
+        <span className="underline bg-slate-700 px-1 py-0.5 hover:bg-slate-500" onClick={handleRepsClick}>
           {reps} reps
         </span>
       )}{" "}
@@ -1321,15 +1320,21 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
           autoFocus
         />
       ) : (
-        <span className="underline" onClick={handleRirClick}>
+        <span className="underline px-1 py-0.5 bg-slate-700 hover:bg-slate-500" onClick={handleRirClick}>
           {rir} RIR
         </span>
       )}
       <button
         onClick={handleRemoveSet}
-        className="mx-1 rounded bg-blue-500 px-2 py-1 font-bold text-white hover:bg-blue-700"
+        className="mx-1 rounded bg-slate-400 px-1 justify-center  font-bold text-white hover:bg-slate-700"
       >
-        --
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-600" viewBox="0 0 20 20" fill="currentColor">
+    <path
+      fillRule="evenodd"
+      d="M10 11.414L15.657 17.071l1.414-1.414L11.414 10l5.657-5.657L15.657 2.93 10 8.586 4.343 2.93 2.93 4.343 8.586 10l-5.657 5.657 1.414 1.414L10 11.414z"
+      clipRule="evenodd"
+    />
+  </svg>
       </button>
     </div>
   );
