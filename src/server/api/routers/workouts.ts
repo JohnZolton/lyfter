@@ -522,6 +522,53 @@ export const getAllWorkouts = createTRPCRouter({
     return addedExercise
   }),
 
+
+  createNewWorkoutFromPrevious: privateProcedure.input(
+    z.object({
+      description: z.string(),
+      nominalDay: z.string(),
+      exercises: z.array(z.object({
+        description: z.string(),
+        sets: z.array(z.object({
+          weight: z.number(),
+          reps: z.number(),
+          rir: z.number(),
+        }))
+      })),
+    })
+  ).mutation(async ({ ctx, input }) => {
+    const savedWorkout = await ctx.prisma.actualWorkout.create({
+      data: {
+        userId: ctx.userId,
+        description: input.description,
+        nominalDay: input.nominalDay,
+        workoutNumber: 0,
+        exercises: {
+          create: input.exercises.map((exercise)=>({
+            description: exercise.description,
+            sets: {
+              create: exercise.sets.map((set)=>({
+                weight: set.weight,
+                reps: set.reps,
+                rir: set.rir,
+              }))
+            }
+        })) 
+      }},
+      include: {
+        exercises: {
+          include: {
+            sets: true
+          }
+        }
+      }
+        
+      
+    })
+    return savedWorkout
+  }),
+
+
   addNewExercise: privateProcedure.input(
     z.object({
       workoutId: z.string(),

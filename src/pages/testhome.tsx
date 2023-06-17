@@ -111,6 +111,7 @@ function WorkoutUi() {
         sets: exerciseSet[];
     })[];
 })[] | undefined>()
+
     const today = new Date();
     const weekdays = [
         "Sunday",
@@ -123,15 +124,38 @@ function WorkoutUi() {
     ];
     const todayName = weekdays[today.getDay()];
 
+
+  const { mutate: saveWorkout, isLoading } =
+    api.getWorkouts.saveWorkout.useMutation({
+      onSuccess(data, variables, context) {
+        console.log(data);
+        setTodaysWorkout([data])
+      },
+    });
+
     if (todayName){
         const { data: priorWorkouts, isLoading: workoutsLoading } =
         api.getWorkouts.getPreviousWorkout.useQuery({
             nominalDay: todayName,
         });
+
         if (priorWorkouts && priorWorkouts[0] && !todaysWorkout){
-            console.log('todays workout: ')
-            console.log(priorWorkouts[0])
             setTodaysWorkout([priorWorkouts[0]])
+            if (priorWorkouts[0].date.toISOString().slice(0,10) !== today.toISOString().slice(0,10)){
+              console.log("need new workout")
+              console.log(priorWorkouts[0].date)
+              console.log(today)
+
+              const newWorkout = {
+                ...priorWorkouts[0],
+                date: today,
+                exercises: priorWorkouts[0].exercises.map((exercise) => ({
+                  ...exercise,
+                  description: exercise.description,
+                })),
+              };
+              saveWorkout(newWorkout);
+            }
         }
     }
 
