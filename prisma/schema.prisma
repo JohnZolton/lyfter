@@ -203,6 +203,7 @@ model ActualExercise {
 
 model exerciseSet {
   setId String @id @default(cuid())
+  date       DateTime   @default(now())
   exerciseId String
   weight Int
   reps Int

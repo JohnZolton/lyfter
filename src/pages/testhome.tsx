@@ -21,7 +21,7 @@ import {
 } from "@clerk/nextjs";
 import { userAgent } from "next/server";
 import { userInfo } from "os";
-import { boolean } from "zod";
+import { boolean, record } from "zod";
 import type {
   User,
   Workout,
@@ -249,6 +249,7 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
       previousExerciseId: null,
       nextExerciseId: null,
       sets: [{
+        date: new Date(),
         exerciseId: tempExerciseId,
         setId: createUniqueId(),
         weight: 0,
@@ -375,14 +376,33 @@ function ExerciseDisplay({
 
     updatePlan(newData, workoutNumber, exerciseNumber);
   }
+  const { mutate: recordNewExercise } = api.getWorkouts.addNewExercise.useMutation({
+    onSuccess(data){
+      console.log(data)
+    }})
+  const { mutate: deleteExercise } = api.getWorkouts.deleteExercise.useMutation({
+    onSuccess(data){
+      console.log(data)
+    }})
+  const { mutate: recordUpdatedDescription } = api.getWorkouts.updateExerciseDescription.useMutation({
+    onSuccess(data){
+      console.log(data)
+    }})
+
+  const { mutate: recordNewSet } = api.getWorkouts.createSet.useMutation({
+    onSuccess(data){
+      console.log(data)
+    }})
+
   function handleAddSet() {
     const newSet : exerciseSet = {
+        date: new Date(),
         exerciseId: exercise.exerciseId,
         setId: createUniqueId(),
         weight: 0,
         reps: 5,
         rir: 3,
-    }; //fix new set, missing id 
+    }; 
     const lastSet = sets[sets.length - 1];
     if (lastSet !== undefined) {
       newSet.reps = lastSet.reps;
@@ -391,12 +411,15 @@ function ExerciseDisplay({
     }
     const newSets = [...sets, newSet];
     setSets(newSets);
+    recordNewSet({...newSet})
   }
   function handleAddExercise() {
     addExercise(workoutNumber, exerciseIndex);
+    recordNewExercise({workoutId: exercise.workoutId})
   }
   function handleRemoveExercise() {
     removeExercise(workoutNumber, exercise.exerciseId);
+    deleteExercise({exerciseId: exercise.exerciseId})
   }
   function handleRemoveSet(index: number) {
     console.log("remove set");
@@ -412,6 +435,7 @@ function ExerciseDisplay({
     if (description.length > 0) {
       setDescriptionInputActive(false);
     }
+    recordUpdatedDescription({exerciseId: exercise.exerciseId, description: description})
   };
   const handleDescriptionClick = () => {
     setDescriptionInputActive(true);
@@ -494,6 +518,17 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
   const [reps, setReps] = useState(set.reps);
   const [rir, setRir] = useState(set.rir);
 
+  const { mutate: recordSet } = api.getWorkouts.updateSets.useMutation({
+    onSuccess(data){
+      console.log(data)
+    }
+  })
+  const { mutate: deleteSet } = api.getWorkouts.removeSet.useMutation({
+    onSuccess(data){
+      console.log(data)
+    }
+  })
+
   const handleWeightClick = () => {
     setWeightInputActive(true);
   };
@@ -508,13 +543,15 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
     setRepsInputActive(false);
     setRirInputActive(false);
     const newSet: exerciseSet = {
-        setId: createUniqueId(),
+        date: new Date(),
+        setId: set.setId,
         exerciseId: set.exerciseId,
       weight: weight,
       reps: reps,
       rir: rir,
     };
     updateSets(newSet, index);
+    recordSet({...newSet})
   };
 
   useEffect(() => {
@@ -546,6 +583,7 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
 
   function handleRemoveSet() {
     removeSet(index);
+    deleteSet({setId: set.setId})
   }
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter" || event.key==="esc") {
