@@ -160,6 +160,14 @@ model ModelExercise {
   @@index([workoutId, userId])
 }
 
+model WorkoutPlanTwo {
+  planId  String    @id @default(cuid())
+  date       DateTime   @default(now())
+  userId String
+  workouts ActualWorkout[]
+  @@index([userId])
+}
+
 model ActualWorkout {
   workoutId  String    @id @default(cuid())
   date       DateTime   @default(now())
@@ -168,9 +176,12 @@ model ActualWorkout {
   description String
   exercises ActualExercise[]
   workoutNumber Int?
+  planId String?
+  plan WorkoutPlanTwo? @relation(fields: [planId], references: [planId], onDelete: Cascade)
 
   @@index([userId])
   @@index([date])
+  @@index([planId])
 }
 
 model ActualExercise {
@@ -180,7 +191,7 @@ model ActualExercise {
   sets        exerciseSet[]
   
   workoutId String
-  workout ActualWorkout    @relation(fields: [workoutId], references: [workoutId])
+  workout ActualWorkout    @relation(fields: [workoutId], references: [workoutId], onDelete: Cascade)
 
   previousExercise   ActualExercise? @relation("previousExercise", fields: [previousExerciseId], references: [exerciseId], onDelete: NoAction, onUpdate: NoAction)
   previousExerciseId String? @unique
@@ -192,11 +203,12 @@ model ActualExercise {
 
 model exerciseSet {
   setId String @id @default(cuid())
+  date       DateTime   @default(now())
   exerciseId String
   weight Int
   reps Int
   rir Int
-  exercise  ActualExercise  @relation(fields: [exerciseId], references: [exerciseId])
+  exercise  ActualExercise  @relation(fields: [exerciseId], references: [exerciseId], onDelete: Cascade)
 
   @@index([exerciseId])
 }
