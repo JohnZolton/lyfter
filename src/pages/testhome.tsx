@@ -124,9 +124,10 @@ function WorkoutUi() {
     ];
     const todayName = weekdays[today.getDay()];
 
+    const [lastSetsArray, setLastSetsArray] = useState<exerciseSet[]>()
 
   const { mutate: saveWorkout, isLoading } =
-    api.getWorkouts.saveWorkout.useMutation({
+    api.getWorkouts.createNewWorkoutFromPrevious.useMutation({
       onSuccess(data, variables, context) {
         console.log(data);
         setTodaysWorkout([data])
@@ -138,6 +139,17 @@ function WorkoutUi() {
         api.getWorkouts.getPreviousWorkout.useQuery({
             nominalDay: todayName,
         });
+
+        const priorSetsArray: exerciseSet[] = []
+        if (priorWorkouts && priorWorkouts[1] && !todaysWorkout){
+          priorWorkouts[1].exercises.map((exercise)=>{
+            exercise.sets.map((set)=>{
+              priorSetsArray.push(set)
+            })
+          })
+          console.log(priorSetsArray)
+          setLastSetsArray(priorSetsArray)
+        }
 
         if (priorWorkouts && priorWorkouts[0] && !todaysWorkout){
             setTodaysWorkout([priorWorkouts[0]])
@@ -223,7 +235,6 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
     workoutId: string,
     exerciseId: string
   ) {
-    console.log(exercise, workoutId, exerciseId);
     if (workoutPlan) {
       //exercise in workout to update
       setWorkoutPlan((prevWorkoutPlan) => {
@@ -242,7 +253,6 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
             }
           }
         }
-        console.log(newWorkoutPlan);
         return newWorkoutPlan;
       });
     }
@@ -279,6 +289,7 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
         weight: 0,
         reps: 0,
         rir: 3,
+        lastSetId: null,
       }],
     };
 
@@ -426,6 +437,7 @@ function ExerciseDisplay({
         weight: 0,
         reps: 5,
         rir: 3,
+        lastSetId: null,
     }; 
     const lastSet = sets[sets.length - 1];
     if (lastSet !== undefined) {
@@ -573,6 +585,7 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
       weight: weight,
       reps: reps,
       rir: rir,
+      lastSetId: set.lastSetId,
     };
     updateSets(newSet, index);
     recordSet({...newSet})
