@@ -105,91 +105,105 @@ const Home: NextPage = () => {
 export default Home;
 
 function WorkoutUi() {
-    //for now, just show todays workout today===nominalDay
-    const [todaysWorkout, setTodaysWorkout] = useState<(ActualWorkout & {
-    exercises: (ActualExercise & {
-        sets: exerciseSet[];
-    })[];
-})[] | undefined>()
+  //for now, just show todays workout today===nominalDay
+  const [todaysWorkout, setTodaysWorkout] = useState<
+    | (ActualWorkout & {
+        exercises: (ActualExercise & {
+          sets: exerciseSet[];
+        })[];
+      })[]
+    | undefined
+  >();
 
-    const today = new Date();
-    const weekdays = [
-        "Sunday",
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-    ];
-    const todayName = weekdays[today.getDay()];
+  const today = new Date();
+  const weekdays = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  const todayName = weekdays[today.getDay()];
 
-    const [lastSetsArray, setLastSetsArray] = useState<exerciseSet[]>()
+  const [lastSetsArray, setLastSetsArray] = useState<exerciseSet[]>();
 
   const { mutate: saveWorkout, isLoading } =
     api.getWorkouts.createNewWorkoutFromPrevious.useMutation({
       onSuccess(data, variables, context) {
         console.log(data);
-        setTodaysWorkout([data])
+        setTodaysWorkout([data]);
       },
     });
 
-    if (todayName){
-        const { data: priorWorkouts, isLoading: workoutsLoading } =
-        api.getWorkouts.getPreviousWorkout.useQuery({
-            nominalDay: todayName,
+  if (todayName) {
+    const { data: priorWorkouts, isLoading: workoutsLoading } =
+      api.getWorkouts.getPreviousWorkout.useQuery({
+        nominalDay: todayName,
+      });
+
+    const priorSetsArray: exerciseSet[] = [];
+    if (
+      priorWorkouts &&
+      priorWorkouts[0] &&
+      priorWorkouts[1] &&
+      priorWorkouts[2] &&
+      !todaysWorkout &&
+      priorSetsArray.length === 0
+    ) {
+      priorWorkouts[0].exercises.map((exercise) => {
+        exercise.sets.map((set) => {
+          priorSetsArray.push(set);
         });
-
-        const priorSetsArray: exerciseSet[] = []
-        if (priorWorkouts && priorWorkouts[0] && priorWorkouts[1] && priorWorkouts[2] && !todaysWorkout && priorSetsArray.length ===0){
-          priorWorkouts[0].exercises.map((exercise)=>{
-            exercise.sets.map((set)=>{
-              priorSetsArray.push(set)
-            })
-          })
-          priorWorkouts[1].exercises.map((exercise)=>{
-            exercise.sets.map((set)=>{
-              priorSetsArray.push(set)
-            })
-          })
-          priorWorkouts[2].exercises.map((exercise)=>{
-            exercise.sets.map((set)=>{
-              priorSetsArray.push(set)
-            })
-          })
-          setLastSetsArray(priorSetsArray)
-        }
-
-        if (priorWorkouts && priorWorkouts[0] && !todaysWorkout){
-            setTodaysWorkout([priorWorkouts[0]])
-            if (priorWorkouts[0].date.toISOString().slice(0,10) !== today.toISOString().slice(0,10)){
-            //if (priorWorkouts[0].date !== today){
-              console.log("need new workout")
-              console.log(priorWorkouts[0].date)
-              console.log(today)
-
-              const newWorkout = {
-                ...priorWorkouts[0],
-                date: today,
-                exercises: priorWorkouts[0].exercises.map((exercise) => ({
-                  ...exercise,
-                  description: exercise.description,
-                })),
-              };
-              saveWorkout(newWorkout);
-            }
-        }
+      });
+      priorWorkouts[1].exercises.map((exercise) => {
+        exercise.sets.map((set) => {
+          priorSetsArray.push(set);
+        });
+      });
+      priorWorkouts[2].exercises.map((exercise) => {
+        exercise.sets.map((set) => {
+          priorSetsArray.push(set);
+        });
+      });
+      setLastSetsArray(priorSetsArray);
     }
+
+    if (priorWorkouts && priorWorkouts[0] && !todaysWorkout) {
+      setTodaysWorkout([priorWorkouts[0]]);
+      if (
+        priorWorkouts[0].date.toISOString().slice(0, 10) !==
+        today.toISOString().slice(0, 10)
+      ) {
+        //if (priorWorkouts[0].date !== today){
+        console.log("need new workout");
+        console.log(priorWorkouts[0].date);
+        console.log(today);
+
+        const newWorkout = {
+          ...priorWorkouts[0],
+          date: today,
+          exercises: priorWorkouts[0].exercises.map((exercise) => ({
+            ...exercise,
+            description: exercise.description,
+          })),
+        };
+        saveWorkout(newWorkout);
+      }
+    }
+  }
 
   return (
     <div>
-      <WorkoutDisplay3 
-      priorSetsArray={lastSetsArray}
-      workoutPlan={todaysWorkout} setWorkoutPlan={setTodaysWorkout}/>
+      <WorkoutDisplay3
+        priorSetsArray={lastSetsArray}
+        workoutPlan={todaysWorkout}
+        setWorkoutPlan={setTodaysWorkout}
+      />
     </div>
   );
 }
-
 
 interface NewExerciseProps {
   exercises: ExerciseTemplate[] | undefined;
@@ -197,7 +211,6 @@ interface NewExerciseProps {
     React.SetStateAction<ExerciseTemplate[] | undefined>
   >;
 }
-
 
 function createUniqueId(): string {
   return v4();
@@ -224,24 +237,33 @@ type WorkoutTemplate = {
 
 const emptySet = { rir: 3, reps: 5, weight: 0 };
 
-
-
 interface display3Props {
-  workoutPlan: (ActualWorkout & {
-    exercises: (ActualExercise & {
-        sets: exerciseSet[];
-    })[];
-})[] | undefined;
-  setWorkoutPlan: React.Dispatch<React.SetStateAction<(ActualWorkout & {
-    exercises: (ActualExercise & {
-        sets: exerciseSet[];
-    })[];
-})[] | undefined>>;
+  workoutPlan:
+    | (ActualWorkout & {
+        exercises: (ActualExercise & {
+          sets: exerciseSet[];
+        })[];
+      })[]
+    | undefined;
+  setWorkoutPlan: React.Dispatch<
+    React.SetStateAction<
+      | (ActualWorkout & {
+          exercises: (ActualExercise & {
+            sets: exerciseSet[];
+          })[];
+        })[]
+      | undefined
+    >
+  >;
   priorSetsArray: exerciseSet[] | undefined;
 }
-function WorkoutDisplay3({ workoutPlan, setWorkoutPlan, priorSetsArray }: display3Props) {
-    console.log('workoutplan: ')
-    console.log(workoutPlan)
+function WorkoutDisplay3({
+  workoutPlan,
+  setWorkoutPlan,
+  priorSetsArray,
+}: display3Props) {
+  console.log("workoutplan: ");
+  console.log(workoutPlan);
 
   function updateWorkoutPlan(
     exercise: ActualExercise & { sets: exerciseSet[] },
@@ -288,22 +310,25 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan, priorSetsArray }: displa
     console.log("workout", workoutNumber);
     console.log("exercise", exerciseIndex);
     const tempExerciseId = createUniqueId();
-    const newExercise: ActualExercise & {sets: exerciseSet[]}= {
+    const newExercise: ActualExercise & { sets: exerciseSet[] } = {
       description: "New Exercise",
       exerciseId: tempExerciseId,
       date: new Date(),
-      workoutId: (workoutPlan && workoutPlan[0]) ? workoutPlan[0].workoutId : 'none',
+      workoutId:
+        workoutPlan && workoutPlan[0] ? workoutPlan[0].workoutId : "none",
       previousExerciseId: null,
       nextExerciseId: null,
-      sets: [{
-        date: new Date(),
-        exerciseId: tempExerciseId,
-        setId: createUniqueId(),
-        weight: 0,
-        reps: 0,
-        rir: 3,
-        lastSetId: null,
-      }],
+      sets: [
+        {
+          date: new Date(),
+          exerciseId: tempExerciseId,
+          setId: createUniqueId(),
+          weight: 0,
+          reps: 0,
+          rir: 3,
+          lastSetId: null,
+        },
+      ],
     };
 
     setWorkoutPlan((prevWorkoutPlan) => {
@@ -335,57 +360,49 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan, priorSetsArray }: displa
         Current Workouts:
       </div>
       {workoutPlan &&
-        workoutPlan.map(
-          (
-            workout,
-            workoutNumber
-          ) => (
-            <div key={"w" + workoutNumber.toString()}>
-              <div>
-                {workout.description}: {workout.nominalDay}
-              </div>
-              <div>
-                {workout.exercises &&
-                  workout.exercises.map(
-                    (
-                      exercise,
-                      exerciseNumber
-                    ) => (
-                      <ExerciseDisplay
-                        removeExercise={removeExercise}
-                        workoutNumber={workout.workoutId}
-                        exerciseNumber={exercise.exerciseId}
-                        exerciseIndex={exerciseNumber}
-                        priorSetsArray={priorSetsArray}
-                        updatePlan={updateWorkoutPlan}
-                        addExercise={addExercise}
-                        key={
-                          workoutNumber.toString() + exerciseNumber.toString()
-                        }
-                        exercise={exercise}
-                      />
-                    )
-                  )}
-              </div>
-              <br></br>
+        workoutPlan.map((workout, workoutNumber) => (
+          <div key={"w" + workoutNumber.toString()}>
+            <div>
+              {workout.description}: {workout.nominalDay}
             </div>
-          )
-        )}
+            <div>
+              {workout.exercises &&
+                workout.exercises.map((exercise, exerciseNumber) => (
+                  <ExerciseDisplay
+                    removeExercise={removeExercise}
+                    workoutNumber={workout.workoutId}
+                    exerciseNumber={exercise.exerciseId}
+                    exerciseIndex={exerciseNumber}
+                    priorSetsArray={priorSetsArray}
+                    updatePlan={updateWorkoutPlan}
+                    addExercise={addExercise}
+                    key={workoutNumber.toString() + exerciseNumber.toString()}
+                    exercise={exercise}
+                  />
+                ))}
+            </div>
+            <br></br>
+          </div>
+        ))}
     </div>
   );
 }
 interface ExerciseDisplayProps {
   exercise: ActualExercise & {
     sets: exerciseSet[];
-};
+  };
   workoutNumber: string;
   exerciseNumber: string;
   exerciseIndex: number;
   addExercise: (workoutNumber: string, exerciseIndex: number) => void;
-  updatePlan: (exercise: ActualExercise & {
-    sets: exerciseSet[];
-}, workoutId: string, exerciseId: string) => void;
-priorSetsArray: exerciseSet[] | undefined;
+  updatePlan: (
+    exercise: ActualExercise & {
+      sets: exerciseSet[];
+    },
+    workoutId: string,
+    exerciseId: string
+  ) => void;
+  priorSetsArray: exerciseSet[] | undefined;
   removeExercise: (workoutNumber: string, exerciseNumber: string) => void;
 }
 
@@ -421,39 +438,49 @@ function ExerciseDisplay({
   }
   function handleSaveButton() {
     const newData: ActualExercise & { sets: exerciseSet[] } = {
-        ...exercise, sets: sets, description: description
+      ...exercise,
+      sets: sets,
+      description: description,
     };
 
     updatePlan(newData, workoutNumber, exerciseNumber);
   }
-  const { mutate: recordNewExercise } = api.getWorkouts.addNewExercise.useMutation({
-    onSuccess(data){
-      console.log(data)
-    }})
-  const { mutate: deleteExercise } = api.getWorkouts.deleteExercise.useMutation({
-    onSuccess(data){
-      console.log(data)
-    }})
-  const { mutate: recordUpdatedDescription } = api.getWorkouts.updateExerciseDescription.useMutation({
-    onSuccess(data){
-      console.log(data)
-    }})
+  const { mutate: recordNewExercise } =
+    api.getWorkouts.addNewExercise.useMutation({
+      onSuccess(data) {
+        console.log(data);
+      },
+    });
+  const { mutate: deleteExercise } = api.getWorkouts.deleteExercise.useMutation(
+    {
+      onSuccess(data) {
+        console.log(data);
+      },
+    }
+  );
+  const { mutate: recordUpdatedDescription } =
+    api.getWorkouts.updateExerciseDescription.useMutation({
+      onSuccess(data) {
+        console.log(data);
+      },
+    });
 
   const { mutate: recordNewSet } = api.getWorkouts.createSet.useMutation({
-    onSuccess(data){
-      console.log(data)
-    }})
+    onSuccess(data) {
+      console.log(data);
+    },
+  });
 
   function handleAddSet() {
-    const newSet : exerciseSet = {
-        date: new Date(),
-        exerciseId: exercise.exerciseId,
-        setId: createUniqueId(),
-        weight: 0,
-        reps: 5,
-        rir: 3,
-        lastSetId: null,
-    }; 
+    const newSet: exerciseSet = {
+      date: new Date(),
+      exerciseId: exercise.exerciseId,
+      setId: createUniqueId(),
+      weight: 0,
+      reps: 5,
+      rir: 3,
+      lastSetId: null,
+    };
     const lastSet = sets[sets.length - 1];
     if (lastSet !== undefined) {
       newSet.reps = lastSet.reps;
@@ -462,15 +489,15 @@ function ExerciseDisplay({
     }
     const newSets = [...sets, newSet];
     setSets(newSets);
-    recordNewSet({...newSet})
+    recordNewSet({ ...newSet });
   }
   function handleAddExercise() {
     addExercise(workoutNumber, exerciseIndex);
-    recordNewExercise({workoutId: exercise.workoutId})
+    recordNewExercise({ workoutId: exercise.workoutId });
   }
   function handleRemoveExercise() {
     removeExercise(workoutNumber, exercise.exerciseId);
-    deleteExercise({exerciseId: exercise.exerciseId})
+    deleteExercise({ exerciseId: exercise.exerciseId });
   }
   function handleRemoveSet(index: number) {
     console.log("remove set");
@@ -486,19 +513,22 @@ function ExerciseDisplay({
     if (description.length > 0) {
       setDescriptionInputActive(false);
     }
-    recordUpdatedDescription({exerciseId: exercise.exerciseId, description: description})
+    recordUpdatedDescription({
+      exerciseId: exercise.exerciseId,
+      description: description,
+    });
   };
   const handleDescriptionClick = () => {
     setDescriptionInputActive(true);
   };
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter" || event.key ==="Escape") {
+    if (event.key === "Enter" || event.key === "Escape") {
       handleBlur();
     }
   };
-  useEffect(()=>{
-    handleSaveButton()
-  }, [sets, description])
+  useEffect(() => {
+    handleSaveButton();
+  }, [sets, description]);
 
   return (
     <div key={exercise.description} className="m-1  bg-red-700">
@@ -514,20 +544,29 @@ function ExerciseDisplay({
             autoFocus
           />
         ) : (
-          <span className="hover:bg-slate-500 bg-slate-700" onClick={handleDescriptionClick}>{description}
+          <span
+            className="bg-slate-700 hover:bg-slate-500"
+            onClick={handleDescriptionClick}
+          >
+            {description}
           </span>
         )}
         <button
           onClick={handleRemoveExercise}
-          className="m-1 rounded bg-slate-400 px-1 py-1 font-bold text-white hover:bg-slate-700 inline-flex items-center"
+          className="m-1 inline-flex items-center rounded bg-slate-400 px-1 py-1 font-bold text-white hover:bg-slate-700"
         >
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-600" viewBox="0 0 20 20" fill="currentColor">
-    <path
-      fillRule="evenodd"
-      d="M10 11.414L15.657 17.071l1.414-1.414L11.414 10l5.657-5.657L15.657 2.93 10 8.586 4.343 2.93 2.93 4.343 8.586 10l-5.657 5.657 1.414 1.414L10 11.414z"
-      clipRule="evenodd"
-    />
-  </svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5 text-red-600"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M10 11.414L15.657 17.071l1.414-1.414L11.414 10l5.657-5.657L15.657 2.93 10 8.586 4.343 2.93 2.93 4.343 8.586 10l-5.657 5.657 1.414 1.414L10 11.414z"
+              clipRule="evenodd"
+            />
+          </svg>
         </button>
       </div>
       <div>
@@ -548,12 +587,12 @@ function ExerciseDisplay({
       >
         Add Set
       </button>
-        <button
-          onClick={handleAddExercise}
-          className=" m-1 rounded bg-blue-500 px-1 py-1 font-bold text-white hover:bg-blue-700"
-        >
-          Add Exercise
-        </button>
+      <button
+        onClick={handleAddExercise}
+        className=" m-1 rounded bg-blue-500 px-1 py-1 font-bold text-white hover:bg-blue-700"
+      >
+        Add Exercise
+      </button>
     </div>
   );
 }
@@ -566,21 +605,27 @@ interface SetDisplayProps {
   removeSet: (index: number) => void;
 }
 
-function SetDisplay({ index, set, priorSetsArray, updateSets, removeSet }: SetDisplayProps) {
+function SetDisplay({
+  index,
+  set,
+  priorSetsArray,
+  updateSets,
+  removeSet,
+}: SetDisplayProps) {
   const [weight, setWeight] = useState(set.weight);
   const [reps, setReps] = useState(set.reps);
   const [rir, setRir] = useState(set.rir);
 
   const { mutate: recordSet } = api.getWorkouts.updateSets.useMutation({
-    onSuccess(data){
-      console.log(data)
-    }
-  })
+    onSuccess(data) {
+      console.log(data);
+    },
+  });
   const { mutate: deleteSet } = api.getWorkouts.removeSet.useMutation({
-    onSuccess(data){
-      console.log(data)
-    }
-  })
+    onSuccess(data) {
+      console.log(data);
+    },
+  });
 
   const handleWeightClick = () => {
     setWeightInputActive(true);
@@ -596,16 +641,16 @@ function SetDisplay({ index, set, priorSetsArray, updateSets, removeSet }: SetDi
     setRepsInputActive(false);
     setRirInputActive(false);
     const newSet: exerciseSet = {
-        date: new Date(),
-        setId: set.setId,
-        exerciseId: set.exerciseId,
+      date: new Date(),
+      setId: set.setId,
+      exerciseId: set.exerciseId,
       weight: weight,
       reps: reps,
       rir: rir,
       lastSetId: set.lastSetId,
     };
     updateSets(newSet, index);
-    recordSet({...newSet})
+    recordSet({ ...newSet });
   };
 
   useEffect(() => {
@@ -637,10 +682,10 @@ function SetDisplay({ index, set, priorSetsArray, updateSets, removeSet }: SetDi
 
   function handleRemoveSet() {
     removeSet(index);
-    deleteSet({setId: set.setId})
+    deleteSet({ setId: set.setId });
   }
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter" || event.key==="esc") {
+    if (event.key === "Enter" || event.key === "esc") {
       handleBlur();
     }
   };
@@ -649,15 +694,17 @@ function SetDisplay({ index, set, priorSetsArray, updateSets, removeSet }: SetDi
   const [repsInputActive, setRepsInputActive] = useState(false);
   const [rirInputActive, setRirInputActive] = useState(false);
 
-    const [priorSet, setPriorSet] = useState<exerciseSet | undefined>()
-    if (!priorSet && priorSetsArray){
-    console.log("finding set...")
-    const lastWeeksSet = priorSetsArray?.find((lastSet)=> lastSet.setId === set.lastSetId)
-    if (lastWeeksSet){
-      console.log("found: ", lastWeeksSet)
-      setPriorSet(lastWeeksSet)
+  const [priorSet, setPriorSet] = useState<exerciseSet | undefined>();
+  if (!priorSet && priorSetsArray) {
+    console.log("finding set...");
+    const lastWeeksSet = priorSetsArray?.find(
+      (lastSet) => lastSet.setId === set.lastSetId
+    );
+    if (lastWeeksSet) {
+      console.log("found: ", lastWeeksSet);
+      setPriorSet(lastWeeksSet);
     }
-    }
+  }
 
   return (
     <div className="m-1">
@@ -672,7 +719,10 @@ function SetDisplay({ index, set, priorSetsArray, updateSets, removeSet }: SetDi
           autoFocus
         />
       ) : (
-        <span className="underline bg-slate-700  px-1 py-0.5 hover:bg-slate-500" onClick={handleWeightClick}>
+        <span
+          className="bg-slate-700 px-1  py-0.5 underline hover:bg-slate-500"
+          onClick={handleWeightClick}
+        >
           {weight} lbs
         </span>
       )}{" "}
@@ -688,7 +738,10 @@ function SetDisplay({ index, set, priorSetsArray, updateSets, removeSet }: SetDi
           autoFocus
         />
       ) : (
-        <span className="underline bg-slate-700 px-1 py-0.5 hover:bg-slate-500" onClick={handleRepsClick}>
+        <span
+          className="bg-slate-700 px-1 py-0.5 underline hover:bg-slate-500"
+          onClick={handleRepsClick}
+        >
           {reps} reps
         </span>
       )}{" "}
@@ -704,48 +757,51 @@ function SetDisplay({ index, set, priorSetsArray, updateSets, removeSet }: SetDi
           autoFocus
         />
       ) : (
-        <span className="underline px-1 py-0.5 bg-slate-700 hover:bg-slate-500" onClick={handleRirClick}>
+        <span
+          className="bg-slate-700 px-1 py-0.5 underline hover:bg-slate-500"
+          onClick={handleRirClick}
+        >
           {rir} RIR
         </span>
       )}
       <button
         onClick={handleRemoveSet}
-        className="mx-1 rounded bg-slate-400 px-1 justify-center  font-bold text-white hover:bg-slate-700"
+        className="mx-1 justify-center rounded bg-slate-400 px-1  font-bold text-white hover:bg-slate-700"
       >
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-600" viewBox="0 0 20 20" fill="currentColor">
-    <path
-      fillRule="evenodd"
-      d="M10 11.414L15.657 17.071l1.414-1.414L11.414 10l5.657-5.657L15.657 2.93 10 8.586 4.343 2.93 2.93 4.343 8.586 10l-5.657 5.657 1.414 1.414L10 11.414z"
-      clipRule="evenodd"
-    />
-  </svg>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-5 w-5 text-red-600"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M10 11.414L15.657 17.071l1.414-1.414L11.414 10l5.657-5.657L15.657 2.93 10 8.586 4.343 2.93 2.93 4.343 8.586 10l-5.657 5.657 1.414 1.414L10 11.414z"
+            clipRule="evenodd"
+          />
+        </svg>
       </button>
       <div>
         {/*priorSet && priorSet.setId + " : " + set.lastSetId*/}
-        <PerformanceWarning priorSet={priorSet} currentSet={set}/>
+        <PerformanceWarning priorSet={priorSet} currentSet={set} />
       </div>
     </div>
   );
 }
 
-interface PerformanceWarningProps{
+interface PerformanceWarningProps {
   priorSet: exerciseSet | undefined;
   currentSet: exerciseSet | undefined;
 }
 
-function PerformanceWarning({priorSet, currentSet}: PerformanceWarningProps){
-  if (!priorSet || !currentSet){
-    return (<div></div>)
+function PerformanceWarning({ priorSet, currentSet }: PerformanceWarningProps) {
+  if (!priorSet || !currentSet) {
+    return <div></div>;
   }
 
-  if (
-    priorSet.weight > currentSet.weight ||
-    priorSet.reps > currentSet.reps 
-    ){
-      return (<div>performance warning</div>)
-    } else {
-      return(<div>
-      </div>)
-    }
-
+  if (priorSet.weight > currentSet.weight || priorSet.reps > currentSet.reps) {
+    return <div>performance warning</div>;
+  } else {
+    return <div></div>;
+  }
 }
