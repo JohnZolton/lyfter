@@ -141,19 +141,29 @@ function WorkoutUi() {
         });
 
         const priorSetsArray: exerciseSet[] = []
-        if (priorWorkouts && priorWorkouts[1] && !todaysWorkout){
+        if (priorWorkouts && priorWorkouts[0] && priorWorkouts[1] && priorWorkouts[2] && !todaysWorkout && priorSetsArray.length ===0){
+          priorWorkouts[0].exercises.map((exercise)=>{
+            exercise.sets.map((set)=>{
+              priorSetsArray.push(set)
+            })
+          })
           priorWorkouts[1].exercises.map((exercise)=>{
             exercise.sets.map((set)=>{
               priorSetsArray.push(set)
             })
           })
-          console.log(priorSetsArray)
+          priorWorkouts[2].exercises.map((exercise)=>{
+            exercise.sets.map((set)=>{
+              priorSetsArray.push(set)
+            })
+          })
           setLastSetsArray(priorSetsArray)
         }
 
         if (priorWorkouts && priorWorkouts[0] && !todaysWorkout){
             setTodaysWorkout([priorWorkouts[0]])
             if (priorWorkouts[0].date.toISOString().slice(0,10) !== today.toISOString().slice(0,10)){
+            //if (priorWorkouts[0].date !== today){
               console.log("need new workout")
               console.log(priorWorkouts[0].date)
               console.log(today)
@@ -173,7 +183,9 @@ function WorkoutUi() {
 
   return (
     <div>
-      <WorkoutDisplay3 workoutPlan={todaysWorkout} setWorkoutPlan={setTodaysWorkout}/>
+      <WorkoutDisplay3 
+      priorSetsArray={lastSetsArray}
+      workoutPlan={todaysWorkout} setWorkoutPlan={setTodaysWorkout}/>
     </div>
   );
 }
@@ -224,9 +236,10 @@ interface display3Props {
     exercises: (ActualExercise & {
         sets: exerciseSet[];
     })[];
-})[] | undefined>>
+})[] | undefined>>;
+  priorSetsArray: exerciseSet[] | undefined;
 }
-function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
+function WorkoutDisplay3({ workoutPlan, setWorkoutPlan, priorSetsArray }: display3Props) {
     console.log('workoutplan: ')
     console.log(workoutPlan)
 
@@ -343,6 +356,7 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
                         workoutNumber={workout.workoutId}
                         exerciseNumber={exercise.exerciseId}
                         exerciseIndex={exerciseNumber}
+                        priorSetsArray={priorSetsArray}
                         updatePlan={updateWorkoutPlan}
                         addExercise={addExercise}
                         key={
@@ -371,7 +385,7 @@ interface ExerciseDisplayProps {
   updatePlan: (exercise: ActualExercise & {
     sets: exerciseSet[];
 }, workoutId: string, exerciseId: string) => void;
-  
+priorSetsArray: exerciseSet[] | undefined;
   removeExercise: (workoutNumber: string, exerciseNumber: string) => void;
 }
 
@@ -381,6 +395,7 @@ function ExerciseDisplay({
   workoutNumber,
   exerciseNumber,
   exerciseIndex,
+  priorSetsArray,
   addExercise,
   updatePlan,
 }: ExerciseDisplayProps) {
@@ -521,6 +536,7 @@ function ExerciseDisplay({
             key={index}
             set={set}
             index={index}
+            priorSetsArray={priorSetsArray}
             removeSet={handleRemoveSet}
             updateSets={handleSetChange}
           />
@@ -545,11 +561,12 @@ function ExerciseDisplay({
 interface SetDisplayProps {
   index: number;
   set: exerciseSet;
+  priorSetsArray: exerciseSet[] | undefined;
   updateSets: (set: exerciseSet, index: number) => void;
   removeSet: (index: number) => void;
 }
 
-function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
+function SetDisplay({ index, set, priorSetsArray, updateSets, removeSet }: SetDisplayProps) {
   const [weight, setWeight] = useState(set.weight);
   const [reps, setReps] = useState(set.reps);
   const [rir, setRir] = useState(set.rir);
@@ -632,6 +649,16 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
   const [repsInputActive, setRepsInputActive] = useState(false);
   const [rirInputActive, setRirInputActive] = useState(false);
 
+    const [priorSet, setPriorSet] = useState<exerciseSet | undefined>()
+    if (!priorSet && priorSetsArray){
+    console.log("finding set...")
+    const lastWeeksSet = priorSetsArray?.find((lastSet)=> lastSet.setId === set.lastSetId)
+    if (lastWeeksSet){
+      console.log("found: ", lastWeeksSet)
+      setPriorSet(lastWeeksSet)
+    }
+    }
+
   return (
     <div className="m-1">
       {weightInputActive ? (
@@ -693,7 +720,32 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
     />
   </svg>
       </button>
+      <div>
+        {/*priorSet && priorSet.setId + " : " + set.lastSetId*/}
+        <PerformanceWarning priorSet={priorSet} currentSet={set}/>
+      </div>
     </div>
   );
 }
 
+interface PerformanceWarningProps{
+  priorSet: exerciseSet | undefined;
+  currentSet: exerciseSet | undefined;
+}
+
+function PerformanceWarning({priorSet, currentSet}: PerformanceWarningProps){
+  if (!priorSet || !currentSet){
+    return (<div></div>)
+  }
+
+  if (
+    priorSet.weight > currentSet.weight ||
+    priorSet.reps > currentSet.reps 
+    ){
+      return (<div>performance warning</div>)
+    } else {
+      return(<div>
+      </div>)
+    }
+
+}
