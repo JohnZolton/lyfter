@@ -84,7 +84,7 @@ const Home: NextPage = () => {
         <div>
           <SignedIn>
             <br></br>
-            <WorkoutUi />
+            <WorkoutUiHandler />
             <br></br>
             <div></div>
           </SignedIn>
@@ -104,7 +104,25 @@ const Home: NextPage = () => {
 
 export default Home;
 
-function WorkoutUi() {
+function WorkoutUiHandler(){
+  const [day, setDay] = useState("")
+
+  if (!day){
+    return(<div>
+      <SelectDay setDay={setDay}/>
+    </div>)
+  } else {
+    return(
+      <WorkoutUi endWorkout={setDay} daySelected={day}/>
+    )
+  }
+}
+interface WorkoutUiProps{
+  daySelected: string;
+  endWorkout: React.Dispatch<React.SetStateAction<string>>
+}
+
+function WorkoutUi({daySelected, endWorkout}:WorkoutUiProps) {
   //for now, just show todays workout today===nominalDay
   const [todaysWorkout, setTodaysWorkout] = useState<
     | (ActualWorkout & {
@@ -136,13 +154,12 @@ function WorkoutUi() {
         setTodaysWorkout([data]);
       },
     });
+  const { data: priorWorkouts, isLoading: workoutsLoading } =
+    api.getWorkouts.getPreviousWorkout.useQuery({
+      nominalDay: daySelected,
+    });
 
-  if (todayName) {
-    const { data: priorWorkouts, isLoading: workoutsLoading } =
-      api.getWorkouts.getPreviousWorkout.useQuery({
-        nominalDay: todayName,
-      });
-
+    if (daySelected) {
     const priorSetsArray: exerciseSet[] = [];
     if (
       priorWorkouts &&
@@ -201,15 +218,62 @@ function WorkoutUi() {
         workoutPlan={todaysWorkout}
         setWorkoutPlan={setTodaysWorkout}
       />
+      <button onClick={()=>endWorkout("")}>End Workout</button>
     </div>
   );
 }
 
-interface NewExerciseProps {
-  exercises: ExerciseTemplate[] | undefined;
-  setExercises: React.Dispatch<
-    React.SetStateAction<ExerciseTemplate[] | undefined>
-  >;
+interface SelectDayProps {
+  setDay: React.Dispatch<React.SetStateAction<string>>
+}
+
+function SelectDay({setDay}: SelectDayProps){
+  const { data: userWorkoutPlan, isLoading} = api.getWorkouts.getUniqueWeekWorkouts.useQuery()
+  function handleSelectDay(day: string){
+    if (day !== "none"){
+      setDay(day)
+    }
+  }
+  function sortWorkoutsByNominalDay(workouts: ActualWorkout[]) {
+    const daysOfWeek = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    const latestWorkoutMap = new Map<string, ActualWorkout>()
+    for (const workout of workouts){
+      const dayIndex = daysOfWeek.indexOf(workout.nominalDay)
+      const existingWorkout = latestWorkoutMap.get(workout.nominalDay)
+      if (!existingWorkout || dayIndex > daysOfWeek.indexOf(existingWorkout.nominalDay)){
+        latestWorkoutMap.set(workout.nominalDay, workout)
+      }
+    }
+    const sortedWorkouts = Array.from(latestWorkoutMap.values())
+    sortedWorkouts.sort((a,b) => {
+      const dayA = daysOfWeek.indexOf(a.nominalDay)
+      const dayB = daysOfWeek.indexOf(b.nominalDay)
+      return dayA - dayB
+    })
+    return sortedWorkouts
+  }
+
+  return(
+    <div>
+      {userWorkoutPlan && sortWorkoutsByNominalDay(userWorkoutPlan).map((workout)=>(
+        <div key={workout.workoutId}>{workout.description}: {workout.nominalDay}
+        <button
+        value={workout.nominalDay}
+          className="m-1 inline-flex items-center rounded bg-slate-400 px-1 py-1 font-bold text-white hover:bg-slate-700"
+          onClick={ () => handleSelectDay(workout.nominalDay ? workout.nominalDay : 'none')}
+        >Begin</button>
+        </div>
+      ))}
+      </div>
+  )
 }
 
 function createUniqueId(): string {
@@ -226,13 +290,6 @@ type SetTemplate = {
   weight: number;
   reps: number;
   rir: number;
-};
-
-type WorkoutTemplate = {
-  description: string;
-  nominalDay: string;
-  workoutId: string;
-  exercises: ExerciseTemplate[];
 };
 
 const emptySet = { rir: 3, reps: 5, weight: 0 };
