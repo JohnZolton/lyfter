@@ -504,6 +504,25 @@ export const getAllWorkouts = createTRPCRouter({
     return savedWorkout
   }),
 
+  getUniqueWeekWorkouts: privateProcedure.query(async ({ctx}) => {
+  const workouts = await ctx.prisma.actualWorkout.findMany({
+    where: {
+      userId: ctx.userId,
+      nominalDay: { in: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] },
+    },
+    include: {exercises: { include: {sets: true}}},
+    orderBy: [{ date: "asc"}],
+    take: 7,
+  })
+  if (!workouts){
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "No workouts with that User"
+    })
+  }
+  return workouts
+}),
+
   addExercise: privateProcedure.input(
     z.object({
       description: z.string(),
@@ -521,6 +540,55 @@ export const getAllWorkouts = createTRPCRouter({
     })
     return addedExercise
   }),
+
+
+  createNewWorkoutFromPrevious: privateProcedure.input(
+    z.object({
+      description: z.string(),
+      nominalDay: z.string(),
+      exercises: z.array(z.object({
+        description: z.string(),
+        sets: z.array(z.object({
+          setId: z.string(),
+          weight: z.number(),
+          reps: z.number(),
+          rir: z.number(),
+        }))
+      })),
+    })
+  ).mutation(async ({ ctx, input }) => {
+    const savedWorkout = await ctx.prisma.actualWorkout.create({
+      data: {
+        userId: ctx.userId,
+        description: input.description,
+        nominalDay: input.nominalDay,
+        workoutNumber: 0,
+        exercises: {
+          create: input.exercises.map((exercise)=>({
+            description: exercise.description,
+            sets: {
+              create: exercise.sets.map((set)=>({
+                weight: set.weight,
+                reps: set.reps,
+                rir: set.rir,
+                lastSetId: set.setId,
+              }))
+            }
+        })) 
+      }},
+      include: {
+        exercises: {
+          include: {
+            sets: true
+          }
+        }
+      }
+        
+      
+    })
+    return savedWorkout
+  }),
+
 
   addNewExercise: privateProcedure.input(
     z.object({
