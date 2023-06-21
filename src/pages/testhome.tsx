@@ -189,12 +189,13 @@ function WorkoutUi({daySelected, endWorkout}:WorkoutUiProps) {
 
     if (priorWorkouts && priorWorkouts[0] && !todaysWorkout) {
       setTodaysWorkout([priorWorkouts[0]]);
+      console.log(priorWorkouts[0].date)
+      const oneWeek = 7 * 24 * 60 * 60 * 1000
       if (
-        priorWorkouts[0].date.toISOString().slice(0, 10) !==
-        today.toISOString().slice(0, 10)
+        today.getTime() - priorWorkouts[0].date.getTime() > oneWeek
       ) {
         //if (priorWorkouts[0].date !== today){
-        console.log("need new workout");
+        console.log("need new workout"); // i think its refreshing too fast and making double entries
         console.log(priorWorkouts[0].date);
         console.log(today);
 
@@ -765,6 +766,7 @@ function SetDisplay({
 
   return (
     <div className="m-1">
+      <div>last time: {priorSet?.weight} lbs x {priorSet?.reps} reps</div>
       {weightInputActive ? (
         <input
           type="number"
