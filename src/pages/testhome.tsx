@@ -188,26 +188,30 @@ function WorkoutUi({daySelected, endWorkout}:WorkoutUiProps) {
     }
 
     if (priorWorkouts && priorWorkouts[0] && !todaysWorkout) {
+
       setTodaysWorkout([priorWorkouts[0]]);
       console.log(priorWorkouts[0].date)
       const oneWeek = 7 * 24 * 60 * 60 * 1000
+      let isNewWorkoutCreated = false
       if (
         today.getTime() - priorWorkouts[0].date.getTime() > oneWeek
       ) {
-        //if (priorWorkouts[0].date !== today){
-        console.log("need new workout"); // i think its refreshing too fast and making double entries
-        console.log(priorWorkouts[0].date);
-        console.log(today);
+        if (!isNewWorkoutCreated){ //flag variable to avoid firing multiple times
+          isNewWorkoutCreated = true
+          console.log("need new workout"); // i think its refreshing too fast and making double entries
+          console.log(priorWorkouts[0].date);
+          console.log(today);
 
-        const newWorkout = {
-          ...priorWorkouts[0],
-          date: today,
-          exercises: priorWorkouts[0].exercises.map((exercise) => ({
-            ...exercise,
-            description: exercise.description,
-          })),
-        };
-        saveWorkout(newWorkout);
+          const newWorkout = {
+            ...priorWorkouts[0],
+            date: today,
+            exercises: priorWorkouts[0].exercises.map((exercise) => ({
+              ...exercise,
+              description: exercise.description,
+            })),
+          };
+          saveWorkout(newWorkout);
+        }
       }
     }
   }
