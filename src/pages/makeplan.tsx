@@ -1005,6 +1005,10 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
       return updatedWorkoutPlan;
     });
   }
+  function updateWorkoutDescription(event: React.ChangeEvent<HTMLInputElement>, workoutNumber: number){
+    console.log('descipriotn fired')
+    console.log("workout: ", workoutNumber)
+  }
 
   return (
     <div>
@@ -1019,7 +1023,7 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
           ) => (
             <div key={"w" + workoutNumber.toString()}>
               <div>
-                {workout.description}: {workout.nominalDay}
+                <WorkoutDescription workoutNumber={workoutNumber} nominalDay={workout.nominalDay} description={workout.description}/>
               </div>
               <div>
                 {workout.exercises &&
@@ -1049,6 +1053,98 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
         )}
     </div>
   );
+}
+
+interface WorkoutDescriptionProps{
+  description: string,
+  nominalDay: string,
+  workoutNumber: number,
+}
+
+function WorkoutDescription( {workoutNumber, description, nominalDay}: WorkoutDescriptionProps){
+  const [descriptionInputActive, setDescriptionInputActive] = useState(false);
+  const [WorkoutDescription, setWorkoutDescription] = useState(description)
+  const [nominalDayInputActive, setNominalDayInputActive] = useState(false);
+  const [nominalDayInput, setNominalDayInput] = useState(nominalDay)
+
+  const handleBlur = () => {
+    if (description.length > 0) {
+      setDescriptionInputActive(false);
+    }
+    setNominalDayInputActive(false)
+
+    if (nominalDayInput.length > 0){
+      setNominalDayInputActive(false)
+    }
+  };
+  const handleDescriptionClick = () => {
+    setDescriptionInputActive(true);
+  };
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter" || event.key ==="Escape") {
+      handleBlur();
+    }
+  };
+  const handleDescriptionChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = event.target.value;
+    setWorkoutDescription(value);
+  };
+
+  const handleNominalDayClick = () => {
+    setNominalDayInputActive(true);
+  };
+
+  const handleNominalDayChange = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const value = event.target.value;
+    setNominalDayInput(value);
+    setNominalDayInputActive(false)
+  };
+  
+
+  return(
+        <div>{descriptionInputActive ? (
+          <input
+            type="text"
+            value={WorkoutDescription}
+            onChange={handleDescriptionChange}
+            onKeyDown={handleKeyDown}
+            onBlur={handleBlur}
+            className="rounded-md px-1 text-black"
+            autoFocus
+          />
+        ) : (
+          <span className="hover:bg-slate-500 bg-slate-700" onClick={handleDescriptionClick}>{description}
+          </span>
+        )} {" "}
+        {nominalDayInputActive ? ( // Make this a selector menu
+            <div>
+              <label>Nominal Day: </label>
+              <select
+                value={nominalDay}
+                onChange={handleNominalDayChange}
+                onBlur={handleBlur}
+                required
+                className="rounded-md bg-white p-1 text-black"
+              >
+                <option value="">Select Day</option>
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+                <option value="Sunday">Sunday</option>
+              </select>
+            </div>
+        ) : (
+          <span className="hover:bg-slate-500 bg-slate-700" onClick={handleNominalDayClick}>{nominalDayInput}</span>
+        )}
+    </div>
+  )
 }
 interface ExerciseDisplayProps {
   exercise: ExerciseTemplate & { sets: SetTemplate[] };
