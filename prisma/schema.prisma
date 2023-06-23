@@ -182,6 +182,7 @@ model ActualWorkout {
   @@index([userId])
   @@index([date])
   @@index([planId])
+  @@index([workoutId])
 }
 
 model ActualExercise {

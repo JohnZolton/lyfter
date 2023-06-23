@@ -424,6 +424,7 @@ export const getAllWorkouts = createTRPCRouter({
           include: {
             exercises: {
               include: { sets: true },
+              orderBy: {date: "asc"}
             },
           },
         },
@@ -682,6 +683,25 @@ export const getAllWorkouts = createTRPCRouter({
         where: { exerciseId: input.exerciseId },
       });
       return deletedExercise;
+    }),
+
+  updateWorkoutDescription: privateProcedure
+    .input(
+      z.object({
+        workoutId: z.string(),
+        description: z.string(),
+        nominalDay: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const updatedWorkout = await ctx.prisma.actualWorkout.update({
+        where: { workoutId: input.workoutId },
+        data: {
+          description: input.description,
+          nominalDay: input.nominalDay,
+        },
+      });
+      return updatedWorkout;
     }),
 
   updateExerciseDescription: privateProcedure

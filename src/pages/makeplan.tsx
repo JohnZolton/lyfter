@@ -120,10 +120,18 @@ function NewWorkoutUi() {
 }
 
 function WorkoutPlanForm() {
-  const [workoutPlan, setWorkoutPlan] = useState<WorkoutTemplate[] | undefined>(
-    undefined
-  );
-  function sortWorkoutsByNominalDay(workouts: WorkoutTemplate[]) {
+  const [workoutPlan, setWorkoutPlan] = useState<
+  (ActualWorkout & {
+    exercises: (ActualExercise & {
+        sets: exerciseSet[];
+    })[];
+})[] | undefined>()
+  function sortWorkoutsByNominalDay(
+    workouts: (ActualWorkout & {
+    exercises: (ActualExercise & {
+        sets: exerciseSet[];
+    })[];
+})[]){
     const daysOfWeek = [
       "Sunday",
       "Monday",
@@ -143,11 +151,31 @@ function WorkoutPlanForm() {
 
     return sortedWorkouts;
   }
-
-  if (!workoutPlan) {
-    setWorkoutPlan(sortWorkoutsByNominalDay(pplPlanArrayTwo));
+  let workoutPlanSet = false
+  
+  const {data: userWorkouts, isLoading: workoutsLoading} = api.getWorkouts.getPlanByUserId.useQuery()
+  if (!workoutsLoading && 
+      userWorkouts !==undefined &&
+      userWorkouts[0]!==undefined &&
+      userWorkouts[0].workouts && 
+      !workoutPlan && 
+      !workoutPlanSet
+      ){
+    console.log("user workouts:")
+    const workoutPlanActual = userWorkouts[0].workouts? sortWorkoutsByNominalDay(userWorkouts[0].workouts) : []
+    //console.log(workoutPlanActual)
+    setWorkoutPlan(workoutPlanActual)
+    workoutPlanSet = true
   }
-  function addWorkout(workout: WorkoutTemplate) {
+
+  //if (!workoutPlan) {
+    //setWorkoutPlan(sortWorkoutsByNominalDay(pplPlanArrayTwo));
+  //}
+  function addWorkout(workout: 
+  ActualWorkout & {
+    exercises: (ActualExercise & {
+        sets: exerciseSet[];
+    })}) {
     console.log(workout);
     const newWorkoutPlan = workoutPlan ? [...workoutPlan, workout] : [workout];
     setWorkoutPlan(newWorkoutPlan);
@@ -925,14 +953,28 @@ function TestButton() {
 }
 
 interface display3Props {
-  workoutPlan: WorkoutTemplate[] | undefined;
+  workoutPlan:
+    | (ActualWorkout & {
+        exercises: (ActualExercise & {
+          sets: exerciseSet[];
+        })[];
+      })[]
+    | undefined;
   setWorkoutPlan: React.Dispatch<
-    React.SetStateAction<WorkoutTemplate[] | undefined>
+    React.SetStateAction<
+      | (ActualWorkout & {
+          exercises: (ActualExercise & {
+            sets: exerciseSet[];
+          })[];
+        })[]
+      | undefined
+    >
   >;
+  priorSetsArray: exerciseSet[] | undefined;
 }
 function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
   function updateWorkoutPlan(
-    exercise: ExerciseTemplate & { sets: SetTemplate[] },
+    exercise: ActualExercise & { sets: exerciseSet[] },
     workoutId: string,
     exerciseId: string
   ) {
@@ -948,7 +990,7 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
           const workout = newWorkoutPlan[workoutIndex];
           if (workout && newWorkoutPlan[workoutIndex] !== undefined) {
             const exerciseIndex = workout.exercises.findIndex(
-              (oldExercise) => oldExercise.id === exerciseId
+              (oldExercise) => oldExercise.exerciseId === exerciseId
             );
             if (exerciseIndex !== -1) {
               newWorkoutPlan[workoutIndex]!.exercises[exerciseIndex] = exercise;
@@ -965,7 +1007,7 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
     setWorkoutPlan((prevWorkoutPlan) => {
       const updateWorkoutPlan = prevWorkoutPlan?.map((workout) => {
         const updatedExercises = workout.exercises.filter(
-          (exercise) => exercise.id !== exerciseId
+          (exercise) => exercise.exerciseId !== exerciseId
         );
         return { ...workout, exercises: updatedExercises };
       });
@@ -977,10 +1019,26 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
   function addExercise(workoutNumber: string, exerciseIndex: number) {
     console.log("workout", workoutNumber);
     console.log("exercise", exerciseIndex);
-    const newExercise: ExerciseTemplate = {
+    const tempExerciseId = createUniqueId();
+    const newExercise: ActualExercise & { sets: exerciseSet[] } = {
       description: "New Exercise",
-      id: createUniqueId(),
-      sets: [emptySet],
+      exerciseId: tempExerciseId,
+      date: new Date(),
+      workoutId:
+        workoutPlan && workoutPlan[0] ? workoutPlan[0].workoutId : "none",
+      previousExerciseId: null,
+      nextExerciseId: null,
+      sets: [
+        {
+          date: new Date(),
+          exerciseId: tempExerciseId,
+          setId: createUniqueId(),
+          weight: 0,
+          reps: 0,
+          rir: 3,
+          lastSetId: null,
+        },
+      ],
     };
 
     setWorkoutPlan((prevWorkoutPlan) => {
@@ -1005,10 +1063,29 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
       return updatedWorkoutPlan;
     });
   }
-  function updateWorkoutDescription(event: React.ChangeEvent<HTMLInputElement>, workoutNumber: number){
-    console.log('descipriotn fired')
+
+  function updateWorkoutDescription(description: string,  workoutNumber: string, nominalDay: string){
+    console.log('changing description...')
     console.log("workout: ", workoutNumber)
-  }
+    console.log("description: ", description)
+    console.log("day: ", nominalDay)
+    setWorkoutPlan((prevWorkoutPlan) => {
+      const updatedWorkoutPlan = [...(prevWorkoutPlan ?? [])];
+      const workoutIndex = updatedWorkoutPlan.findIndex(
+        (workout) => workout.workoutId === workoutNumber
+      );
+      if (workoutIndex !== -1 && description.length> 0 && nominalDay.length > 0) {
+        const updatedWorkout = {
+          ...updatedWorkoutPlan[workoutIndex],
+          description: description,
+          nominalDay: nominalDay,
+          workoutId: workoutNumber,
+          exercises: updatedWorkoutPlan[workoutIndex]?.exercises || []
+        }
+        updatedWorkoutPlan[workoutIndex] = updatedWorkout
+      }
+      return updatedWorkoutPlan;
+  })}
 
   return (
     <div>
@@ -1018,18 +1095,18 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
       {workoutPlan &&
         workoutPlan.map(
           (
-            workout: WorkoutTemplate & { exercises?: ExerciseTemplate[] },
+            workout,
             workoutNumber
           ) => (
             <div key={"w" + workoutNumber.toString()}>
               <div>
-                <WorkoutDescription workoutNumber={workoutNumber} nominalDay={workout.nominalDay} description={workout.description}/>
+                <WorkoutDescription updateDescription={updateWorkoutDescription} workoutNumber={workout.workoutId} nominalDay={workout.nominalDay} description={workout.description}/>
               </div>
               <div>
                 {workout.exercises &&
                   workout.exercises.map(
                     (
-                      exercise: ExerciseTemplate & { sets: SetTemplate[] },
+                      exercise: ActualExercise & { sets: exerciseSet[] },
                       exerciseNumber
                     ) => (
                       <ExerciseDisplay
@@ -1058,12 +1135,13 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
 interface WorkoutDescriptionProps{
   description: string,
   nominalDay: string,
-  workoutNumber: number,
+  workoutNumber: string,
+  updateDescription: (description: string, workoutNumber: string, nominalDay: string) => void
 }
 
-function WorkoutDescription( {workoutNumber, description, nominalDay}: WorkoutDescriptionProps){
+function WorkoutDescription( { updateDescription, workoutNumber, description, nominalDay}: WorkoutDescriptionProps){
   const [descriptionInputActive, setDescriptionInputActive] = useState(false);
-  const [WorkoutDescription, setWorkoutDescription] = useState(description)
+  const [workoutDescription, setWorkoutDescription] = useState(description)
   const [nominalDayInputActive, setNominalDayInputActive] = useState(false);
   const [nominalDayInput, setNominalDayInput] = useState(nominalDay)
 
@@ -1072,10 +1150,7 @@ function WorkoutDescription( {workoutNumber, description, nominalDay}: WorkoutDe
       setDescriptionInputActive(false);
     }
     setNominalDayInputActive(false)
-
-    if (nominalDayInput.length > 0){
-      setNominalDayInputActive(false)
-    }
+    updateDescription(workoutDescription, workoutNumber, nominalDayInput)
   };
   const handleDescriptionClick = () => {
     setDescriptionInputActive(true);
@@ -1102,6 +1177,7 @@ function WorkoutDescription( {workoutNumber, description, nominalDay}: WorkoutDe
     const value = event.target.value;
     setNominalDayInput(value);
     setNominalDayInputActive(false)
+    updateDescription(workoutDescription, workoutNumber, value)
   };
   
 
@@ -1109,7 +1185,7 @@ function WorkoutDescription( {workoutNumber, description, nominalDay}: WorkoutDe
         <div>{descriptionInputActive ? (
           <input
             type="text"
-            value={WorkoutDescription}
+            value={workoutDescription}
             onChange={handleDescriptionChange}
             onKeyDown={handleKeyDown}
             onBlur={handleBlur}
@@ -1117,17 +1193,16 @@ function WorkoutDescription( {workoutNumber, description, nominalDay}: WorkoutDe
             autoFocus
           />
         ) : (
-          <span className="hover:bg-slate-500 bg-slate-700" onClick={handleDescriptionClick}>{description}
+          <span className="hover:bg-slate-500 bg-slate-700" onClick={handleDescriptionClick}>{workoutDescription}
           </span>
         )} {" "}
-        {nominalDayInputActive ? ( // Make this a selector menu
-            <div>
-              <label>Nominal Day: </label>
+        {nominalDayInputActive ? ( 
               <select
-                value={nominalDay}
+                value={nominalDayInput}
                 onChange={handleNominalDayChange}
                 onBlur={handleBlur}
                 required
+                onSubmit={handleNominalDayChange}
                 className="rounded-md bg-white p-1 text-black"
               >
                 <option value="">Select Day</option>
@@ -1139,24 +1214,29 @@ function WorkoutDescription( {workoutNumber, description, nominalDay}: WorkoutDe
                 <option value="Saturday">Saturday</option>
                 <option value="Sunday">Sunday</option>
               </select>
-            </div>
         ) : (
           <span className="hover:bg-slate-500 bg-slate-700" onClick={handleNominalDayClick}>{nominalDayInput}</span>
         )}
     </div>
   )
 }
+
 interface ExerciseDisplayProps {
-  exercise: ExerciseTemplate & { sets: SetTemplate[] };
+  exercise: ActualExercise & {
+    sets: exerciseSet[];
+  };
   workoutNumber: string;
   exerciseNumber: string;
   exerciseIndex: number;
   addExercise: (workoutNumber: string, exerciseIndex: number) => void;
   updatePlan: (
-    exercise: ExerciseTemplate & { sets: SetTemplate[] },
-    workoutNumber: string,
-    exerciseNumber: string
+    exercise: ActualExercise & {
+      sets: exerciseSet[];
+    },
+    workoutId: string,
+    exerciseId: string
   ) => void;
+  priorSetsArray: exerciseSet[] | undefined;
   removeExercise: (workoutNumber: string, exerciseNumber: string) => void;
 }
 
@@ -1184,21 +1264,30 @@ function ExerciseDisplay({
     setDescription(value);
   };
 
-  function handleSetChange(set: SetTemplate, index: number) {
+  function handleSetChange(set: exerciseSet, index: number) {
     const newSets = [...sets];
     newSets[index] = set;
     setSets(newSets);
   }
   function handleSaveButton() {
-    const newData: ExerciseTemplate & { sets: SetTemplate[] } = {
+    const newData: ActualExercise & { sets: exerciseSet[] } = {
+      ...exercise,
       description: description,
       sets: sets,
-      id: exercise.id,
     };
     updatePlan(newData, workoutNumber, exerciseNumber);
   }
+
   function handleAddSet() {
-    const newSet = emptySet;
+    const newSet: exerciseSet = {
+      date: new Date(),
+      exerciseId: exercise.exerciseId,
+      setId: createUniqueId(),
+      weight: 0,
+      reps: 5,
+      rir: 3,
+      lastSetId: null,
+    };
     const lastSet = sets[sets.length - 1];
     if (lastSet !== undefined) {
       newSet.reps = lastSet.reps;
@@ -1207,7 +1296,9 @@ function ExerciseDisplay({
     }
     const newSets = [...sets, newSet];
     setSets(newSets);
+    recordNewSet({ ...newSet });
   }
+
   function handleAddExercise() {
     addExercise(workoutNumber, exerciseIndex);
   }
