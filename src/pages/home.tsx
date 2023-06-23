@@ -150,7 +150,6 @@ function WorkoutUi({ daySelected, endWorkout }: WorkoutUiProps) {
   const { mutate: saveWorkout, isLoading } =
     api.getWorkouts.createNewWorkoutFromPrevious.useMutation({
       onSuccess(data, variables, context) {
-        console.log(data);
         setTodaysWorkout([data]);
       },
     });
