@@ -187,6 +187,7 @@ function WorkoutPlanForm() {
         priorSetsArray={priorSetArray}
         workoutPlan={[workout]}
         setWorkoutPlan={setWorkoutPlan}
+        key={workout.workoutId}
         />
         ))}
         <WorkoutDayForm addWorkout={addWorkout} />
