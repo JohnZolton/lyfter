@@ -1074,6 +1074,42 @@ function WorkoutDisplay3({
       return updatedWorkoutPlan;
     });
   }
+  const { mutate: saveWorkoutDescription } =
+    api.getWorkouts.updateWorkoutDescription.useMutation({
+      onSuccess(data) {
+        console.log("updated description")
+        console.log(data);
+      },
+    });
+  function updateWorkoutDescription(description: string, workoutNumber: string, nominalDay: string){
+    console.log("descriptION: ", description)
+    console.log("workoutNumber: ", workoutNumber)
+    console.log("nominalDay: ", nominalDay)
+    
+    setWorkoutPlan((prevWorkoutPlan) => {
+      const updatedWorkoutPlan = [...(prevWorkoutPlan ?? [])];
+      const workoutIndex = updatedWorkoutPlan.findIndex(
+        (workout) => workout.workoutId === workoutNumber
+      );
+      if (workoutIndex !== -1) {
+        const workout = updatedWorkoutPlan[workoutIndex];
+        if (workout) {
+          updatedWorkoutPlan[workoutIndex] = {
+            ...workout,
+            description: description,
+            nominalDay: nominalDay
+          };
+        }
+      }
+      return updatedWorkoutPlan;
+    });
+    //write to db
+    saveWorkoutDescription({
+      description: description,
+      workoutId: workoutNumber, 
+      nominalDay: nominalDay
+    })
+  }
 
   return (
     <div>
@@ -1081,7 +1117,12 @@ function WorkoutDisplay3({
         workoutPlan.map((workout, workoutNumber) => (
           <div key={"w" + workoutNumber.toString()}>
             <div>
-              {workout.description}: {workout.nominalDay}
+              <WorkoutDescription
+                description={workout.description}
+                nominalDay={workout.nominalDay}
+                workoutNumber={workout.workoutId}
+                updateDescription={updateWorkoutDescription}
+              />
             </div>
             <div>
               {workout.exercises &&
@@ -1535,9 +1576,6 @@ function SetDisplay({
 
   return (
     <div className="m-1">
-      <div>
-        last time: {priorSet?.weight} lbs x {priorSet?.reps} reps
-      </div>
       {weightInputActive ? (
         <input
           type="number"
