@@ -126,6 +126,7 @@ function WorkoutPlanForm() {
         sets: exerciseSet[];
     })[];
 })[] | undefined>()
+  const [planId, setPlanId] = useState("")
   function sortWorkoutsByNominalDay(
     workouts: (ActualWorkout & {
     exercises: (ActualExercise & {
@@ -167,6 +168,7 @@ function WorkoutPlanForm() {
     setWorkoutPlan(workoutPlanActual)
     workoutPlanSet = true
     console.log(workoutPlanActual)
+    setPlanId(workoutPlanActual[0]?.planId ?? "")
   }
 
 
@@ -190,7 +192,7 @@ function WorkoutPlanForm() {
         key={workout.workoutId}
         />
         ))}
-        <WorkoutDayForm addWorkout={addWorkout} />
+        <WorkoutDayForm planId={planId} addWorkout={addWorkout} />
       </div>
     </div>
   );
@@ -201,16 +203,25 @@ interface WorkoutDayFormProps {
     exercises: (ActualExercise & {
         sets: exerciseSet[];
     })[];
-}) | undefined) => void
+}) | undefined) => void;
+  planId: string | undefined
 }
 
-function WorkoutDayForm({ addWorkout }: WorkoutDayFormProps) {
+function WorkoutDayForm({ addWorkout, planId }: WorkoutDayFormProps) {
   const [dayDescription, setDayDescription] = useState("");
   const [nominalDay, setNominalDay] = useState("");
   const [showAddExercises, setShowAddExercises] = useState(false);
   const [workoutDayPlan, setWorkoutDayPlan] = useState<
     WorkoutTemplate | undefined
   >(undefined);
+
+  const {mutate: saveNewWorkout } = api.getWorkouts.updateWorkoutPlan.useMutation( 
+    {onSuccess(data){
+      console.log(data)
+      addWorkout(data)
+    }}
+  )
+  //change all these from templates to actuals
 
   function handleAddExercises() {
     console.log(dayDescription, nominalDay);
@@ -228,6 +239,13 @@ function WorkoutDayForm({ addWorkout }: WorkoutDayFormProps) {
       };
       setWorkoutDayPlan(newWorkoutPlan);
       console.log(newWorkoutPlan);
+      console.log("Plan Id: ", planId)
+      if (planId){
+        saveNewWorkout({...newWorkoutPlan, planId: planId})
+      } else {
+        saveNewWorkout({...newWorkoutPlan, planId: createUniqueId()})
+      }
+
       //addWorkout(newWorkoutPlan);
       setShowAddExercises(false);
       setDayDescription("");
