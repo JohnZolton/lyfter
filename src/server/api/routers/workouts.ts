@@ -557,6 +557,19 @@ export const getAllWorkouts = createTRPCRouter({
       return savedWorkout;
     }),
     
+  removeWorkout: privateProcedure
+    .input(
+      z.object({
+        workoutId: z.string()
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const deletedWorkout = await ctx.prisma.actualWorkout.delete({
+        where: {workoutId: input.workoutId}
+      });
+      return deletedWorkout;
+    }),
+
   saveWorkout: privateProcedure
     .input(
       z.object({

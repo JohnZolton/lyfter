@@ -1159,6 +1159,14 @@ function WorkoutDisplay3({
                   />
                 ))}
             </div>
+            <div>
+              {!(workout.exercises.length > 0) && <EmptyExerciseDisplay
+                workoutNumber={workout.workoutId}
+                updatePlan={updateWorkoutPlan}
+                addExercise={addExercise}
+                key={workoutNumber.toString()}
+              />}
+            </div>
             <br></br>
           </div>
         ))}
@@ -1213,7 +1221,14 @@ function WorkoutDescription( { updateDescription, workoutNumber, description, no
     setNominalDayInputActive(false)
     updateDescription(workoutDescription, workoutNumber, value)
   };
-  
+  const { mutate: deleteWorkout } = api.getWorkouts.removeWorkout.useMutation(
+    {onSuccess(data){
+      console.log(data)
+    }})
+  const handleRemoveWorkout = ()=>{
+    console.log("remove workout: ", workoutNumber)
+    deleteWorkout({workoutId: workoutNumber})
+  }
 
   return(
         <div>{descriptionInputActive ? (
@@ -1251,8 +1266,82 @@ function WorkoutDescription( { updateDescription, workoutNumber, description, no
         ) : (
           <span className="hover:bg-slate-500 bg-slate-700" onClick={handleNominalDayClick}>{nominalDayInput}</span>
         )}
+
+        <button
+          onClick={handleRemoveWorkout}
+          className="m-1 inline-flex items-center rounded bg-slate-400 px-1 py-1 font-bold text-white hover:bg-slate-700"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5 text-red-600"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M10 11.414L15.657 17.071l1.414-1.414L11.414 10l5.657-5.657L15.657 2.93 10 8.586 4.343 2.93 2.93 4.343 8.586 10l-5.657 5.657 1.414 1.414L10 11.414z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </button>
     </div>
   )
+}
+interface EmptyExerciseDisplayProps {
+  workoutNumber: string;
+  addExercise: (workoutNumber: string, exerciseIndex: number) => void;
+  updatePlan: (
+    exercise: ActualExercise & {
+      sets: exerciseSet[];
+    },
+    workoutId: string,
+    exerciseId: string
+  ) => void;
+}
+
+function EmptyExerciseDisplay({
+  workoutNumber,
+  addExercise,
+  updatePlan,
+}: EmptyExerciseDisplayProps) {
+  const [description, setDescription] = useState("");
+
+  const handleDescriptionChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = event.target.value;
+    setDescription(value);
+  };
+
+  const { mutate: recordNewExercise } =
+    api.getWorkouts.addNewExercise.useMutation({
+      onSuccess(data) {
+        console.log(data);
+      },
+    });
+  const { mutate: recordUpdatedDescription } =
+    api.getWorkouts.updateExerciseDescription.useMutation({
+      onSuccess(data) {
+        console.log(data);
+      },
+    });
+
+  function handleAddExercise() {
+    addExercise(workoutNumber, 0);
+    recordNewExercise({ workoutId: workoutNumber });
+  }
+
+
+  return (
+    <div key={workoutNumber + "empty"} className="m-1  bg-red-700">
+      <button
+        onClick={handleAddExercise}
+        className=" m-1 rounded bg-blue-500 px-1 py-1 font-bold text-white hover:bg-blue-700"
+      >
+        Add Exercise
+      </button>
+    </div>
+  );
 }
 
 interface ExerciseDisplayProps {
