@@ -165,7 +165,7 @@ model WorkoutPlanTwo {
   date       DateTime   @default(now())
   userId String
   workouts ActualWorkout[]
-  @@index([userId])
+  @@index([userId, planId])
 }
 
 model ActualWorkout {
@@ -182,6 +182,7 @@ model ActualWorkout {
   @@index([userId])
   @@index([date])
   @@index([planId])
+  @@index([workoutId])
 }
 
 model ActualExercise {

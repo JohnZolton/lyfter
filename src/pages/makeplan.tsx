@@ -120,10 +120,19 @@ function NewWorkoutUi() {
 }
 
 function WorkoutPlanForm() {
-  const [workoutPlan, setWorkoutPlan] = useState<WorkoutTemplate[] | undefined>(
-    undefined
-  );
-  function sortWorkoutsByNominalDay(workouts: WorkoutTemplate[]) {
+  const [workoutPlan, setWorkoutPlan] = useState<
+  (ActualWorkout & {
+    exercises: (ActualExercise & {
+        sets: exerciseSet[];
+    })[];
+})[] | undefined>()
+  const [planId, setPlanId] = useState("")
+  function sortWorkoutsByNominalDay(
+    workouts: (ActualWorkout & {
+    exercises: (ActualExercise & {
+        sets: exerciseSet[];
+    })[];
+})[]){
     const daysOfWeek = [
       "Sunday",
       "Monday",
@@ -143,40 +152,76 @@ function WorkoutPlanForm() {
 
     return sortedWorkouts;
   }
-
-  if (!workoutPlan) {
-    setWorkoutPlan(sortWorkoutsByNominalDay(pplPlanArrayTwo));
+  let workoutPlanSet = false
+  
+  const {data: userWorkouts, isLoading: workoutsLoading} = api.getWorkouts.getPlanByUserId.useQuery()
+  if (!workoutsLoading && 
+      userWorkouts !==undefined &&
+      userWorkouts[0]!==undefined &&
+      userWorkouts[0].workouts && 
+      !workoutPlan && 
+      !workoutPlanSet
+      ){
+    console.log("user workouts:")
+    const workoutPlanActual = userWorkouts[0].workouts? sortWorkoutsByNominalDay(userWorkouts[0].workouts) : []
+    //console.log(workoutPlanActual)
+    setWorkoutPlan(workoutPlanActual)
+    workoutPlanSet = true
+    console.log(workoutPlanActual)
+    setPlanId(workoutPlanActual[0]?.planId ?? "")
   }
-  function addWorkout(workout: WorkoutTemplate) {
+
+
+  function addWorkout(workout: ActualWorkout & {exercises: (ActualExercise & {sets: exerciseSet[]})[];
+} | undefined) {
     console.log(workout);
+    if (!workout){return}
     const newWorkoutPlan = workoutPlan ? [...workoutPlan, workout] : [workout];
     setWorkoutPlan(newWorkoutPlan);
   }
+  const priorSetArray: exerciseSet[] = []
 
   return (
     <div className="flex items-center justify-center">
       <div className="max-w-fit bg-black p-5">
+        {workoutPlan?.map((workout)=>(
         <WorkoutDisplay3
-          workoutPlan={workoutPlan}
-          setWorkoutPlan={setWorkoutPlan}
+        priorSetsArray={priorSetArray}
+        workoutPlan={[workout]}
+        setWorkoutPlan={setWorkoutPlan}
+        key={workout.workoutId}
         />
-        <WorkoutDayForm addWorkout={addWorkout} />
+        ))}
+        <WorkoutDayForm planId={planId} addWorkout={addWorkout} />
       </div>
     </div>
   );
 }
 
 interface WorkoutDayFormProps {
-  addWorkout: (workout: WorkoutTemplate) => void;
+  addWorkout: (workout: (ActualWorkout & {
+    exercises: (ActualExercise & {
+        sets: exerciseSet[];
+    })[];
+}) | undefined) => void;
+  planId: string | undefined
 }
 
-function WorkoutDayForm({ addWorkout }: WorkoutDayFormProps) {
+function WorkoutDayForm({ addWorkout, planId }: WorkoutDayFormProps) {
   const [dayDescription, setDayDescription] = useState("");
   const [nominalDay, setNominalDay] = useState("");
   const [showAddExercises, setShowAddExercises] = useState(false);
   const [workoutDayPlan, setWorkoutDayPlan] = useState<
     WorkoutTemplate | undefined
   >(undefined);
+
+  const {mutate: saveNewWorkout } = api.getWorkouts.updateWorkoutPlan.useMutation( 
+    {onSuccess(data){
+      console.log(data)
+      addWorkout(data)
+    }}
+  )
+  //change all these from templates to actuals
 
   function handleAddExercises() {
     console.log(dayDescription, nominalDay);
@@ -194,7 +239,14 @@ function WorkoutDayForm({ addWorkout }: WorkoutDayFormProps) {
       };
       setWorkoutDayPlan(newWorkoutPlan);
       console.log(newWorkoutPlan);
-      addWorkout(newWorkoutPlan);
+      console.log("Plan Id: ", planId)
+      if (planId){
+        saveNewWorkout({...newWorkoutPlan, planId: planId})
+      } else {
+        saveNewWorkout({...newWorkoutPlan, planId: createUniqueId()})
+      }
+
+      //addWorkout(newWorkoutPlan);
       setShowAddExercises(false);
       setDayDescription("");
       setNominalDay("");
@@ -924,19 +976,40 @@ function TestButton() {
   );
 }
 
+
 interface display3Props {
-  workoutPlan: WorkoutTemplate[] | undefined;
+  workoutPlan:
+    | (ActualWorkout & {
+        exercises: (ActualExercise & {
+          sets: exerciseSet[];
+        })[];
+      })[]
+    | undefined;
   setWorkoutPlan: React.Dispatch<
-    React.SetStateAction<WorkoutTemplate[] | undefined>
+    React.SetStateAction<
+      | (ActualWorkout & {
+          exercises: (ActualExercise & {
+            sets: exerciseSet[];
+          })[];
+        })[]
+      | undefined
+    >
   >;
+  priorSetsArray: exerciseSet[] | undefined;
 }
-function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
+function WorkoutDisplay3({
+  workoutPlan,
+  setWorkoutPlan,
+  priorSetsArray,
+}: display3Props) {
+  console.log("workoutplan: ");
+  console.log(workoutPlan);
+
   function updateWorkoutPlan(
-    exercise: ExerciseTemplate & { sets: SetTemplate[] },
+    exercise: ActualExercise & { sets: exerciseSet[] },
     workoutId: string,
     exerciseId: string
   ) {
-    console.log(exercise, workoutId, exerciseId);
     if (workoutPlan) {
       //exercise in workout to update
       setWorkoutPlan((prevWorkoutPlan) => {
@@ -948,14 +1021,13 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
           const workout = newWorkoutPlan[workoutIndex];
           if (workout && newWorkoutPlan[workoutIndex] !== undefined) {
             const exerciseIndex = workout.exercises.findIndex(
-              (oldExercise) => oldExercise.id === exerciseId
+              (oldExercise) => oldExercise.exerciseId === exerciseId
             );
             if (exerciseIndex !== -1) {
               newWorkoutPlan[workoutIndex]!.exercises[exerciseIndex] = exercise;
             }
           }
         }
-        console.log(newWorkoutPlan);
         return newWorkoutPlan;
       });
     }
@@ -965,7 +1037,7 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
     setWorkoutPlan((prevWorkoutPlan) => {
       const updateWorkoutPlan = prevWorkoutPlan?.map((workout) => {
         const updatedExercises = workout.exercises.filter(
-          (exercise) => exercise.id !== exerciseId
+          (exercise) => exercise.exerciseId !== exerciseId
         );
         return { ...workout, exercises: updatedExercises };
       });
@@ -977,10 +1049,26 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
   function addExercise(workoutNumber: string, exerciseIndex: number) {
     console.log("workout", workoutNumber);
     console.log("exercise", exerciseIndex);
-    const newExercise: ExerciseTemplate = {
+    const tempExerciseId = createUniqueId();
+    const newExercise: ActualExercise & { sets: exerciseSet[] } = {
       description: "New Exercise",
-      id: createUniqueId(),
-      sets: [emptySet],
+      exerciseId: tempExerciseId,
+      date: new Date(),
+      workoutId:
+        workoutPlan && workoutPlan[0] ? workoutPlan[0].workoutId : "none",
+      previousExerciseId: null,
+      nextExerciseId: null,
+      sets: [
+        {
+          date: new Date(),
+          exerciseId: tempExerciseId,
+          setId: createUniqueId(),
+          weight: 0,
+          reps: 0,
+          rir: 3,
+          lastSetId: null,
+        },
+      ],
     };
 
     setWorkoutPlan((prevWorkoutPlan) => {
@@ -1005,62 +1093,292 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
       return updatedWorkoutPlan;
     });
   }
+  const { mutate: saveWorkoutDescription } =
+    api.getWorkouts.updateWorkoutDescription.useMutation({
+      onSuccess(data) {
+        console.log("updated description")
+        console.log(data);
+      },
+    });
+  function updateWorkoutDescription(description: string, workoutNumber: string, nominalDay: string){
+    console.log("descriptION: ", description)
+    console.log("workoutNumber: ", workoutNumber)
+    console.log("nominalDay: ", nominalDay)
+    
+    setWorkoutPlan((prevWorkoutPlan) => {
+      const updatedWorkoutPlan = [...(prevWorkoutPlan ?? [])];
+      const workoutIndex = updatedWorkoutPlan.findIndex(
+        (workout) => workout.workoutId === workoutNumber
+      );
+      if (workoutIndex !== -1) {
+        const workout = updatedWorkoutPlan[workoutIndex];
+        if (workout) {
+          updatedWorkoutPlan[workoutIndex] = {
+            ...workout,
+            description: description,
+            nominalDay: nominalDay
+          };
+        }
+      }
+      return updatedWorkoutPlan;
+    });
+    //write to db
+    saveWorkoutDescription({
+      description: description,
+      workoutId: workoutNumber, 
+      nominalDay: nominalDay
+    })
+  }
 
   return (
     <div>
-      <div className="mb-4 text-center text-2xl font-bold text-slate-300">
-        Current Workouts:
-      </div>
       {workoutPlan &&
-        workoutPlan.map(
-          (
-            workout: WorkoutTemplate & { exercises?: ExerciseTemplate[] },
-            workoutNumber
-          ) => (
-            <div key={"w" + workoutNumber.toString()}>
-              <div>
-                {workout.description}: {workout.nominalDay}
-              </div>
-              <div>
-                {workout.exercises &&
-                  workout.exercises.map(
-                    (
-                      exercise: ExerciseTemplate & { sets: SetTemplate[] },
-                      exerciseNumber
-                    ) => (
-                      <ExerciseDisplay
-                        removeExercise={removeExercise}
-                        workoutNumber={workout.workoutId}
-                        exerciseNumber={exercise.id}
-                        exerciseIndex={exerciseNumber}
-                        updatePlan={updateWorkoutPlan}
-                        addExercise={addExercise}
-                        key={
-                          workoutNumber.toString() + exerciseNumber.toString()
-                        }
-                        exercise={exercise}
-                      />
-                    )
-                  )}
-              </div>
-              <br></br>
+        workoutPlan.map((workout, workoutNumber) => (
+          <div key={"w" + workoutNumber.toString()}>
+            <div>
+              <WorkoutDescription
+                description={workout.description}
+                nominalDay={workout.nominalDay}
+                workoutNumber={workout.workoutId}
+                updateDescription={updateWorkoutDescription}
+              />
             </div>
-          )
-        )}
+            <div>
+              {workout.exercises &&
+                workout.exercises.map((exercise, exerciseNumber) => (
+                  <ExerciseDisplay
+                    removeExercise={removeExercise}
+                    workoutNumber={workout.workoutId}
+                    exerciseNumber={exercise.exerciseId}
+                    exerciseIndex={exerciseNumber}
+                    priorSetsArray={priorSetsArray}
+                    updatePlan={updateWorkoutPlan}
+                    addExercise={addExercise}
+                    key={workoutNumber.toString() + exerciseNumber.toString()}
+                    exercise={exercise}
+                  />
+                ))}
+            </div>
+            <div>
+              {!(workout.exercises.length > 0) && <EmptyExerciseDisplay
+                workoutNumber={workout.workoutId}
+                updatePlan={updateWorkoutPlan}
+                addExercise={addExercise}
+                key={workoutNumber.toString()}
+              />}
+            </div>
+            <br></br>
+          </div>
+        ))}
     </div>
   );
 }
+
+interface WorkoutDescriptionProps{
+  description: string,
+  nominalDay: string,
+  workoutNumber: string,
+  updateDescription: (description: string, workoutNumber: string, nominalDay: string) => void
+}
+
+function WorkoutDescription( { updateDescription, workoutNumber, description, nominalDay}: WorkoutDescriptionProps){
+  const [descriptionInputActive, setDescriptionInputActive] = useState(false);
+  const [workoutDescription, setWorkoutDescription] = useState(description)
+  const [nominalDayInputActive, setNominalDayInputActive] = useState(false);
+  const [nominalDayInput, setNominalDayInput] = useState(nominalDay)
+
+  const handleBlur = () => {
+    if (description.length > 0) {
+      setDescriptionInputActive(false);
+    }
+    setNominalDayInputActive(false)
+    updateDescription(workoutDescription, workoutNumber, nominalDayInput)
+  };
+  const handleDescriptionClick = () => {
+    setDescriptionInputActive(true);
+  };
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter" || event.key ==="Escape") {
+      handleBlur();
+    }
+  };
+  const handleDescriptionChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = event.target.value;
+    setWorkoutDescription(value);
+  };
+
+  const handleNominalDayClick = () => {
+    setNominalDayInputActive(true);
+  };
+
+  const handleNominalDayChange = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const value = event.target.value;
+    setNominalDayInput(value);
+    setNominalDayInputActive(false)
+    updateDescription(workoutDescription, workoutNumber, value)
+  };
+  const { mutate: deleteWorkout } = api.getWorkouts.removeWorkout.useMutation(
+    {onSuccess(data){
+      console.log(data)
+    }})
+  const handleRemoveWorkout = ()=>{
+    console.log("remove workout: ", workoutNumber)
+    deleteWorkout({workoutId: workoutNumber})
+  }
+
+  return(
+        <div>{descriptionInputActive ? (
+          <input
+            type="text"
+            value={workoutDescription}
+            onChange={handleDescriptionChange}
+            onKeyDown={handleKeyDown}
+            onBlur={handleBlur}
+            className="rounded-md px-1 text-black"
+            autoFocus
+          />
+        ) : (
+          <span className="hover:bg-slate-500 bg-slate-700" onClick={handleDescriptionClick}>{workoutDescription}
+          </span>
+        )} {" "}
+        {nominalDayInputActive ? ( 
+              <select
+                value={nominalDayInput}
+                onChange={handleNominalDayChange}
+                onBlur={handleBlur}
+                required
+                onSubmit={handleNominalDayChange}
+                className="rounded-md bg-white p-1 text-black"
+              >
+                <option value="">Select Day</option>
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+                <option value="Sunday">Sunday</option>
+              </select>
+        ) : (
+          <span className="hover:bg-slate-500 bg-slate-700" onClick={handleNominalDayClick}>{nominalDayInput}</span>
+        )}
+
+        <button
+          onClick={handleRemoveWorkout}
+          className="m-1 inline-flex items-center rounded bg-slate-400 px-1 py-1 font-bold text-white hover:bg-slate-700"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5 text-red-600"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M10 11.414L15.657 17.071l1.414-1.414L11.414 10l5.657-5.657L15.657 2.93 10 8.586 4.343 2.93 2.93 4.343 8.586 10l-5.657 5.657 1.414 1.414L10 11.414z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </button>
+    </div>
+  )
+}
+interface EmptyExerciseDisplayProps {
+  workoutNumber: string;
+  addExercise: (workoutNumber: string, exerciseIndex: number) => void;
+  updatePlan: (
+    exercise: ActualExercise & {
+      sets: exerciseSet[];
+    },
+    workoutId: string,
+    exerciseId: string
+  ) => void;
+}
+
+function EmptyExerciseDisplay({
+  workoutNumber,
+  addExercise,
+  updatePlan,
+}: EmptyExerciseDisplayProps) {
+  const [description, setDescription] = useState("");
+
+  const handleDescriptionChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = event.target.value;
+    setDescription(value);
+  };
+
+  const { mutate: recordNewExercise } =
+    api.getWorkouts.addNewExercise.useMutation({
+      onSuccess(data) {
+        console.log(data);
+      },
+    });
+  const { mutate: recordUpdatedDescription } =
+    api.getWorkouts.updateExerciseDescription.useMutation({
+      onSuccess(data) {
+        console.log(data);
+      },
+    });
+
+  function handleAddExercise() {
+    addExercise(workoutNumber, 0);
+    recordNewExercise({ workoutId: workoutNumber });
+  }
+
+
+  return (
+    <div key={workoutNumber + "empty"} className="m-1  bg-red-700">
+      <button
+        onClick={handleAddExercise}
+        className=" m-1 rounded bg-blue-500 px-1 py-1 font-bold text-white hover:bg-blue-700"
+      >
+        Add Exercise
+      </button>
+    </div>
+  );
+}
+
 interface ExerciseDisplayProps {
-  exercise: ExerciseTemplate & { sets: SetTemplate[] };
+  exercise: ActualExercise & {
+    sets: exerciseSet[];
+  };
   workoutNumber: string;
   exerciseNumber: string;
   exerciseIndex: number;
   addExercise: (workoutNumber: string, exerciseIndex: number) => void;
   updatePlan: (
-    exercise: ExerciseTemplate & { sets: SetTemplate[] },
-    workoutNumber: string,
-    exerciseNumber: string
+    exercise: ActualExercise & {
+      sets: exerciseSet[];
+    },
+    workoutId: string,
+    exerciseId: string
   ) => void;
+  priorSetsArray: exerciseSet[] | undefined;
+  removeExercise: (workoutNumber: string, exerciseNumber: string) => void;
+}
+
+interface ExerciseDisplayProps {
+  exercise: ActualExercise & {
+    sets: exerciseSet[];
+  };
+  workoutNumber: string;
+  exerciseNumber: string;
+  exerciseIndex: number;
+  addExercise: (workoutNumber: string, exerciseIndex: number) => void;
+  updatePlan: (
+    exercise: ActualExercise & {
+      sets: exerciseSet[];
+    },
+    workoutId: string,
+    exerciseId: string
+  ) => void;
+  priorSetsArray: exerciseSet[] | undefined;
   removeExercise: (workoutNumber: string, exerciseNumber: string) => void;
 }
 
@@ -1070,6 +1388,7 @@ function ExerciseDisplay({
   workoutNumber,
   exerciseNumber,
   exerciseIndex,
+  priorSetsArray,
   addExercise,
   updatePlan,
 }: ExerciseDisplayProps) {
@@ -1088,21 +1407,56 @@ function ExerciseDisplay({
     setDescription(value);
   };
 
-  function handleSetChange(set: SetTemplate, index: number) {
+  function handleSetChange(set: exerciseSet, index: number) {
     const newSets = [...sets];
     newSets[index] = set;
     setSets(newSets);
   }
   function handleSaveButton() {
-    const newData: ExerciseTemplate & { sets: SetTemplate[] } = {
-      description: description,
+    const newData: ActualExercise & { sets: exerciseSet[] } = {
+      ...exercise,
       sets: sets,
-      id: exercise.id,
+      description: description,
     };
+
     updatePlan(newData, workoutNumber, exerciseNumber);
   }
+  const { mutate: recordNewExercise } =
+    api.getWorkouts.addNewExercise.useMutation({
+      onSuccess(data) {
+        console.log(data);
+      },
+    });
+  const { mutate: deleteExercise } = api.getWorkouts.deleteExercise.useMutation(
+    {
+      onSuccess(data) {
+        console.log(data);
+      },
+    }
+  );
+  const { mutate: recordUpdatedDescription } =
+    api.getWorkouts.updateExerciseDescription.useMutation({
+      onSuccess(data) {
+        console.log(data);
+      },
+    });
+
+  const { mutate: recordNewSet } = api.getWorkouts.createSet.useMutation({
+    onSuccess(data) {
+      console.log(data);
+    },
+  });
+
   function handleAddSet() {
-    const newSet = emptySet;
+    const newSet: exerciseSet = {
+      date: new Date(),
+      exerciseId: exercise.exerciseId,
+      setId: createUniqueId(),
+      weight: 0,
+      reps: 5,
+      rir: 3,
+      lastSetId: null,
+    };
     const lastSet = sets[sets.length - 1];
     if (lastSet !== undefined) {
       newSet.reps = lastSet.reps;
@@ -1111,12 +1465,15 @@ function ExerciseDisplay({
     }
     const newSets = [...sets, newSet];
     setSets(newSets);
+    recordNewSet({ ...newSet });
   }
   function handleAddExercise() {
     addExercise(workoutNumber, exerciseIndex);
+    recordNewExercise({ workoutId: exercise.workoutId });
   }
   function handleRemoveExercise() {
-    removeExercise(workoutNumber, exercise.id);
+    removeExercise(workoutNumber, exercise.exerciseId);
+    deleteExercise({ exerciseId: exercise.exerciseId });
   }
   function handleRemoveSet(index: number) {
     console.log("remove set");
@@ -1132,18 +1489,22 @@ function ExerciseDisplay({
     if (description.length > 0) {
       setDescriptionInputActive(false);
     }
+    recordUpdatedDescription({
+      exerciseId: exercise.exerciseId,
+      description: description,
+    });
   };
   const handleDescriptionClick = () => {
     setDescriptionInputActive(true);
   };
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter" || event.key ==="Escape") {
+    if (event.key === "Enter" || event.key === "Escape") {
       handleBlur();
     }
   };
-  useEffect(()=>{
-    handleSaveButton()
-  }, [sets, description])
+  useEffect(() => {
+    handleSaveButton();
+  }, [sets, description]);
 
   return (
     <div key={exercise.description} className="m-1  bg-red-700">
@@ -1159,20 +1520,29 @@ function ExerciseDisplay({
             autoFocus
           />
         ) : (
-          <span className="hover:bg-slate-500 bg-slate-700" onClick={handleDescriptionClick}>{description}
+          <span
+            className="bg-slate-700 hover:bg-slate-500"
+            onClick={handleDescriptionClick}
+          >
+            {description}
           </span>
         )}
         <button
           onClick={handleRemoveExercise}
-          className="m-1 rounded bg-slate-400 px-1 py-1 font-bold text-white hover:bg-slate-700 inline-flex items-center"
+          className="m-1 inline-flex items-center rounded bg-slate-400 px-1 py-1 font-bold text-white hover:bg-slate-700"
         >
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-600" viewBox="0 0 20 20" fill="currentColor">
-    <path
-      fillRule="evenodd"
-      d="M10 11.414L15.657 17.071l1.414-1.414L11.414 10l5.657-5.657L15.657 2.93 10 8.586 4.343 2.93 2.93 4.343 8.586 10l-5.657 5.657 1.414 1.414L10 11.414z"
-      clipRule="evenodd"
-    />
-  </svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5 text-red-600"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M10 11.414L15.657 17.071l1.414-1.414L11.414 10l5.657-5.657L15.657 2.93 10 8.586 4.343 2.93 2.93 4.343 8.586 10l-5.657 5.657 1.414 1.414L10 11.414z"
+              clipRule="evenodd"
+            />
+          </svg>
         </button>
       </div>
       <div>
@@ -1181,6 +1551,7 @@ function ExerciseDisplay({
             key={index}
             set={set}
             index={index}
+            priorSetsArray={priorSetsArray}
             removeSet={handleRemoveSet}
             updateSets={handleSetChange}
           />
@@ -1192,27 +1563,45 @@ function ExerciseDisplay({
       >
         Add Set
       </button>
-        <button
-          onClick={handleAddExercise}
-          className=" m-1 rounded bg-blue-500 px-1 py-1 font-bold text-white hover:bg-blue-700"
-        >
-          Add Exercise
-        </button>
+      <button
+        onClick={handleAddExercise}
+        className=" m-1 rounded bg-blue-500 px-1 py-1 font-bold text-white hover:bg-blue-700"
+      >
+        Add Exercise
+      </button>
     </div>
   );
 }
 
 interface SetDisplayProps {
   index: number;
-  set: SetTemplate;
-  updateSets: (set: SetTemplate, index: number) => void;
+  set: exerciseSet;
+  priorSetsArray: exerciseSet[] | undefined;
+  updateSets: (set: exerciseSet, index: number) => void;
   removeSet: (index: number) => void;
 }
 
-function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
+function SetDisplay({
+  index,
+  set,
+  priorSetsArray,
+  updateSets,
+  removeSet,
+}: SetDisplayProps) {
   const [weight, setWeight] = useState(set.weight);
   const [reps, setReps] = useState(set.reps);
   const [rir, setRir] = useState(set.rir);
+
+  const { mutate: recordSet } = api.getWorkouts.updateSets.useMutation({
+    onSuccess(data) {
+      console.log(data);
+    },
+  });
+  const { mutate: deleteSet } = api.getWorkouts.removeSet.useMutation({
+    onSuccess(data) {
+      console.log(data);
+    },
+  });
 
   const handleWeightClick = () => {
     setWeightInputActive(true);
@@ -1227,12 +1616,17 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
     setWeightInputActive(false);
     setRepsInputActive(false);
     setRirInputActive(false);
-    const newSet: SetTemplate = {
+    const newSet: exerciseSet = {
+      date: new Date(),
+      setId: set.setId,
+      exerciseId: set.exerciseId,
       weight: weight,
       reps: reps,
       rir: rir,
+      lastSetId: set.lastSetId,
     };
     updateSets(newSet, index);
+    recordSet({ ...newSet });
   };
 
   useEffect(() => {
@@ -1264,9 +1658,10 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
 
   function handleRemoveSet() {
     removeSet(index);
+    deleteSet({ setId: set.setId });
   }
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter") {
+    if (event.key === "Enter" || event.key === "esc") {
       handleBlur();
     }
   };
@@ -1274,6 +1669,18 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
   const [weightInputActive, setWeightInputActive] = useState(false);
   const [repsInputActive, setRepsInputActive] = useState(false);
   const [rirInputActive, setRirInputActive] = useState(false);
+
+  const [priorSet, setPriorSet] = useState<exerciseSet | undefined>();
+  if (!priorSet && priorSetsArray) {
+    console.log("finding set...");
+    const lastWeeksSet = priorSetsArray?.find(
+      (lastSet) => lastSet.setId === set.lastSetId
+    );
+    if (lastWeeksSet) {
+      console.log("found: ", lastWeeksSet);
+      setPriorSet(lastWeeksSet);
+    }
+  }
 
   return (
     <div className="m-1">
@@ -1288,7 +1695,10 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
           autoFocus
         />
       ) : (
-        <span className="underline bg-slate-700  px-1 py-0.5 hover:bg-slate-500" onClick={handleWeightClick}>
+        <span
+          className="bg-slate-700 px-1  py-0.5 underline hover:bg-slate-500"
+          onClick={handleWeightClick}
+        >
           {weight} lbs
         </span>
       )}{" "}
@@ -1304,7 +1714,10 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
           autoFocus
         />
       ) : (
-        <span className="underline bg-slate-700 px-1 py-0.5 hover:bg-slate-500" onClick={handleRepsClick}>
+        <span
+          className="bg-slate-700 px-1 py-0.5 underline hover:bg-slate-500"
+          onClick={handleRepsClick}
+        >
           {reps} reps
         </span>
       )}{" "}
@@ -1320,21 +1733,29 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
           autoFocus
         />
       ) : (
-        <span className="underline px-1 py-0.5 bg-slate-700 hover:bg-slate-500" onClick={handleRirClick}>
+        <span
+          className="bg-slate-700 px-1 py-0.5 underline hover:bg-slate-500"
+          onClick={handleRirClick}
+        >
           {rir} RIR
         </span>
       )}
       <button
         onClick={handleRemoveSet}
-        className="mx-1 rounded bg-slate-400 px-1 justify-center  font-bold text-white hover:bg-slate-700"
+        className="mx-1 justify-center rounded bg-slate-400 px-1  font-bold text-white hover:bg-slate-700"
       >
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-600" viewBox="0 0 20 20" fill="currentColor">
-    <path
-      fillRule="evenodd"
-      d="M10 11.414L15.657 17.071l1.414-1.414L11.414 10l5.657-5.657L15.657 2.93 10 8.586 4.343 2.93 2.93 4.343 8.586 10l-5.657 5.657 1.414 1.414L10 11.414z"
-      clipRule="evenodd"
-    />
-  </svg>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-5 w-5 text-red-600"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M10 11.414L15.657 17.071l1.414-1.414L11.414 10l5.657-5.657L15.657 2.93 10 8.586 4.343 2.93 2.93 4.343 8.586 10l-5.657 5.657 1.414 1.414L10 11.414z"
+            clipRule="evenodd"
+          />
+        </svg>
       </button>
     </div>
   );
