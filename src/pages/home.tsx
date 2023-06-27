@@ -454,7 +454,7 @@ function WorkoutDisplay3({
             <div className="flex flex-col items-center">
               {workout.exercises &&
                 workout.exercises.map((exercise, exerciseNumber) => (
-                  <div className=" rounded-lg p-1" key={createUniqueId()}>
+                  <div className=" rounded-lg p-1" key={exercise.exerciseId.toString()}>
                     <ExerciseDisplay
                       removeExercise={removeExercise}
                       workoutNumber={workout.workoutId}
