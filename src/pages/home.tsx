@@ -52,7 +52,7 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex min-h-screen flex-col bg-gradient-to-b from-gray-900 to-gray-700 text-white">
-        <nav className="flex items-center justify-between bg-black">
+        <nav className="flex items-center justify-between">
           <SignedIn>
             <div className="m-2 flex flex-col text-white">
               <UserButton
@@ -108,7 +108,9 @@ function WorkoutUiHandler() {
 
   if (!day) {
     return (
-      <div className="rounded-lg p-4 text-white">
+      <div 
+      style={{maxWidth: '600px', margin: '0 auto'}}
+      className="rounded-lg p-4 text-white">
         <div className="mb-4 text-center text-2xl font-bold text-slate-300">
           Current Workouts:
         </div>
