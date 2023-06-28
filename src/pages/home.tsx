@@ -104,33 +104,34 @@ const Home: NextPage = () => {
 export default Home;
 
 function WorkoutUiHandler() {
-  const [day, setDay] = useState("");
+  const [workoutId, setWorkoutId] = useState("");
 
-  if (!day) {
+  if (!workoutId) {
     return (
-      <div 
-      style={{maxWidth: '600px', margin: '0 auto'}}
-      className="rounded-lg p-4 text-white">
+      <div
+        style={{ maxWidth: "600px", margin: "0 auto" }}
+        className="rounded-lg p-4 text-white"
+      >
         <div className="mb-4 text-center text-2xl font-bold text-slate-300">
           Current Workouts:
         </div>
-        <SelectDay setDay={setDay} />
+        <SelectDay setWorkoutId={setWorkoutId} />
       </div>
     );
   } else {
     return (
       <div className="rounded-lg text-white shadow-md">
-        <WorkoutUi endWorkout={setDay} daySelected={day} />
+        <WorkoutUi endWorkout={setWorkoutId} workoutId={workoutId} />
       </div>
     );
   }
 }
 interface WorkoutUiProps {
-  daySelected: string;
+  workoutId: string;
   endWorkout: React.Dispatch<React.SetStateAction<string>>;
 }
 
-function WorkoutUi({ daySelected, endWorkout }: WorkoutUiProps) {
+function WorkoutUi({ workoutId, endWorkout }: WorkoutUiProps) {
   //for now, just show todays workout today===nominalDay
   const [todaysWorkout, setTodaysWorkout] = useState<
     | (ActualWorkout & {
@@ -161,32 +162,15 @@ function WorkoutUi({ daySelected, endWorkout }: WorkoutUiProps) {
         setTodaysWorkout([data]);
       },
     });
-  const { data: priorWorkouts, isLoading: workoutsLoading } =
-    api.getWorkouts.getPreviousWorkout.useQuery({
-      nominalDay: daySelected,
+  const { data: priorWorkout, isLoading: workoutsLoading } =
+    api.getWorkouts.getWorkoutByWorkoutId.useQuery({
+      workoutId: workoutId,
     });
 
-  if (daySelected) {
+  if (workoutId) {
     const priorSetsArray: exerciseSet[] = [];
-    if (
-      priorWorkouts &&
-      priorWorkouts[0] &&
-      priorWorkouts[1] &&
-      priorWorkouts[2] &&
-      !todaysWorkout &&
-      priorSetsArray.length === 0
-    ) {
-      priorWorkouts[0].exercises.map((exercise) => {
-        exercise.sets.map((set) => {
-          priorSetsArray.push(set);
-        });
-      });
-      priorWorkouts[1].exercises.map((exercise) => {
-        exercise.sets.map((set) => {
-          priorSetsArray.push(set);
-        });
-      });
-      priorWorkouts[2].exercises.map((exercise) => {
+    if (priorWorkout && !todaysWorkout && priorSetsArray.length === 0) {
+      priorWorkout.exercises.map((exercise) => {
         exercise.sets.map((set) => {
           priorSetsArray.push(set);
         });
@@ -194,23 +178,23 @@ function WorkoutUi({ daySelected, endWorkout }: WorkoutUiProps) {
       setLastSetsArray(priorSetsArray);
     }
 
-    if (priorWorkouts && priorWorkouts[0] && !todaysWorkout) {
-      setTodaysWorkout([priorWorkouts[0]]);
-      console.log(priorWorkouts[0].date);
+    if (priorWorkout && priorWorkout && !todaysWorkout) {
+      setTodaysWorkout([priorWorkout]);
+      console.log(priorWorkout.date);
       const oneWeek = 6 * 24 * 60 * 60 * 1000;
       let isNewWorkoutCreated = false;
-      if (today.getTime() - priorWorkouts[0].date.getTime() > oneWeek) {
+      if (today.getTime() - priorWorkout.date.getTime() > oneWeek) {
         if (!isNewWorkoutCreated) {
           //flag variable to avoid firing multiple times
           isNewWorkoutCreated = true;
           console.log("need new workout"); // i think its refreshing too fast and making double entries
-          console.log(priorWorkouts[0].date);
+          console.log(priorWorkout.date);
           console.log(today);
 
           const newWorkout = {
-            ...priorWorkouts[0],
+            ...priorWorkout,
             date: today,
-            exercises: priorWorkouts[0].exercises.map((exercise) => ({
+            exercises: priorWorkout.exercises.map((exercise) => ({
               ...exercise,
               description: exercise.description,
             })),
@@ -239,15 +223,15 @@ function WorkoutUi({ daySelected, endWorkout }: WorkoutUiProps) {
 }
 
 interface SelectDayProps {
-  setDay: React.Dispatch<React.SetStateAction<string>>;
+  setWorkoutId: React.Dispatch<React.SetStateAction<string>>;
 }
 
-function SelectDay({ setDay }: SelectDayProps) {
+function SelectDay({ setWorkoutId }: SelectDayProps) {
   const { data: userWorkoutPlan, isLoading } =
     api.getWorkouts.getUniqueWeekWorkouts.useQuery();
-  function handleSelectDay(day: string) {
-    if (day !== "none") {
-      setDay(day);
+  function handleSelectWorkout(workoutId: string) {
+    if (workoutId !== "none") {
+      setWorkoutId(workoutId);
     }
   }
   function sortWorkoutsByNominalDay(workouts: ActualWorkout[]) {
@@ -260,24 +244,12 @@ function SelectDay({ setDay }: SelectDayProps) {
       "Friday",
       "Saturday",
     ];
-    const latestWorkoutMap = new Map<string, ActualWorkout>();
-    for (const workout of workouts) {
-      const dayIndex = daysOfWeek.indexOf(workout.nominalDay);
-      const existingWorkout = latestWorkoutMap.get(workout.nominalDay);
-      if (
-        !existingWorkout ||
-        dayIndex > daysOfWeek.indexOf(existingWorkout.nominalDay)
-      ) {
-        latestWorkoutMap.set(workout.nominalDay, workout);
-      }
-    }
-    const sortedWorkouts = Array.from(latestWorkoutMap.values());
-    sortedWorkouts.sort((a, b) => {
+    workouts.sort((a, b) => {
       const dayA = daysOfWeek.indexOf(a.nominalDay);
       const dayB = daysOfWeek.indexOf(b.nominalDay);
       return dayA - dayB;
     });
-    return sortedWorkouts;
+    return workouts;
   }
 
   return (
@@ -295,8 +267,8 @@ function SelectDay({ setDay }: SelectDayProps) {
               value={workout.nominalDay}
               className="m-1 inline-flex items-center rounded bg-green-600 px-2 py-1 font-bold text-white hover:bg-green-500"
               onClick={() =>
-                handleSelectDay(
-                  workout.nominalDay ? workout.nominalDay : "none"
+                handleSelectWorkout(
+                  workout.workoutId ? workout.workoutId : "none"
                 )
               }
             >
@@ -456,7 +428,10 @@ function WorkoutDisplay3({
             <div className="flex flex-col items-center">
               {workout.exercises &&
                 workout.exercises.map((exercise, exerciseNumber) => (
-                  <div className=" rounded-lg p-1" key={exercise.exerciseId.toString()}>
+                  <div
+                    className=" rounded-lg p-1"
+                    key={exercise.exerciseId.toString()}
+                  >
                     <ExerciseDisplay
                       removeExercise={removeExercise}
                       workoutNumber={workout.workoutId}
@@ -801,11 +776,13 @@ function SetDisplay({
   }
 
   return (
-    <div className="m-1 rounded-lg bg-gray-800 px-2 pb-2 text-white shadow-md">
-      <div className=" mb-2 text-center font-semibold">
-        Last time: {priorSet?.weight} lbs x {priorSet?.reps} reps @{" "}
-        {priorSet?.rir}RIR
-      </div>
+    <div className="m-1 rounded-lg bg-gray-800 p-1 text-white shadow-md">
+      {priorSet && (
+        <div className=" mb-2 text-center font-semibold">
+          Last time: {priorSet?.weight} lbs x {priorSet?.reps} reps @{" "}
+          {priorSet?.rir}RIR
+        </div>
+      )}
       <div className="flex flex-auto justify-center space-x-2">
         {weightInputActive ? (
           <input
@@ -865,7 +842,7 @@ function SetDisplay({
         )}
         <button
           onClick={handleRemoveSet}
-          className="mx-1 justify-center rounded bg-gray-600 px-1  font-bold text-white hover:bg-gray-500"
+          className="mx-1 justify-center rounded bg-red-600 px-1  font-bold text-white hover:bg-red-700"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

@@ -106,28 +106,31 @@ export default Home;
 
 function NewWorkoutUi() {
   return (
-    <div className="rounded-lg text-white shadow-md flex flex-col items-center">
+    <div className="flex flex-col items-center rounded-lg text-white shadow-md">
       <TestButton></TestButton>
       <div className="my-2">or make your own</div>
-      <WorkoutPlanForm />
+      <EditWorkoutMenu />
     </div>
   );
 }
 
-function WorkoutPlanForm() {
+function EditWorkoutMenu() {
   const [workoutPlan, setWorkoutPlan] = useState<
-  (ActualWorkout & {
-    exercises: (ActualExercise & {
-        sets: exerciseSet[];
-    })[];
-})[] | undefined>()
-  const [planId, setPlanId] = useState("")
+    | (ActualWorkout & {
+        exercises: (ActualExercise & {
+          sets: exerciseSet[];
+        })[];
+      })[]
+    | undefined
+  >();
+  const [planId, setPlanId] = useState("");
   function sortWorkoutsByNominalDay(
     workouts: (ActualWorkout & {
-    exercises: (ActualExercise & {
+      exercises: (ActualExercise & {
         sets: exerciseSet[];
-    })[];
-})[]){
+      })[];
+    })[]
+  ) {
     const daysOfWeek = [
       "Sunday",
       "Monday",
@@ -147,57 +150,245 @@ function WorkoutPlanForm() {
 
     return sortedWorkouts;
   }
-  let workoutPlanSet = false
-  
-  const {data: userWorkouts, isLoading: workoutsLoading} = api.getWorkouts.getPlanByUserId.useQuery()
-  if (!workoutsLoading && 
-      userWorkouts !==undefined &&
-      userWorkouts[0]!==undefined &&
-      userWorkouts[0].workouts && 
-      !workoutPlan && 
-      !workoutPlanSet
-      ){
-    console.log("user workouts:")
-    const workoutPlanActual = userWorkouts[0].workouts? sortWorkoutsByNominalDay(userWorkouts[0].workouts) : []
+  let workoutPlanSet = false;
+
+  const { data: userWorkouts, isLoading: workoutsLoading } =
+    api.getWorkouts.getUniqueWeekWorkouts.useQuery();
+  if (
+    !workoutsLoading &&
+    userWorkouts !== undefined &&
+    !workoutPlan &&
+    !workoutPlanSet
+  ) {
+    console.log("user workouts:");
+    const workoutPlanActual = userWorkouts
+      ? sortWorkoutsByNominalDay(userWorkouts)
+      : [];
     //console.log(workoutPlanActual)
-    setWorkoutPlan(workoutPlanActual)
-    workoutPlanSet = true
-    console.log(workoutPlanActual)
-    setPlanId(workoutPlanActual[0]?.planId ?? "")
+    setWorkoutPlan(workoutPlanActual);
+    workoutPlanSet = true;
+    console.log(workoutPlanActual);
+    setPlanId(workoutPlanActual[0]?.planId ?? "");
   }
 
-
-  function addWorkout(workout: ActualWorkout & {exercises: (ActualExercise & {sets: exerciseSet[]})[];
-} | undefined) {
+  function addWorkout(
+    workout:
+      | (ActualWorkout & {
+          exercises: (ActualExercise & { sets: exerciseSet[] })[];
+        })
+      | undefined
+  ) {
     console.log(workout);
-    if (!workout){return}
+    if (!workout) {
+      return;
+    }
     const newWorkoutPlan = workoutPlan ? [...workoutPlan, workout] : [workout];
     setWorkoutPlan(newWorkoutPlan);
   }
-  const priorSetArray: exerciseSet[] = []
+  const priorSetArray: exerciseSet[] = [];
+
+  const MENU_ACTIONS = {
+    NONE: "none",
+    CREATE: "create",
+    EDIT: "edit",
+  };
+  const [currentAction, setCurrentAction] = useState(MENU_ACTIONS.NONE);
 
   return (
     <div className="flex flex-col items-center rounded-lg text-white">
-        {workoutPlan?.map((workout)=>(
+      {currentAction === MENU_ACTIONS.NONE && (
+        <>
+          <button
+            onClick={() => setCurrentAction(MENU_ACTIONS.CREATE)}
+            className="mt-4 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
+          >
+            Create New Workout Plan
+          </button>
+          <button
+            onClick={() => setCurrentAction(MENU_ACTIONS.EDIT)}
+            className="mt-4 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
+          >
+            Edit Workout Plan
+          </button>
+        </>
+      )}
+      {currentAction === MENU_ACTIONS.CREATE && (
+        <>
+          <WorkoutDayForm planId={planId} addWorkout={addWorkout} />
+          <button
+            onClick={() => setCurrentAction(MENU_ACTIONS.NONE)}
+            className="mt-4 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
+          >
+            Main Menu
+          </button>
+        </>
+      )}
+      {currentAction === MENU_ACTIONS.EDIT && (
+        <>
+          <WorkoutPlanForm
+            workoutPlan={workoutPlan}
+            setWorkoutPlan={setWorkoutPlan}
+          />
+          <button
+            onClick={() => setCurrentAction(MENU_ACTIONS.NONE)}
+            className="mt-4 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
+          >
+            Main Menu
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+interface WorkoutPlanFormProps {
+  workoutPlan:
+    | (ActualWorkout & {
+        exercises: (ActualExercise & {
+          sets: exerciseSet[];
+        })[];
+      })[]
+    | undefined;
+  setWorkoutPlan: React.Dispatch<
+    React.SetStateAction<
+      | (ActualWorkout & {
+          exercises: (ActualExercise & {
+            sets: exerciseSet[];
+          })[];
+        })[]
+      | undefined
+    >
+  >;
+}
+function WorkoutPlanForm({
+  workoutPlan,
+  setWorkoutPlan,
+}: WorkoutPlanFormProps) {
+  const [planId, setPlanId] = useState("");
+  function sortWorkoutsByNominalDay(
+    workouts: (ActualWorkout & {
+      exercises: (ActualExercise & {
+        sets: exerciseSet[];
+      })[];
+    })[]
+  ) {
+    const daysOfWeek = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    const sortedWorkouts = [...workouts];
+
+    sortedWorkouts.sort((a, b) => {
+      const dayA = daysOfWeek.indexOf(a.nominalDay);
+      const dayB = daysOfWeek.indexOf(b.nominalDay);
+      return dayA - dayB;
+    });
+
+    return sortedWorkouts;
+  }
+  let workoutPlanSet = false;
+
+  const { data: userWorkouts, isLoading: workoutsLoading } =
+    api.getWorkouts.getPlanByUserId.useQuery();
+  if (
+    !workoutsLoading &&
+    userWorkouts !== undefined &&
+    userWorkouts[0] !== undefined &&
+    userWorkouts[0].workouts &&
+    !workoutPlan &&
+    !workoutPlanSet
+  ) {
+    console.log("user workouts:");
+    const workoutPlanActual = userWorkouts[0].workouts
+      ? sortWorkoutsByNominalDay(userWorkouts[0].workouts)
+      : [];
+    //console.log(workoutPlanActual)
+    setWorkoutPlan(workoutPlanActual);
+    workoutPlanSet = true;
+    console.log(workoutPlanActual);
+    setPlanId(workoutPlanActual[0]?.planId ?? "");
+  }
+
+  function addWorkout(
+    workout:
+      | (ActualWorkout & {
+          exercises: (ActualExercise & { sets: exerciseSet[] })[];
+        })
+      | undefined
+  ) {
+    console.log(workout);
+    if (!workout) {
+      return;
+    }
+    const newWorkoutPlan = workoutPlan ? [...workoutPlan, workout] : [workout];
+    setWorkoutPlan(newWorkoutPlan);
+  }
+  const priorSetArray: exerciseSet[] = [];
+
+  return (
+    <div className="flex flex-col items-center rounded-lg text-white">
+      {workoutPlan?.map((workout) => (
         <WorkoutDisplay3
-        priorSetsArray={priorSetArray}
-        workoutPlan={[workout]}
-        setWorkoutPlan={setWorkoutPlan}
-        key={workout.workoutId}
+          priorSetsArray={priorSetArray}
+          workoutPlan={[workout]}
+          setWorkoutPlan={setWorkoutPlan}
+          key={workout.workoutId}
         />
-        ))}
-        <WorkoutDayForm planId={planId} addWorkout={addWorkout} />
+      ))}
+      <WorkoutDayForm planId={planId} addWorkout={addWorkout} />
+    </div>
+  );
+}
+
+function NewWorkoutPlanForm() {
+  const [workoutPlan, setWorkoutPlan] = useState<
+    | (ActualWorkout & {
+        exercises: (ActualExercise & {
+          sets: exerciseSet[];
+        })[];
+      })[]
+    | undefined
+  >();
+
+  function addWorkout(
+    workout:
+      | (ActualWorkout & {
+          exercises: (ActualExercise & { sets: exerciseSet[] })[];
+        })
+      | undefined
+  ) {
+    console.log(workout);
+    if (!workout) {
+      return;
+    }
+    const newWorkoutPlan = workoutPlan ? [...workoutPlan, workout] : [workout];
+    setWorkoutPlan(newWorkoutPlan);
+  }
+
+  const [planId, setPlanId] = useState("");
+  return (
+    <div>
+      <div>New Workout Form</div>
+      <WorkoutDayForm planId={planId} addWorkout={addWorkout} />
     </div>
   );
 }
 
 interface WorkoutDayFormProps {
-  addWorkout: (workout: (ActualWorkout & {
-    exercises: (ActualExercise & {
-        sets: exerciseSet[];
-    })[];
-}) | undefined) => void;
-  planId: string | undefined
+  addWorkout: (
+    workout:
+      | (ActualWorkout & {
+          exercises: (ActualExercise & {
+            sets: exerciseSet[];
+          })[];
+        })
+      | undefined
+  ) => void;
+  planId: string | undefined;
 }
 
 function WorkoutDayForm({ addWorkout, planId }: WorkoutDayFormProps) {
@@ -208,12 +399,13 @@ function WorkoutDayForm({ addWorkout, planId }: WorkoutDayFormProps) {
     WorkoutTemplate | undefined
   >(undefined);
 
-  const {mutate: saveNewWorkout } = api.getWorkouts.updateWorkoutPlan.useMutation( 
-    {onSuccess(data){
-      console.log(data)
-      addWorkout(data)
-    }}
-  )
+  const { mutate: saveNewWorkout } =
+    api.getWorkouts.updateWorkoutPlan.useMutation({
+      onSuccess(data) {
+        console.log(data);
+        addWorkout(data);
+      },
+    });
 
   function handleAddExercises() {
     console.log(dayDescription, nominalDay);
@@ -231,11 +423,11 @@ function WorkoutDayForm({ addWorkout, planId }: WorkoutDayFormProps) {
       };
       setWorkoutDayPlan(newWorkoutPlan);
       console.log(newWorkoutPlan);
-      console.log("Plan Id: ", planId)
-      if (planId){
-        saveNewWorkout({...newWorkoutPlan, planId: planId})
+      console.log("Plan Id: ", planId);
+      if (planId) {
+        saveNewWorkout({ ...newWorkoutPlan, planId: planId });
       } else {
-        saveNewWorkout({...newWorkoutPlan, planId: createUniqueId()})
+        saveNewWorkout({ ...newWorkoutPlan, planId: createUniqueId() });
       }
 
       //addWorkout(newWorkoutPlan);
@@ -246,47 +438,45 @@ function WorkoutDayForm({ addWorkout, planId }: WorkoutDayFormProps) {
   }
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-
-
   return (
     <div className="flex flex-col items-center justify-center">
       {!showAddExercises && (
         <form onSubmit={handleAddExercises}>
           <div className="space-y-5">
-            <div className="bg-gray-900 text-white rounded-lg p-5">
-            <label className="font-bold">Day Description:</label>
-            <input
-              required
-              ref={inputRef}
-              value={dayDescription}
-              onChange={(event) => setDayDescription(event.target.value)}
-              className="rounded-lg p-1 w-full bg-gray-700 text-white focus:outline-none"
-              type="text"
-            ></input>
-            <div>
-              <label className="font-bold">Nominal Day: </label>
-              <select
-                value={nominalDay}
-                onChange={(event) => setNominalDay(event.target.value)}
+            <div className="rounded-lg bg-gray-900 p-5 text-white">
+              <label className="font-bold">Day Description:</label>
+              <input
                 required
-                className="rounded-lg p-1 w-full bg-gray-700 text-white focus:outline-none"
+                ref={inputRef}
+                value={dayDescription}
+                onChange={(event) => setDayDescription(event.target.value)}
+                className="w-full rounded-lg bg-gray-700 p-1 text-white focus:outline-none"
+                type="text"
+              ></input>
+              <div>
+                <label className="font-bold">Nominal Day: </label>
+                <select
+                  value={nominalDay}
+                  onChange={(event) => setNominalDay(event.target.value)}
+                  required
+                  className="w-full rounded-lg bg-gray-700 p-1 text-white focus:outline-none"
+                >
+                  <option value="">Select Day</option>
+                  <option value="Monday">Monday</option>
+                  <option value="Tuesday">Tuesday</option>
+                  <option value="Wednesday">Wednesday</option>
+                  <option value="Thursday">Thursday</option>
+                  <option value="Friday">Friday</option>
+                  <option value="Saturday">Saturday</option>
+                  <option value="Sunday">Sunday</option>
+                </select>
+              </div>
+              <button
+                type="submit"
+                className="mt-4 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
               >
-                <option value="">Select Day</option>
-                <option value="Monday">Monday</option>
-                <option value="Tuesday">Tuesday</option>
-                <option value="Wednesday">Wednesday</option>
-                <option value="Thursday">Thursday</option>
-                <option value="Friday">Friday</option>
-                <option value="Saturday">Saturday</option>
-                <option value="Sunday">Sunday</option>
-              </select>
-            </div>
-            <button
-              type="submit"
-                        className="mt-4 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
-            >
-              Add Exercsies
-            </button>
+                Add Exercsies
+              </button>
             </div>
           </div>
         </form>
@@ -312,10 +502,10 @@ function AddExerciseForm({ updatePlan }: AddExerciseFormProps) {
     }
   }
   return (
-    <div className="flex flex-col items-center justify-center bg-gray-900 text-white rounded-lg">
+    <div className="flex flex-col items-center justify-center rounded-lg bg-gray-900 text-white">
       <div className="">
         {exercises?.map((exercise, index) => (
-          <div key={index} className="font-semibold pt-2">
+          <div key={index} className="pt-2 font-semibold">
             {exercise.description}: {exercise?.sets[0]?.weight} x{" "}
             {exercise.sets.length}
           </div>
@@ -326,7 +516,7 @@ function AddExerciseForm({ updatePlan }: AddExerciseFormProps) {
       </div>
       <button
         onClick={saveExercises}
-            className="mt-4 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
+        className="mt-4 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
       >
         Save Day
       </button>
@@ -394,8 +584,11 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
   };
 
   return (
-    <div className="flex flex-row justify-center bg-gray-900 text-white p-5 rounded-lg">
-      <form onSubmit={handleSubmit} className="items-center justify-center space-y-1 w-full">
+    <div className="flex flex-row justify-center rounded-lg bg-gray-900 p-5 text-white">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full items-center justify-center space-y-1"
+      >
         <div className=" w-full p-1  sm:w-auto">
           <label htmlFor="description" className="mr-2">
             Exercise:
@@ -406,7 +599,7 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
               type="text"
               ref={inputRef}
               required
-              className="rounded-md px-2 py-1 bg-gray-800 text-white focus:outline-none w-full sm:w-48"
+              className="w-full rounded-md bg-gray-800 px-2 py-1 text-white focus:outline-none sm:w-48"
               value={description}
               onChange={handleDescriptionChange}
             />
@@ -422,7 +615,7 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
                 id="weight"
                 type="number"
                 required
-                className="w-14 rounded-md px-2 py-1 bg-gray-800 text-white focus:outline-none text-center"
+                className="w-14 rounded-md bg-gray-800 px-2 py-1 text-center text-white focus:outline-none"
                 value={weight}
                 onChange={handleWeightChange}
               />
@@ -437,7 +630,7 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
                 id="weight"
                 type="number"
                 required
-                className="w-12 rounded-md px-2 py-1 bg-gray-800 text-white focus:outline-none text-center"
+                className="w-12 rounded-md bg-gray-800 px-2 py-1 text-center text-white focus:outline-none"
                 value={reps}
                 onChange={handleRepsChange}
               />
@@ -454,7 +647,7 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
                 type="number"
                 min="1"
                 required
-                className="w-12 rounded-md px-2 py-1 bg-gray-800 text-white focus:outline-none text-center"
+                className="w-12 rounded-md bg-gray-800 px-2 py-1 text-center text-white focus:outline-none"
                 value={sets}
                 onChange={handleSetsChange}
               />
@@ -465,7 +658,7 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
         <div className="flex justify-center">
           <button
             type="submit"
-                    className="mt-4 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
+            className="mt-4 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
           >
             Add Exercise
           </button>
@@ -899,7 +1092,7 @@ const PullFirstTwo = {
 };
 
 const PullSecondTwo = {
-  description: "Push #2",
+  description: "Pull #2",
   nominalDay: "Saturday",
   workoutId: createUniqueId(),
   exercises: [
@@ -950,12 +1143,12 @@ function TestButton() {
     });
 
   function handleClick() {
-    makePlan({ workouts: pplPlanArrayTwo });
+    makePlan({ description: "Push Pull Legs", workouts: pplPlanArrayTwo });
   }
   return (
     <div className="flex justify-center">
       <button
-        className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full"
+        className="rounded-full bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-600"
         onClick={handleClick}
       >
         Use Recommended Plan
@@ -963,7 +1156,6 @@ function TestButton() {
     </div>
   );
 }
-
 
 interface display3Props {
   workoutPlan:
@@ -1084,15 +1276,19 @@ function WorkoutDisplay3({
   const { mutate: saveWorkoutDescription } =
     api.getWorkouts.updateWorkoutDescription.useMutation({
       onSuccess(data) {
-        console.log("updated description")
+        console.log("updated description");
         console.log(data);
       },
     });
-  function updateWorkoutDescription(description: string, workoutNumber: string, nominalDay: string){
-    console.log("descriptION: ", description)
-    console.log("workoutNumber: ", workoutNumber)
-    console.log("nominalDay: ", nominalDay)
-    
+  function updateWorkoutDescription(
+    description: string,
+    workoutNumber: string,
+    nominalDay: string
+  ) {
+    console.log("descriptION: ", description);
+    console.log("workoutNumber: ", workoutNumber);
+    console.log("nominalDay: ", nominalDay);
+
     setWorkoutPlan((prevWorkoutPlan) => {
       const updatedWorkoutPlan = [...(prevWorkoutPlan ?? [])];
       const workoutIndex = updatedWorkoutPlan.findIndex(
@@ -1104,7 +1300,7 @@ function WorkoutDisplay3({
           updatedWorkoutPlan[workoutIndex] = {
             ...workout,
             description: description,
-            nominalDay: nominalDay
+            nominalDay: nominalDay,
           };
         }
       }
@@ -1113,13 +1309,26 @@ function WorkoutDisplay3({
     //write to db
     saveWorkoutDescription({
       description: description,
-      workoutId: workoutNumber, 
-      nominalDay: nominalDay
-    })
+      workoutId: workoutNumber,
+      nominalDay: nominalDay,
+    });
+  }
+  function removeWorkoutFromDisplay(workoutId: string) {
+    console.log("remove: ", workoutId);
+    setWorkoutPlan((prevWorkoutPlan) => {
+      const updatedWorkoutPlan = [...(prevWorkoutPlan ?? [])];
+      const workoutIndex = updatedWorkoutPlan.findIndex(
+        (workout) => workout.workoutId === workoutId
+      );
+      if (workoutIndex !== -1) {
+        updatedWorkoutPlan.splice(workoutIndex, 1);
+      }
+      return updatedWorkoutPlan;
+    });
   }
 
   return (
-    <div className="flex flex-col items-center rounded-lg text-white bg-gray-700 my-1">
+    <div className="my-1 flex flex-col items-center rounded-lg bg-gray-700 text-white">
       {workoutPlan &&
         workoutPlan.map((workout, workoutNumber) => (
           <div key={"w" + workoutNumber.toString()} className="w-full">
@@ -1128,6 +1337,7 @@ function WorkoutDisplay3({
                 description={workout.description}
                 nominalDay={workout.nominalDay}
                 workoutNumber={workout.workoutId}
+                removeWorkoutFromDisplay={removeWorkoutFromDisplay}
                 updateDescription={updateWorkoutDescription}
               />
             </div>
@@ -1148,12 +1358,14 @@ function WorkoutDisplay3({
                 ))}
             </div>
             <div>
-              {!(workout.exercises.length > 0) && <EmptyExerciseDisplay
-                workoutNumber={workout.workoutId}
-                updatePlan={updateWorkoutPlan}
-                addExercise={addExercise}
-                key={workoutNumber.toString()}
-              />}
+              {!(workout.exercises.length > 0) && (
+                <EmptyExerciseDisplay
+                  workoutNumber={workout.workoutId}
+                  updatePlan={updateWorkoutPlan}
+                  addExercise={addExercise}
+                  key={workoutNumber.toString()}
+                />
+              )}
             </div>
             <br></br>
           </div>
@@ -1162,31 +1374,42 @@ function WorkoutDisplay3({
   );
 }
 
-interface WorkoutDescriptionProps{
-  description: string,
-  nominalDay: string,
-  workoutNumber: string,
-  updateDescription: (description: string, workoutNumber: string, nominalDay: string) => void
+interface WorkoutDescriptionProps {
+  description: string;
+  nominalDay: string;
+  workoutNumber: string;
+  removeWorkoutFromDisplay: (workoutId: string) => void;
+  updateDescription: (
+    description: string,
+    workoutNumber: string,
+    nominalDay: string
+  ) => void;
 }
 
-function WorkoutDescription( { updateDescription, workoutNumber, description, nominalDay}: WorkoutDescriptionProps){
+function WorkoutDescription({
+  removeWorkoutFromDisplay,
+  updateDescription,
+  workoutNumber,
+  description,
+  nominalDay,
+}: WorkoutDescriptionProps) {
   const [descriptionInputActive, setDescriptionInputActive] = useState(false);
-  const [workoutDescription, setWorkoutDescription] = useState(description)
+  const [workoutDescription, setWorkoutDescription] = useState(description);
   const [nominalDayInputActive, setNominalDayInputActive] = useState(false);
-  const [nominalDayInput, setNominalDayInput] = useState(nominalDay)
+  const [nominalDayInput, setNominalDayInput] = useState(nominalDay);
 
   const handleBlur = () => {
     if (description.length > 0) {
       setDescriptionInputActive(false);
     }
-    setNominalDayInputActive(false)
-    updateDescription(workoutDescription, workoutNumber, nominalDayInput)
+    setNominalDayInputActive(false);
+    updateDescription(workoutDescription, workoutNumber, nominalDayInput);
   };
   const handleDescriptionClick = () => {
     setDescriptionInputActive(true);
   };
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter" || event.key ==="Escape") {
+    if (event.key === "Enter" || event.key === "Escape") {
       handleBlur();
     }
   };
@@ -1206,76 +1429,84 @@ function WorkoutDescription( { updateDescription, workoutNumber, description, no
   ) => {
     const value = event.target.value;
     setNominalDayInput(value);
-    setNominalDayInputActive(false)
-    updateDescription(workoutDescription, workoutNumber, value)
+    setNominalDayInputActive(false);
+    updateDescription(workoutDescription, workoutNumber, value);
   };
-  const { mutate: deleteWorkout } = api.getWorkouts.removeWorkout.useMutation(
-    {onSuccess(data){
-      console.log(data)
-    }})
-  const handleRemoveWorkout = ()=>{
-    console.log("remove workout: ", workoutNumber)
-    deleteWorkout({workoutId: workoutNumber})
-  }
+  const { mutate: deleteWorkout } = api.getWorkouts.removeWorkout.useMutation({
+    onSuccess(data) {
+      console.log(data);
+    },
+  });
+  const handleRemoveWorkout = () => {
+    deleteWorkout({ workoutId: workoutNumber });
+    removeWorkoutFromDisplay(workoutNumber);
+  };
 
-  return(
-        <div className="flex items-center justify-center space-x-2">
-          {descriptionInputActive ? (
-          <input
-            type="text"
-            value={workoutDescription}
-            onChange={handleDescriptionChange}
-            onKeyDown={handleKeyDown}
-            onBlur={handleBlur}
-            className="rounded-md px-2 py-1 w-40 bg-gray-800 text-white focus:outline-none"
-            autoFocus
+  return (
+    <div className="flex items-center justify-center space-x-2">
+      {descriptionInputActive ? (
+        <input
+          type="text"
+          value={workoutDescription}
+          onChange={handleDescriptionChange}
+          onKeyDown={handleKeyDown}
+          onBlur={handleBlur}
+          className="w-40 rounded-md bg-gray-800 px-2 py-1 text-white focus:outline-none"
+          autoFocus
+        />
+      ) : (
+        <span
+          className="cursor-pointer rounded-md bg-gray-900 px-2 py-1 font-semibold text-white hover:bg-gray-500"
+          onClick={handleDescriptionClick}
+        >
+          {workoutDescription}
+        </span>
+      )}{" "}
+      {nominalDayInputActive ? (
+        <select
+          value={nominalDayInput}
+          onChange={handleNominalDayChange}
+          onBlur={handleBlur}
+          required
+          onSubmit={handleNominalDayChange}
+          className="rounded-md bg-gray-800 p-1 text-white focus:outline-none"
+        >
+          <option value="">Select Day</option>
+          <option value="Monday">Monday</option>
+          <option value="Tuesday">Tuesday</option>
+          <option value="Wednesday">Wednesday</option>
+          <option value="Thursday">Thursday</option>
+          <option value="Friday">Friday</option>
+          <option value="Saturday">Saturday</option>
+          <option value="Sunday">Sunday</option>
+        </select>
+      ) : (
+        <span
+          className="cursor-pointer rounded-md bg-gray-900 px-2 py-1 font-semibold text-white hover:bg-gray-500"
+          onClick={handleNominalDayClick}
+        >
+          {nominalDayInput}
+        </span>
+      )}
+      <button
+        onClick={handleRemoveWorkout}
+        className="inline-flex items-center rounded bg-red-600 px-2 py-1 font-bold text-white hover:bg-red-700"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-5 w-5"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M10 11.414L15.657 17.071l1.414-1.414L11.414 10l5.657-5.657L15.657 2.93 10 8.586 4.343 2.93 2.93 4.343 8.586 10l-5.657 5.657 1.414 1.414L10 11.414z"
+            clipRule="evenodd"
           />
-        ) : (
-          <span className="bg-gray-900 hover:bg-gray-500 text-white font-semibold cursor-pointer px-2 py-1 rounded-md" onClick={handleDescriptionClick}>{workoutDescription}
-          </span>
-        )} {" "}
-        {nominalDayInputActive ? ( 
-              <select
-                value={nominalDayInput}
-                onChange={handleNominalDayChange}
-                onBlur={handleBlur}
-                required
-                onSubmit={handleNominalDayChange}
-                className="rounded-md bg-gray-800 text-white p-1 focus:outline-none"
-              >
-                <option value="">Select Day</option>
-                <option value="Monday">Monday</option>
-                <option value="Tuesday">Tuesday</option>
-                <option value="Wednesday">Wednesday</option>
-                <option value="Thursday">Thursday</option>
-                <option value="Friday">Friday</option>
-                <option value="Saturday">Saturday</option>
-                <option value="Sunday">Sunday</option>
-              </select>
-        ) : (
-          <span
-          className="bg-gray-900 hover:bg-gray-500 font-semibold text-white cursor-pointer px-2 py-1 rounded-md"
-           onClick={handleNominalDayClick}>{nominalDayInput}</span>
-        )}
-  <button
-    onClick={handleRemoveWorkout}
-    className="inline-flex items-center rounded bg-red-600 px-2 py-1 font-bold text-white hover:bg-red-700"
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      className="h-5 w-5"
-      viewBox="0 0 20 20"
-      fill="currentColor"
-    >
-      <path
-        fillRule="evenodd"
-        d="M10 11.414L15.657 17.071l1.414-1.414L11.414 10l5.657-5.657L15.657 2.93 10 8.586 4.343 2.93 2.93 4.343 8.586 10l-5.657 5.657 1.414 1.414L10 11.414z"
-        clipRule="evenodd"
-      />
-    </svg>
-  </button>
+        </svg>
+      </button>
     </div>
-  )
+  );
 }
 interface EmptyExerciseDisplayProps {
   workoutNumber: string;
@@ -1320,7 +1551,6 @@ function EmptyExerciseDisplay({
     addExercise(workoutNumber, 0);
     recordNewExercise({ workoutId: workoutNumber });
   }
-
 
   return (
     <div key={workoutNumber + "empty"} className="m-1  bg-red-700">
@@ -1497,7 +1727,10 @@ function ExerciseDisplay({
   }, [sets, description]);
 
   return (
-    <div key={exercise.description} className="mx-1 my-1 rounded-lg bg-gray-900 p-2 text-white shadow-md">
+    <div
+      key={exercise.description}
+      className="mx-1 my-1 rounded-lg bg-gray-900 p-2 text-white shadow-md"
+    >
       <div className="flex items-center justify-center">
         {descriptionInputActive ? (
           <input
@@ -1549,18 +1782,18 @@ function ExerciseDisplay({
         ))}
       </div>
       <div className="flex justify-center">
-      <button
-        onClick={handleAddSet}
-        className="m-1 rounded bg-blue-500 px-1 py-1 font-bold text-white hover:bg-blue-700"
-      >
-        Add Set
-      </button>
-      <button
-        onClick={handleAddExercise}
-        className=" m-1 rounded bg-blue-500 px-1 py-1 font-bold text-white hover:bg-blue-700"
-      >
-        Add Exercise
-      </button>
+        <button
+          onClick={handleAddSet}
+          className="m-1 rounded bg-blue-500 px-1 py-1 font-bold text-white hover:bg-blue-700"
+        >
+          Add Set
+        </button>
+        <button
+          onClick={handleAddExercise}
+          className=" m-1 rounded bg-blue-500 px-1 py-1 font-bold text-white hover:bg-blue-700"
+        >
+          Add Exercise
+        </button>
       </div>
     </div>
   );
@@ -1676,7 +1909,7 @@ function SetDisplay({
   }
 
   return (
-    <div className="m-1 rounded-lg bg-gray-800 px-2 py-1 text-white shadow-md flex flex-auto justify-center space-x-2">
+    <div className="m-1 flex flex-auto justify-center space-x-2 rounded-lg bg-gray-800 px-2 py-1 text-white shadow-md">
       {weightInputActive ? (
         <input
           type="number"
@@ -1714,7 +1947,7 @@ function SetDisplay({
           {reps} reps
         </span>
       )}
-        <div className="w-.75 inline-block" />@
+      <div className="w-.75 inline-block" />@
       {rirInputActive ? (
         <input
           type="number"
@@ -1733,25 +1966,23 @@ function SetDisplay({
           {rir} RIR
         </span>
       )}
-
-
-  <button
-    onClick={handleRemoveSet}
-    className="inline-flex items-center rounded bg-red-600 px-2 py-1 font-bold text-white hover:bg-red-700"
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      className="h-5 w-5"
-      viewBox="0 0 20 20"
-      fill="currentColor"
-    >
-      <path
-        fillRule="evenodd"
-        d="M10 11.414L15.657 17.071l1.414-1.414L11.414 10l5.657-5.657L15.657 2.93 10 8.586 4.343 2.93 2.93 4.343 8.586 10l-5.657 5.657 1.414 1.414L10 11.414z"
-        clipRule="evenodd"
-      />
-    </svg>
-  </button>
+      <button
+        onClick={handleRemoveSet}
+        className="inline-flex items-center rounded bg-red-600 px-2 py-1 font-bold text-white hover:bg-red-700"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-5 w-5"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M10 11.414L15.657 17.071l1.414-1.414L11.414 10l5.657-5.657L15.657 2.93 10 8.586 4.343 2.93 2.93 4.343 8.586 10l-5.657 5.657 1.414 1.414L10 11.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </button>
     </div>
   );
 }
