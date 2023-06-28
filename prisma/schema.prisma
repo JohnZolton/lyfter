@@ -164,6 +164,7 @@ model WorkoutPlanTwo {
   planId  String    @id @default(cuid())
   date       DateTime   @default(now())
   userId String
+  description String
   workouts ActualWorkout[]
   @@index([userId, planId])
 }
@@ -178,6 +179,9 @@ model ActualWorkout {
   workoutNumber Int?
   planId String?
   plan WorkoutPlanTwo? @relation(fields: [planId], references: [planId], onDelete: Cascade)
+  priorWorkoutId String? @unique
+  priorWorkout ActualWorkout? @relation("WorkoutRelations", fields: [priorWorkoutId], references: [workoutId], onDelete: NoAction,onUpdate: NoAction)
+  nextWorkout ActualWorkout? @relation("WorkoutRelations")
 
   @@index([userId])
   @@index([date])

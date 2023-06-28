@@ -50,6 +50,39 @@ export const getAllWorkouts = createTRPCRouter({
     return workouts;
   }),
 
+  getWorkoutByWorkoutId: privateProcedure
+    .input(
+      z.object({
+        workoutId: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const workout = await ctx.prisma.actualWorkout.findFirst({
+        where: {
+          workoutId: input.workoutId,
+        },
+        include: {
+          exercises: {
+            include: { sets: true },
+            orderBy: { date: "asc" },
+          },
+          priorWorkout: {
+            include: {
+              exercises: {
+                include: { sets: true}
+              }
+            }
+          }
+        },
+      });
+      if (!workout) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "No workout with that User",
+        });
+      }
+      return workout;
+    }),
   getPreviousWorkout: privateProcedure
     .input(
       z.object({
@@ -344,6 +377,7 @@ export const getAllWorkouts = createTRPCRouter({
   newTestPlanTwo: privateProcedure
     .input(
       z.object({
+        description: z.string(),
         workouts: z.array(
           z.object({
             description: z.string(),
@@ -371,6 +405,7 @@ export const getAllWorkouts = createTRPCRouter({
       const plan = await ctx.prisma.workoutPlanTwo.create({
         data: {
           userId: ctx.userId,
+          description: input.description,
           workouts: {
             create: workouts.map((workout) => ({
               nominalDay: workout.nominalDay,
@@ -418,7 +453,7 @@ export const getAllWorkouts = createTRPCRouter({
         userId: ctx.userId,
       },
       orderBy: [{ date: "desc" }],
-      take: 7,
+      take: 10,
       include: {
         workouts: {
           include: {
