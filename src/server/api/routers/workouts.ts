@@ -83,6 +83,7 @@ export const getAllWorkouts = createTRPCRouter({
       }
       return workout;
     }),
+
   getPreviousWorkout: privateProcedure
     .input(
       z.object({
@@ -411,6 +412,7 @@ export const getAllWorkouts = createTRPCRouter({
               nominalDay: workout.nominalDay,
               userId: ctx.userId,
               description: workout.description,
+              workoutNumber: 0,
               exercises: {
                 create: workout.exercises.map((exercise) => ({
                   description: exercise.description,
@@ -657,24 +659,18 @@ export const getAllWorkouts = createTRPCRouter({
     }),
 
   getUniqueWeekWorkouts: privateProcedure.query(async ({ ctx }) => {
+    const oneWeekAgo = new Date()
+    oneWeekAgo.setDate(oneWeekAgo.getDate()-7)
+
     const workouts = await ctx.prisma.actualWorkout.findMany({
       where: {
         userId: ctx.userId,
-        nominalDay: {
-          in: [
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-            "Sunday",
-          ],
-        },
+        date: {
+          gte: oneWeekAgo,
+        }
       },
       include: { exercises: { include: { sets: true } } },
       orderBy: [{ date: "asc" }],
-      take: 7,
     });
     if (!workouts) {
       throw new TRPCError({
@@ -709,7 +705,10 @@ export const getAllWorkouts = createTRPCRouter({
     .input(
       z.object({
         description: z.string(),
+        priorWorkoutId: z.string(),
+        workoutNumber: z.number(),
         nominalDay: z.string(),
+        planId: z.string(),
         exercises: z.array(
           z.object({
             description: z.string(),
@@ -731,7 +730,9 @@ export const getAllWorkouts = createTRPCRouter({
           userId: ctx.userId,
           description: input.description,
           nominalDay: input.nominalDay,
-          workoutNumber: 0,
+          workoutNumber: input.workoutNumber,
+          priorWorkoutId: input.priorWorkoutId,
+          planId: input.planId,
           exercises: {
             create: input.exercises.map((exercise) => ({
               description: exercise.description,

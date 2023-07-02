@@ -41,7 +41,7 @@ import { useRouter } from "next/router";
 import { describe } from "node:test";
 import { TEMPORARY_REDIRECT_STATUS } from "next/dist/shared/lib/constants";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faThumbsDown, faCheck } from "@fortawesome/free-solid-svg-icons";
+import { faThumbsDown, faCheck, faNetworkWired } from "@fortawesome/free-solid-svg-icons";
 
 const Home: NextPage = () => {
   return (
@@ -104,9 +104,60 @@ const Home: NextPage = () => {
 export default Home;
 
 function WorkoutUiHandler() {
-  const [workoutId, setWorkoutId] = useState("");
+  const [workoutPlan, setWorkoutPlan] = useState<
+    | (ActualWorkout & {
+        exercises: (ActualExercise & {
+          sets: exerciseSet[];
+        })[];
+      })[]
+    | undefined
+  >();
+  const [todaysWorkout, setTodaysWorkout] = useState<
+    | (ActualWorkout & {
+        exercises: (ActualExercise & {
+          sets: exerciseSet[];
+        })[];
+      })
+    | undefined
+  >();
+  const { data: userWorkoutPlan, isLoading } =
+    api.getWorkouts.getUniqueWeekWorkouts.useQuery();
+  if (!workoutPlan && userWorkoutPlan){
+    setWorkoutPlan(sortWorkoutsByNominalDay(userWorkoutPlan))
+  }
 
-  if (!workoutId) {
+  function sortWorkoutsByNominalDay(workouts: (ActualWorkout & {
+    exercises: (ActualExercise & {
+        sets: exerciseSet[];
+    })[];
+})[]) {
+    const daysOfWeek = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    workouts.sort((a, b) => {
+      const dayA = daysOfWeek.indexOf(a.nominalDay);
+      const dayB = daysOfWeek.indexOf(b.nominalDay);
+      return dayA - dayB;
+    });
+    return workouts;
+  }
+
+  if (isLoading){
+    return(
+      <div>loading</div>
+    )
+  }
+  function endWorkout(){
+    setTodaysWorkout(undefined)
+  }
+
+  if (!todaysWorkout && userWorkoutPlan) {
     return (
       <div
         style={{ maxWidth: "600px", margin: "0 auto" }}
@@ -115,32 +166,40 @@ function WorkoutUiHandler() {
         <div className="mb-4 text-center text-2xl font-bold text-slate-300">
           Current Workouts:
         </div>
-        <SelectDay setWorkoutId={setWorkoutId} />
+        <SelectDay 
+        userWorkoutPlan={workoutPlan}
+        setTodaysWorkout={setTodaysWorkout}
+        />
       </div>
     );
   } else {
     return (
       <div className="rounded-lg text-white shadow-md">
-        <WorkoutUi endWorkout={setWorkoutId} workoutId={workoutId} />
+        <WorkoutUi 
+          endWorkout={endWorkout} 
+          todaysWorkout={todaysWorkout}
+          setTodaysWorkout={setTodaysWorkout} 
+        />
       </div>
     );
   }
 }
 interface WorkoutUiProps {
-  workoutId: string;
+  todaysWorkout: (ActualWorkout & {
+    exercises: (ActualExercise & {
+        sets: exerciseSet[];
+    })[];
+}) | undefined
   endWorkout: React.Dispatch<React.SetStateAction<string>>;
+  setTodaysWorkout: React.Dispatch<React.SetStateAction<(ActualWorkout & {
+    exercises: (ActualExercise & {
+        sets: exerciseSet[];
+    })[];
+}) | undefined>>
 }
 
-function WorkoutUi({ workoutId, endWorkout }: WorkoutUiProps) {
+function WorkoutUi({ todaysWorkout, setTodaysWorkout, endWorkout }: WorkoutUiProps) {
   //for now, just show todays workout today===nominalDay
-  const [todaysWorkout, setTodaysWorkout] = useState<
-    | (ActualWorkout & {
-        exercises: (ActualExercise & {
-          sets: exerciseSet[];
-        })[];
-      })[]
-    | undefined
-  >();
 
   const today = new Date();
   const weekdays = [
@@ -159,18 +218,14 @@ function WorkoutUi({ workoutId, endWorkout }: WorkoutUiProps) {
   const { mutate: saveWorkout, isLoading } =
     api.getWorkouts.createNewWorkoutFromPrevious.useMutation({
       onSuccess(data, variables, context) {
-        setTodaysWorkout([data]);
+        setTodaysWorkout(data);
       },
     });
-  const { data: priorWorkout, isLoading: workoutsLoading } =
-    api.getWorkouts.getWorkoutByWorkoutId.useQuery({
-      workoutId: workoutId,
-    });
 
-  if (workoutId) {
+  if (todaysWorkout) {
     const priorSetsArray: exerciseSet[] = [];
-    if (priorWorkout && !todaysWorkout && priorSetsArray.length === 0) {
-      priorWorkout.exercises.map((exercise) => {
+    if (todaysWorkout && priorSetsArray.length === 0) {
+      todaysWorkout.exercises.map((exercise) => {
         exercise.sets.map((set) => {
           priorSetsArray.push(set);
         });
@@ -178,29 +233,26 @@ function WorkoutUi({ workoutId, endWorkout }: WorkoutUiProps) {
       setLastSetsArray(priorSetsArray);
     }
 
-    if (priorWorkout && priorWorkout && !todaysWorkout) {
-      setTodaysWorkout([priorWorkout]);
-      console.log(priorWorkout.date);
-      const oneWeek = 6 * 24 * 60 * 60 * 1000;
-      let isNewWorkoutCreated = false;
-      if (today.getTime() - priorWorkout.date.getTime() > oneWeek) {
-        if (!isNewWorkoutCreated) {
-          //flag variable to avoid firing multiple times
-          isNewWorkoutCreated = true;
-          console.log("need new workout"); // i think its refreshing too fast and making double entries
-          console.log(priorWorkout.date);
-          console.log(today);
+    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+    let isNewWorkoutCreated = false //flag variable to avoid firing multiple times
+    if (today.getTime() - todaysWorkout.date.getTime() > oneWeek) {
+    //if (today.getTime() - priorWorkout.date.getTime() > oneWeek) {
+      if (!isNewWorkoutCreated) {
+        isNewWorkoutCreated = true;
+        console.log("need new workout"); 
 
-          const newWorkout = {
-            ...priorWorkout,
-            date: today,
-            exercises: priorWorkout.exercises.map((exercise) => ({
-              ...exercise,
-              description: exercise.description,
-            })),
-          };
-          saveWorkout(newWorkout);
-        }
+        const newWorkout = {
+          ...todaysWorkout,
+          date: today,
+          priorWorkoutId: todaysWorkout.workoutId,
+          planId: todaysWorkout.planId ?? "none",
+          workoutNumber: todaysWorkout.workoutNumber ?? 0,
+          exercises: todaysWorkout.exercises.map((exercise) => ({
+            ...exercise,
+            description: exercise.description,
+          })),
+        };
+        saveWorkout(newWorkout);
       }
     }
   }
@@ -223,39 +275,24 @@ function WorkoutUi({ workoutId, endWorkout }: WorkoutUiProps) {
 }
 
 interface SelectDayProps {
-  setWorkoutId: React.Dispatch<React.SetStateAction<string>>;
+  setTodaysWorkout: React.Dispatch<React.SetStateAction<(ActualWorkout & {
+    exercises: (ActualExercise & {
+        sets: exerciseSet[];
+    })[];
+}) | undefined>>;
+userWorkoutPlan: (ActualWorkout & {
+    exercises: (ActualExercise & {
+        sets: exerciseSet[];
+    })[];
+})[] | undefined
 }
 
-function SelectDay({ setWorkoutId }: SelectDayProps) {
-  const { data: userWorkoutPlan, isLoading } =
-    api.getWorkouts.getUniqueWeekWorkouts.useQuery();
-  function handleSelectWorkout(workoutId: string) {
-    if (workoutId !== "none") {
-      setWorkoutId(workoutId);
-    }
-  }
-  function sortWorkoutsByNominalDay(workouts: ActualWorkout[]) {
-    const daysOfWeek = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ];
-    workouts.sort((a, b) => {
-      const dayA = daysOfWeek.indexOf(a.nominalDay);
-      const dayB = daysOfWeek.indexOf(b.nominalDay);
-      return dayA - dayB;
-    });
-    return workouts;
-  }
+function SelectDay({ userWorkoutPlan, setTodaysWorkout }: SelectDayProps) {
 
   return (
     <div className="rounded-lg bg-gray-900 p-4 text-white shadow-md">
       {userWorkoutPlan &&
-        sortWorkoutsByNominalDay(userWorkoutPlan).map((workout) => (
+        userWorkoutPlan.map((workout) => (
           <div
             key={workout.workoutId}
             className="my-2 flex items-center justify-between"
@@ -266,10 +303,9 @@ function SelectDay({ setWorkoutId }: SelectDayProps) {
             <button
               value={workout.nominalDay}
               className="m-1 inline-flex items-center rounded bg-green-600 px-2 py-1 font-bold text-white hover:bg-green-500"
-              onClick={() =>
-                handleSelectWorkout(
-                  workout.workoutId ? workout.workoutId : "none"
-                )
+              onClick={() => {
+                setTodaysWorkout(workout)
+              }
               }
             >
               Begin
@@ -304,7 +340,7 @@ interface display3Props {
         exercises: (ActualExercise & {
           sets: exerciseSet[];
         })[];
-      })[]
+      })
     | undefined;
   setWorkoutPlan: React.Dispatch<
     React.SetStateAction<
@@ -312,7 +348,7 @@ interface display3Props {
           exercises: (ActualExercise & {
             sets: exerciseSet[];
           })[];
-        })[]
+        })
       | undefined
     >
   >;
@@ -331,41 +367,38 @@ function WorkoutDisplay3({
     workoutId: string,
     exerciseId: string
   ) {
-    if (workoutPlan) {
+    if (workoutPlan && workoutPlan.exercises) {
       //exercise in workout to update
       setWorkoutPlan((prevWorkoutPlan) => {
-        const newWorkoutPlan = [...(prevWorkoutPlan ?? [])];
-        const workoutIndex = newWorkoutPlan.findIndex(
-          (workout) => workout.workoutId === workoutId
-        );
-        if (workoutIndex !== -1) {
-          const workout = newWorkoutPlan[workoutIndex];
-          if (workout && newWorkoutPlan[workoutIndex] !== undefined) {
-            const exerciseIndex = workout.exercises.findIndex(
+        if (!prevWorkoutPlan){
+          return prevWorkoutPlan
+        }
+        const newWorkout = {...prevWorkoutPlan}
+        newWorkout.exercises = [...newWorkout.exercises]
+          if (newWorkout) {
+            const exerciseIndex = newWorkout.exercises.findIndex(
               (oldExercise) => oldExercise.exerciseId === exerciseId
             );
             if (exerciseIndex !== -1) {
-              newWorkoutPlan[workoutIndex]!.exercises[exerciseIndex] = exercise;
+              newWorkout.exercises[exerciseIndex] = exercise;
             }
-          }
         }
-        return newWorkoutPlan;
+        return newWorkout;
       });
     }
   }
 
   function removeExercise(workoutNumber: string, exerciseId: string) {
     setWorkoutPlan((prevWorkoutPlan) => {
-      const updateWorkoutPlan = prevWorkoutPlan?.map((workout) => {
-        const updatedExercises = workout.exercises.filter(
-          (exercise) => exercise.exerciseId !== exerciseId
-        );
-        return { ...workout, exercises: updatedExercises };
-      });
-      console.log(updateWorkoutPlan);
-      return updateWorkoutPlan;
-    });
-  }
+      if (prevWorkoutPlan){
+      const updatedWorkoutPlan = {...prevWorkoutPlan}
+      const updatedExercises = prevWorkoutPlan?.exercises.filter(
+        (exercise) => exercise.exerciseId !== exerciseId
+      )
+      return {...prevWorkoutPlan, exercises: updatedExercises}
+      }
+    })
+    };
 
   function addExercise(workoutNumber: string, exerciseIndex: number) {
     console.log("workout", workoutNumber);
@@ -375,8 +408,7 @@ function WorkoutDisplay3({
       description: "New Exercise",
       exerciseId: tempExerciseId,
       date: new Date(),
-      workoutId:
-        workoutPlan && workoutPlan[0] ? workoutPlan[0].workoutId : "none",
+      workoutId: workoutPlan ? workoutPlan.workoutId : "none",
       previousExerciseId: null,
       nextExerciseId: null,
       sets: [
@@ -393,23 +425,18 @@ function WorkoutDisplay3({
     };
 
     setWorkoutPlan((prevWorkoutPlan) => {
-      const updatedWorkoutPlan = [...(prevWorkoutPlan ?? [])];
-      const workoutIndex = updatedWorkoutPlan.findIndex(
-        (workout) => workout.workoutId === workoutNumber
-      );
-      if (workoutIndex !== -1) {
-        const workout = updatedWorkoutPlan[workoutIndex];
-        if (workout) {
-          const newExercises = [
-            ...workout.exercises.slice(0, exerciseIndex + 1),
-            newExercise,
-            ...workout.exercises.slice(exerciseIndex + 1),
-          ];
-          updatedWorkoutPlan[workoutIndex] = {
-            ...workout,
-            exercises: newExercises,
-          };
-        }
+      if (!prevWorkoutPlan){
+        return prevWorkoutPlan
+      }
+
+      const updatedWorkoutPlan = {...prevWorkoutPlan};
+      if (updatedWorkoutPlan && updatedWorkoutPlan.exercises) {
+        const newExercises = [
+          ...updatedWorkoutPlan.exercises.slice(0, exerciseIndex + 1),
+          newExercise,
+          ...updatedWorkoutPlan.exercises.slice(exerciseIndex + 1),
+        ];
+        updatedWorkoutPlan.exercises = newExercises
       }
       return updatedWorkoutPlan;
     });
@@ -418,36 +445,33 @@ function WorkoutDisplay3({
   return (
     <div className="flex flex-col items-center rounded-lg text-white">
       {workoutPlan &&
-        workoutPlan.map((workout, workoutNumber) => (
-          <div key={"w" + workoutNumber.toString()} className="w-full">
-            <div>
+          (<div key={"w" + workoutPlan.workoutId.toString()} className="w-full">
               <div className=" pt-1  text-center text-2xl font-semibold text-gray-300">
-                {workout.description}: {workout.nominalDay}
+                {workoutPlan.description}: {workoutPlan.nominalDay}
               </div>
-            </div>
             <div className="flex flex-col items-center">
-              {workout.exercises &&
-                workout.exercises.map((exercise, exerciseNumber) => (
+              {workoutPlan.exercises &&
+                workoutPlan.exercises.map((exercise, exerciseNumber) => (
                   <div
                     className=" rounded-lg p-1"
                     key={exercise.exerciseId.toString()}
                   >
                     <ExerciseDisplay
                       removeExercise={removeExercise}
-                      workoutNumber={workout.workoutId}
+                      workoutNumber={workoutPlan.workoutId}
                       exerciseNumber={exercise.exerciseId}
                       exerciseIndex={exerciseNumber}
                       priorSetsArray={priorSetsArray}
                       updatePlan={updateWorkoutPlan}
                       addExercise={addExercise}
-                      key={workoutNumber.toString() + exerciseNumber.toString()}
+                      key={ workoutPlan.workoutNumber ? workoutPlan.workoutNumber.toString() : "none" + exerciseNumber.toString()}
                       exercise={exercise}
                     />
                   </div>
                 ))}
             </div>
           </div>
-        ))}
+        )}
     </div>
   );
 }
