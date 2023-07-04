@@ -178,7 +178,7 @@ function WorkoutDisplay( {plan} : WorkoutDisplayProps){
                 <div key={workout.description}>
                     <div>{workout.description}: {workout.nominalDay}</div>
                 <div>{workout.exercises.map((exercise) => (
-                    <div>{exercise.description}</div>
+                    <div key={exercise.description}>{exercise.description}</div>
                 ))}</div>
                 </div>
             )
