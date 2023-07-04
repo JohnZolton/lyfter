@@ -669,7 +669,8 @@ export const getAllWorkouts = createTRPCRouter({
           gte: oneWeekAgo,
         }
       },
-      include: { exercises: { include: { sets: true } } },
+      include: { exercises: { include: { sets: {include: {priorSet: true}} } }
+    },
       orderBy: [{ date: "asc" }],
     });
     if (!workouts) {
@@ -750,9 +751,20 @@ export const getAllWorkouts = createTRPCRouter({
         include: {
           exercises: {
             include: {
-              sets: true,
+              sets: {
+                include: { priorSet: true}
+              },
             },
           },
+          priorWorkout: {
+            include: {
+            exercises: {
+              include: {
+                sets: true
+              }
+            }
+            }
+          }
         },
       });
       return savedWorkout;

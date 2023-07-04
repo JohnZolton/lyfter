@@ -214,7 +214,9 @@ model exerciseSet {
   reps Int
   rir Int
   exercise  ActualExercise  @relation(fields: [exerciseId], references: [exerciseId], onDelete: Cascade)
-  lastSetId String?
+  lastSetId String? @unique
+  priorSet exerciseSet? @relation("SetRelation", fields: [lastSetId], references: [setId], onDelete: NoAction,onUpdate: NoAction)
+  nextSet exerciseSet? @relation("SetRelation")
 
   @@index([exerciseId, setId])
 }
