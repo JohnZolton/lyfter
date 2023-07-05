@@ -225,7 +225,7 @@ function WorkoutUi({ todaysWorkout, setTodaysWorkout, endWorkout }: WorkoutUiPro
       onSuccess(data, variables, context) {
         setTodaysWorkout(data);
       },
-    });
+    });  
   
   useEffect(()=>{
   if (todaysWorkout) {
