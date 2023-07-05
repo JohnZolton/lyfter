@@ -9,6 +9,7 @@ import React, {
   useRef,
   useEffect,
   HtmlHTMLAttributes,
+  useDebugValue,
 } from "react";
 import {
   ClerkProvider,
@@ -158,11 +159,8 @@ WorkoutPlan
 
   return (
     <div className="flex flex-col items-center rounded-lg text-white">
-        <WorkoutPlanDisplay plan={workoutPlan} setPlan={setWorkoutPlan}/>
-        <WorkoutDescriptionForm updateDescription={updatePlanDescription}/>
-        <WorkoutDayForm 
-            addWorkout={addWorkoutToNewPlan}
-        />
+        {!workoutPlan?.description && <WorkoutDescriptionForm updateDescription={updatePlanDescription}/>}
+        {workoutPlan?.description && <WorkoutPlanDisplay addWorkout={addWorkoutToNewPlan}plan={workoutPlan} setPlan={setWorkoutPlan}/>}
         {workoutPlan && <SaveButton />}
     </div>
   );
@@ -231,13 +229,18 @@ interface WorkoutDayFormProps {
 function WorkoutDayForm({ addWorkout }: WorkoutDayFormProps) {
   const [dayDescription, setDayDescription] = useState("");
   const [nominalDay, setNominalDay] = useState("");
-  const [showAddExercises, setShowAddExercises] = useState(false);
 
 
-  function handleAddExercises() {
-    console.log(dayDescription, nominalDay);
+  function handleAddExercises(event: React.FormEvent) {
+    event.preventDefault()
     if (dayDescription && nominalDay) {
-      setShowAddExercises(true);
+      const newWorkout: WorkoutTemplate = {
+        workoutId: createUniqueId(),
+        exercises: [],
+        description: dayDescription,
+        nominalDay: nominalDay
+      }
+      addWorkout(newWorkout)
     }
   }
   function updateWorkoutPlan(exercises: ExerciseTemplate[]) {
@@ -257,7 +260,6 @@ function WorkoutDayForm({ addWorkout }: WorkoutDayFormProps) {
       //}
 
       //addWorkout(newWorkoutPlan);
-      setShowAddExercises(false);
       setDayDescription("");
       setNominalDay("");
     }
@@ -266,13 +268,13 @@ function WorkoutDayForm({ addWorkout }: WorkoutDayFormProps) {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      {!showAddExercises && (
         <form onSubmit={handleAddExercises}>
           <div className="space-y-5">
             <div className="rounded-lg bg-gray-900 p-5 text-white">
               <label className="font-bold">Day Description:</label>
               <input
                 required
+                autoFocus
                 ref={inputRef}
                 value={dayDescription}
                 onChange={(event) => setDayDescription(event.target.value)}
@@ -306,13 +308,6 @@ function WorkoutDayForm({ addWorkout }: WorkoutDayFormProps) {
             </div>
           </div>
         </form>
-      )}
-      <br></br>
-      {showAddExercises && <AddExerciseForm 
-      description={dayDescription}
-      nominalDay={nominalDay}
-      updatePlan={updateWorkoutPlan} />}
-      <br></br>
     </div>
   );
 }
@@ -503,13 +498,33 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
 interface workoutPlanDisplayProps {
 plan: WorkoutPlan | undefined; 
 setPlan: React.Dispatch<React.SetStateAction<WorkoutPlan | undefined>>
+  addWorkout: (workout: WorkoutTemplate) => void
 }
 function WorkoutPlanDisplay({
   plan,
   setPlan,
+  addWorkout,
 }: workoutPlanDisplayProps) {
   console.log("workoutplan: ");
   console.log(plan);
+  
+  const [addingDay, setAddingDay] = useState(true)
+  const [readyAddDay, setReadyAddDay] = useState(false)
+
+  function updateWorkout(updatedWorkout: WorkoutTemplate, workoutIndex: number){
+    console.log("yes")
+    if (updatedWorkout && plan?.workouts){
+      const updatedPlan = {...plan}
+      updatedPlan.workouts[workoutIndex] = updatedWorkout
+      setPlan(updatedPlan)
+    }
+  }
+
+  function handleAddDay(workout: WorkoutTemplate){
+    addWorkout(workout)
+    setAddingDay(false)
+    setReadyAddDay(true)
+  }
 
 
   return (
@@ -526,9 +541,16 @@ function WorkoutPlanDisplay({
                     className=" rounded-lg p-1"
                     key={workout.description + workoutNumber.toString()}
                   >
-                    <IndividualWorkoutDisplay workout={workout}/>
+                    <IndividualWorkoutDisplay workoutIndex={workoutNumber} updatePlan={setPlan} plan={plan} workout={workout} updateWorkout={updateWorkout}/>
                   </div>
                 ))}
+            </div>
+            {readyAddDay && <button
+              className="mt-4 rounded bg-green-600 px-2 py-1 font-bold text-white hover:bg-green-700"
+              onClick={()=> (setAddingDay(true), setReadyAddDay(false))}
+            >Add Day</button>}
+            <div>
+              {addingDay && <WorkoutDayForm addWorkout={handleAddDay}/>}
             </div>
           </div>
         )}
@@ -537,23 +559,77 @@ function WorkoutPlanDisplay({
 }
 
 
+
 interface IndividualWorkoutDisplay {
-  workout: WorkoutTemplate
+  workout: WorkoutTemplate;
+  updateWorkout: (updatedWorkout: WorkoutTemplate, workoutIndex: any) => void
+  plan: WorkoutPlan;
+  updatePlan: React.Dispatch<React.SetStateAction<WorkoutPlan | undefined>>
+  workoutIndex: number
 }
 
 
 function IndividualWorkoutDisplay({
-workout
+workout, updatePlan, plan, updateWorkout, workoutIndex
 }: IndividualWorkoutDisplay) {
+  const [initialExercise, setInitialExercise] = useState("")
+  const handleDescriptionChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = event.target.value;
+    setInitialExercise(value);
+  };
+  function handleFirstExercise(event: React.FormEvent){
+    event.preventDefault()
+    if (initialExercise){
+      const newExercise: ExerciseTemplate = {
+        id: createUniqueId(),
+        description: initialExercise,
+        sets: [emptySet]
+      }
+      const updatedWorkout = {...workout}
+      updatedWorkout.exercises = [newExercise]
+      updateWorkout(updatedWorkout, workoutIndex)
+    }
+  }
+
+  function updateWorkoutExercises(exercises: ExerciseTemplate[]){
+    if (exercises){
+    console.log(exercises)
+    const updatedWorkout = {...workout, exercises: exercises}
+    const workoutIndex = plan.workouts.findIndex(
+      (workout)=>(workout === workout)
+      )
+    if (workoutIndex !== -1){
+      const updatedPlan = {...plan}
+      updatedPlan.workouts[workoutIndex] = updatedWorkout
+      updatePlan(updatedPlan)
+    }
+    }
+
+  }
 
   return (
     <div className="flex flex-col items-center rounded-lg text-white">
+
       {workout &&
           (<div key={"w" + workout.description} className="w-full">
               <div className=" pt-1  text-center text-2xl font-semibold text-slate-300">
                 {workout.description}: {workout.nominalDay}
               </div>
             <div className="flex flex-col items-center">
+              {workout.exercises.length===0 &&
+              <form onSubmit={handleFirstExercise}>
+                <label>Exercise: </label>
+                <input
+                  type="text"
+                  value={initialExercise}
+                  onChange={handleDescriptionChange}
+                  className="rounded-lg bg-slate-700 px-2 py-1 text-white focus:outline-none"
+                  autoFocus
+                />
+              </form>
+              }
               {workout.exercises &&
                 workout.exercises.map((exercise, exerciseNumber) => (
                   <div
@@ -562,6 +638,11 @@ workout
                   >
                     <ExercisePlanDisplay
                       exercise={exercise}
+                      workout={workout}
+                      updatePlan={updatePlan}
+                      updateWorkout={updateWorkout}
+                      plan={plan}
+                      workoutIndex={workoutIndex}
                     />
                   </div>
                 ))}
@@ -576,10 +657,15 @@ workout
 
 interface ExercisePlanDisplayProps {
 exercise: ExerciseTemplate
+  workout: WorkoutTemplate;
+  updateWorkout: (updatedWorkout: WorkoutTemplate, workoutIndex: any) => void
+  plan: WorkoutPlan;
+  updatePlan: React.Dispatch<React.SetStateAction<WorkoutPlan | undefined>>
+  workoutIndex: number
 }
 
 function ExercisePlanDisplay({
-exercise
+exercise, workout, updateWorkout, plan, updatePlan, workoutIndex
 }: ExercisePlanDisplayProps) {
   const [description, setDescription] = useState(exercise.description);
   const [sets, setSets] = useState<SetTemplate[]>(exercise.sets);
