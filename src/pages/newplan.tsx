@@ -156,9 +156,21 @@ WorkoutPlan
     }
     setWorkoutPlan(newWorkoutPlan)
   }
+  const { mutate: saveNewWorkout } =
+    api.getWorkouts.newTestPlanTwo.useMutation({
+      onSuccess(data) {
+        console.log(data);
+      },
+    });
 
   function saveWorkoutPlan(){
     console.log(workoutPlan)
+    if(workoutPlan && workoutPlan.description !=="" && workoutPlan.description){
+      saveNewWorkout({
+        description: workoutPlan.description,
+        workouts: [...workoutPlan.workouts]
+      })
+    }
   }
 
   return (
