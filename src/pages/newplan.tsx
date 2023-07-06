@@ -157,19 +157,27 @@ WorkoutPlan
     setWorkoutPlan(newWorkoutPlan)
   }
 
+  function saveWorkoutPlan(){
+    console.log(workoutPlan)
+  }
+
   return (
     <div className="flex flex-col items-center rounded-lg text-white">
         {!workoutPlan?.description && <WorkoutDescriptionForm updateDescription={updatePlanDescription}/>}
         {workoutPlan?.description && <WorkoutPlanDisplay addWorkout={addWorkoutToNewPlan}plan={workoutPlan} setPlan={setWorkoutPlan}/>}
-        {workoutPlan && <SaveButton />}
+        {workoutPlan && <SaveButton save={saveWorkoutPlan}/>}
     </div>
   );
 }
 
-function SaveButton(){
+interface SaveButtonProps {
+  save: ()=>void
+}
+function SaveButton({save}:  SaveButtonProps){
     return(<div>
         <button
         className="mt-4 rounded bg-green-600 px-2 py-1 font-bold text-white hover:bg-green-700"
+        onClick={()=>save()}
         >
             Save Plan
         </button>
@@ -481,15 +489,6 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
             </div>
           </div>
         </div>
-
-        <div className="flex justify-center">
-          <button
-            type="submit"
-            className="mt-4 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
-          >
-            Add Exercise
-          </button>
-        </div>
       </form>
     </div>
   );
@@ -545,10 +544,12 @@ function WorkoutPlanDisplay({
                   </div>
                 ))}
             </div>
+            <div className="flex flex-col items-center">
             {readyAddDay && <button
               className="mt-4 rounded bg-green-600 px-2 py-1 font-bold text-white hover:bg-green-700"
               onClick={()=> (setAddingDay(true), setReadyAddDay(false))}
             >Add Day</button>}
+            </div>
             <div>
               {addingDay && <WorkoutDayForm addWorkout={handleAddDay}/>}
             </div>
@@ -572,45 +573,35 @@ interface IndividualWorkoutDisplay {
 function IndividualWorkoutDisplay({
 workout, updatePlan, plan, updateWorkout, workoutIndex
 }: IndividualWorkoutDisplay) {
-  const [initialExercise, setInitialExercise] = useState("")
+  const [newExerciseDescription, setNewExerciseDescription] = useState("")
+  const [addingExercise, setAddingExercise] = useState(true)
   const handleDescriptionChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const value = event.target.value;
-    setInitialExercise(value);
+    setNewExerciseDescription(value);
   };
-  function handleFirstExercise(event: React.FormEvent){
+  function handleAddExercise(event: React.FormEvent){
     event.preventDefault()
-    if (initialExercise){
+    setAddingExercise(false)
+    setNewExerciseDescription("")
+    if (newExerciseDescription){
       const newExercise: ExerciseTemplate = {
         id: createUniqueId(),
-        description: initialExercise,
+        description: newExerciseDescription,
         sets: [emptySet]
       }
       const updatedWorkout = {...workout}
-      updatedWorkout.exercises = [newExercise]
-      updateWorkout(updatedWorkout, workoutIndex)
+      updatedWorkout.exercises = updatedWorkout.exercises? [...updatedWorkout.exercises, newExercise]:[newExercise]
+      const newPlan = {...plan}
+      newPlan.workouts[workoutIndex] = updatedWorkout
+      updatePlan(newPlan)
     }
   }
 
-  function updateWorkoutExercises(exercises: ExerciseTemplate[]){
-    if (exercises){
-    console.log(exercises)
-    const updatedWorkout = {...workout, exercises: exercises}
-    const workoutIndex = plan.workouts.findIndex(
-      (workout)=>(workout === workout)
-      )
-    if (workoutIndex !== -1){
-      const updatedPlan = {...plan}
-      updatedPlan.workouts[workoutIndex] = updatedWorkout
-      updatePlan(updatedPlan)
-    }
-    }
-
-  }
 
   return (
-    <div className="flex flex-col items-center rounded-lg text-white">
+    <div className="flex flex-col items-center rounded-lg text-white bg-slate-700">
 
       {workout &&
           (<div key={"w" + workout.description} className="w-full">
@@ -618,18 +609,6 @@ workout, updatePlan, plan, updateWorkout, workoutIndex
                 {workout.description}: {workout.nominalDay}
               </div>
             <div className="flex flex-col items-center">
-              {workout.exercises.length===0 &&
-              <form onSubmit={handleFirstExercise}>
-                <label>Exercise: </label>
-                <input
-                  type="text"
-                  value={initialExercise}
-                  onChange={handleDescriptionChange}
-                  className="rounded-lg bg-slate-700 px-2 py-1 text-white focus:outline-none"
-                  autoFocus
-                />
-              </form>
-              }
               {workout.exercises &&
                 workout.exercises.map((exercise, exerciseNumber) => (
                   <div
@@ -643,9 +622,28 @@ workout, updatePlan, plan, updateWorkout, workoutIndex
                       updateWorkout={updateWorkout}
                       plan={plan}
                       workoutIndex={workoutIndex}
+                      exerciseIndex={exerciseNumber}
                     />
                   </div>
                 ))}
+              {addingExercise &&
+              <form 
+            className="mx-1 my-1 font-semibold rounded-lg bg-slate-900 p-2 text-white shadow-md"
+              onSubmit={handleAddExercise}>
+                <label>Exercise: </label>
+                <input
+                  type="text"
+                  value={newExerciseDescription}
+                  onChange={handleDescriptionChange}
+                  className="rounded-lg bg-slate-700 px-2 py-1 text-white focus:outline-none"
+                  autoFocus
+                />
+              </form>
+              }
+            {( !addingExercise) && <button
+            onClick={()=>setAddingExercise(true)}
+          className="m-1 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
+            >Add Exercise</button>}
             </div>
           </div>
         )}
@@ -661,11 +659,12 @@ exercise: ExerciseTemplate
   updateWorkout: (updatedWorkout: WorkoutTemplate, workoutIndex: any) => void
   plan: WorkoutPlan;
   updatePlan: React.Dispatch<React.SetStateAction<WorkoutPlan | undefined>>
-  workoutIndex: number
+  workoutIndex: number;
+  exerciseIndex: number;
 }
 
 function ExercisePlanDisplay({
-exercise, workout, updateWorkout, plan, updatePlan, workoutIndex
+exercise, workout, updateWorkout, plan, updatePlan, workoutIndex, exerciseIndex
 }: ExercisePlanDisplayProps) {
   const [description, setDescription] = useState(exercise.description);
   const [sets, setSets] = useState<SetTemplate[]>(exercise.sets);
@@ -674,6 +673,29 @@ exercise, workout, updateWorkout, plan, updatePlan, workoutIndex
     setDescription(exercise.description);
     setSets(exercise.sets);
   }, [exercise.description, exercise.sets]);
+
+  function updateWorkoutPlanOnSetChange(newSets? :SetTemplate[], description?: string){
+    if (exerciseIndex !== -1
+      ){
+      if (
+        plan && 
+        plan.workouts && 
+        plan.workouts[workoutIndex] && 
+        plan.workouts[workoutIndex]?.exercises
+      )
+      {
+        const updatedPlan : WorkoutPlan = {...plan}
+        const exerciseToUpdate = updatedPlan.workouts[workoutIndex]?.exercises[exerciseIndex]
+        if (exerciseToUpdate){
+          newSets ??= exerciseToUpdate.sets
+          description??= exerciseToUpdate.description
+          exerciseToUpdate.sets = [...newSets]
+          exerciseToUpdate.description = description
+        }
+        updatePlan(updatedPlan)
+      }
+    }
+  }
 
   const handleDescriptionChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -686,6 +708,7 @@ exercise, workout, updateWorkout, plan, updatePlan, workoutIndex
     const newSets = [...sets];
     newSets[index] = set;
     setSets(newSets);
+    updateWorkoutPlanOnSetChange(newSets)
   }
 
   function handleAddSet() {
@@ -702,26 +725,40 @@ exercise, workout, updateWorkout, plan, updatePlan, workoutIndex
     }
     const newSets = [...sets, newSet];
     setSets(newSets);
+    updateWorkoutPlanOnSetChange(newSets)
   }
-  function handleAddExercise() {
-    console.log("todo")
-  }
+
   function handleRemoveExercise() {
-    console.log("todo")
+    const newWorkout = {...workout}
+    const newExercises = [...workout.exercises]
+    newExercises.splice(exerciseIndex, 1)
+    console.log(newExercises)
+    newWorkout.exercises = newExercises
+    const newPlan = {...plan}
+    newPlan.workouts[workoutIndex] = newWorkout    
+    updatePlan(newPlan)
   }
   function handleRemoveSet(index: number) {
-    console.log("remove set");
-    const newSets = [...sets];
-    if (index >= 0 && index < newSets.length) {
-      newSets.splice(index, 1);
-    }
-    console.log(newSets);
-    setSets(newSets);
+      if (
+        plan && 
+        plan.workouts && 
+        plan.workouts[workoutIndex] && 
+        plan.workouts[workoutIndex]?.exercises &&
+        plan.workouts[workoutIndex]?.exercises[exerciseIndex]?.sets
+      ) {
+        const newSets = [...sets];
+        if (index >= 0 && index < newSets.length) {
+          newSets.splice(index, 1);
+        }
+        setSets(newSets);
+        updateWorkoutPlanOnSetChange(newSets)
+      }
   }
   const [descriptionInputActive, setDescriptionInputActive] = useState(false);
   const handleBlur = () => {
     if (description.length > 0) {
       setDescriptionInputActive(false);
+      updateWorkoutPlanOnSetChange(sets, description)
     }
   };
   const handleDescriptionClick = () => {
@@ -792,12 +829,6 @@ exercise, workout, updateWorkout, plan, updatePlan, workoutIndex
           className="m-1 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
         >
           Add Set
-        </button>
-        <button
-          onClick={handleAddExercise}
-          className="m-1 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
-        >
-          Add Exercise
         </button>
       </div>
     </div>
