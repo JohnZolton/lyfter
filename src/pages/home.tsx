@@ -70,6 +70,12 @@ const Home: NextPage = () => {
               Home
             </Link>
             <Link
+              href="newplan"
+              className="text-gray-300 hover:text-white hover:underline"
+            >
+              New Plan
+            </Link>
+            <Link
               href="makeplan"
               className="text-slate-300 hover:text-white hover:underline"
             >
@@ -123,15 +129,38 @@ function WorkoutUiHandler() {
 }) | undefined
 >();
 
-  const { data: userWorkoutPlan, isLoading } =
+  const { data: userWorkoutData, isLoading } =
     api.getWorkouts.getUniqueWeekWorkouts.useQuery();
 
+  const userWorkouts = userWorkoutData?.workouts
+  const userPlanTemplate = userWorkoutData?.workoutPlan
+
   useEffect(()=>{
-    if (userWorkoutPlan && !todaysWorkout){
-      setWorkoutPlan(sortWorkoutsByNominalDay(userWorkoutPlan))
+    if (userWorkouts && !todaysWorkout && userPlanTemplate && userPlanTemplate.workouts){
+      const workoutsByOriginalWorkout = new Map(
+        userWorkouts.map((workout)=> [workout.originalWorkoutId, workout])
+      )
+      const workoutsToDisplay: ((ActualWorkout & {
+    exercises: (ActualExercise & {
+        sets: (exerciseSet & {
+            priorSet: exerciseSet | null;
+        })[];
+    })[];
+})[] | undefined)= []
+      userPlanTemplate.workouts.map((plannedWorkout)=>{
+        if (workoutsByOriginalWorkout.has(plannedWorkout.originalWorkoutId)){
+          const workout = workoutsByOriginalWorkout.get(plannedWorkout.originalWorkoutId)
+          if (workout !== undefined){
+            workoutsToDisplay.push(workout)
+          }        
+        } else {
+          workoutsToDisplay.push(plannedWorkout)
+        }
+      })
+      setWorkoutPlan(sortWorkoutsByNominalDay(workoutsToDisplay))
     }
     
-  }, [ workoutPlan, userWorkoutPlan])
+  }, [userWorkouts, userPlanTemplate])
 
   function sortWorkoutsByNominalDay(workouts: (ActualWorkout & {
     exercises: (ActualExercise & {

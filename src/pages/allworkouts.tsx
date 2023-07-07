@@ -40,6 +40,7 @@ import { create } from "domain";
 import { useRouter } from "next/router";
 import { describe } from "node:test";
 import { TEMPORARY_REDIRECT_STATUS } from "next/dist/shared/lib/constants";
+import { faSortNumericDown } from "@fortawesome/free-solid-svg-icons";
 
 const Home: NextPage = () => {
   return (
@@ -66,6 +67,12 @@ const Home: NextPage = () => {
               className="text-gray-300 hover:text-white hover:underline"
             >
               Home
+            </Link>
+            <Link
+              href="newplan"
+              className="text-gray-300 hover:text-white hover:underline"
+            >
+              New Plan
             </Link>
             <Link
               href="makeplan"
@@ -158,9 +165,9 @@ function Workouts() {
         <div className="flex flex-wrap">
           <DisplayPlan plan={selectedPlan}/>
               <div>
-      {workoutPlans.map((plan) => (
+      { (!selectedPlan) && workoutPlans.map((plan) => (
         <div key={plan.planId}>
-          <h2>{plan.date.toLocaleDateString()} Plan
+          <h2>{plan.description}
           {" "}<button
           onClick={() => handleButtonClick(plan)}
           >Select</button>
@@ -182,76 +189,146 @@ interface DisplayPlanProps {
 } | undefined;
 }
 
+interface SortedWorkouts {
+  'Sunday': (ActualWorkout & {
+        exercises: (ActualExercise & {
+            sets: exerciseSet[];
+        })[];
+    })[];
+  'Monday': (ActualWorkout & {
+        exercises: (ActualExercise & {
+            sets: exerciseSet[];
+        })[];
+    })[];
+  'Tuesday': (ActualWorkout & {
+        exercises: (ActualExercise & {
+            sets: exerciseSet[];
+        })[];
+    })[];
+  'Wednesday': (ActualWorkout & {
+        exercises: (ActualExercise & {
+            sets: exerciseSet[];
+        })[];
+    })[];
+  'Thursday': (ActualWorkout & {
+        exercises: (ActualExercise & {
+            sets: exerciseSet[];
+        })[];
+    })[];
+  'Friday': (ActualWorkout & {
+        exercises: (ActualExercise & {
+            sets: exerciseSet[];
+        })[];
+    })[];
+  'Saturday': (ActualWorkout & {
+        exercises: (ActualExercise & {
+            sets: exerciseSet[];
+        })[];
+    })[];
+}
+
 function DisplayPlan({plan}: DisplayPlanProps){
+  const [workoutList, setWorkoutList] = useState<SortedWorkouts>()
   if (!plan){
     return(
       <div></div>
     )
   }
+
+  function sortWorkoutsByDay(workouts: (ActualWorkout & {
+        exercises: (ActualExercise & {
+            sets: exerciseSet[];
+        })[];
+    })[]): SortedWorkouts {
+
+    const sortedWorkouts: SortedWorkouts = {
+      'Sunday': [],
+      'Monday': [],
+      'Tuesday': [],
+      'Wednesday': [],
+      'Thursday': [],
+      'Friday': [],
+      'Saturday': []
+    }
+    for (const workout of workouts){
+      sortedWorkouts[workout.nominalDay as keyof SortedWorkouts].push(workout)
+    }
+    return sortedWorkouts
+  }
+
+  if (!workoutList){
+    setWorkoutList(sortWorkoutsByDay(plan.workouts))
+  }
+  
   return(
-    <div>
-      {plan.workouts.map((workout) => (
+    <div className="flex flex-col">
+    {workoutList && Object.keys(workoutList).map((day)=> (
+      <div key={day} className="flex flex-col">
+        <h2 className="text-2xl font-bold">{day}</h2>
+        <div className="flex overflow-x-scroll space-x-4">
+          {workoutList[day as keyof typeof workoutList].map((workout)=> (
             <div key={workout.workoutId}>
-              <h4>{workout.nominalDay}</h4>
-              <p>{workout.description}</p>
-              {workout.exercises.map((exercise) => (
+              {workout.exercises.map((exercise, index)=>(
                 <div key={exercise.exerciseId}>
-                  <p>{exercise.description}</p>
-                  {exercise.sets.map((set) => (
+                  <p className="text-base">{exercise.description}</p>
+                  {exercise.sets.map((set, setIndex)=> (
                     <div key={set.setId}>
-                      <p>Weight: {set.weight}, Reps: {set.reps}, RIR: {set.rir}</p>
+                      <p>Set {setIndex+1}: {set.weight}lbs x {set.reps} @ {set.rir}</p>
                     </div>
                   ))}
                 </div>
               ))}
-              </div>))}
+            </div>
+          ))}
+        </div>
+      </div>
+    ))}
     </div>
   )
 }
 
-interface ExerciseDisplayProps {
-  workoutId: string
+interface DayDisplayProps {
+  workoutsByDay: SortedWorkouts | undefined
 }
 
-function ExerciseDisplay( {workoutId} : ExerciseDisplayProps){
-    const {data: exercises, isLoading: exercisesLoading} = api.getWorkouts.getExerciseByWorkoutId.useQuery({
-      workoutId: workoutId
-    })
-    console.log("exercises:")
-    console.log(exercises)
-    if (exercisesLoading){
-      return(
-              <div
-              className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] text-primary motion-reduce:animate-[spin_1.5s_linear_infinite]"
-              role="status">
-              <span
-                className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]"
-                >Loading...</span
-              >
-            </div>
-      )
-    }
-      if (exercises) {
+function DayDisplay({workoutsByDay}: DayDisplayProps){
+  console.log(workoutsByDay)
+  return(
+  <div>
+    day display here
+  </div>)
+}
+
+interface ExerciseDisplayProps {
+  exercise: ActualExercise & {
+    sets: exerciseSet[];
+}
+}
+
+function ExerciseDisplay( {exercise} : ExerciseDisplayProps){
+      
+  if (exercise) {
     return (
-      <div>
-      <table className="mx-auto">
-          <thead>
-            <tr>
-              <th>Exercise</th>
-              <th>Weight</th>
-              <th>Sets</th>
-            </tr>
-          </thead>
-          <tbody>
-            { exercises && exercises.map((exercise, index) =>(
-              <tr key={index}>
-                <td>{exercise.description}</td>
-                <td>{exercise.weight}</td>
-                <td>{exercise.sets}</td>
+      <div className="container mx-auto overflow-x-auto" key={exercise.exerciseId}>
+        <div>{exercise.description}</div>
+        <table >
+            <thead>
+              <tr>
+                <th>Weight</th>
+                <th>Reps</th>
+                <th>RIR</th>
               </tr>
-            )) }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              { exercise && exercise.sets.map((set, index) =>(
+                <tr key={index}>
+                  <td>{set.weight}</td>
+                  <td>{set.reps}</td>
+                  <td>{set.rir}</td>
+                </tr>
+              )) }
+            </tbody>
+          </table>
       </div>
     );
   }

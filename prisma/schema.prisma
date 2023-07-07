@@ -182,7 +182,7 @@ model ActualWorkout {
   priorWorkoutId String? @unique
   priorWorkout ActualWorkout? @relation("WorkoutRelations", fields: [priorWorkoutId], references: [workoutId], onDelete: NoAction,onUpdate: NoAction)
   nextWorkout ActualWorkout? @relation("WorkoutRelations")
-  originalWorkoutId String?
+  originalWorkoutId String? 
 
   @@index([userId])
   @@index([date])
