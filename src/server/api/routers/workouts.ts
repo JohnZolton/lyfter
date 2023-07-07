@@ -661,25 +661,37 @@ export const getAllWorkouts = createTRPCRouter({
   getUniqueWeekWorkouts: privateProcedure.query(async ({ ctx }) => {
     const oneWeekAgo = new Date()
     oneWeekAgo.setDate(oneWeekAgo.getDate()-7)
-
-    const workouts = await ctx.prisma.actualWorkout.findMany({
-      where: {
-        userId: ctx.userId,
-        date: {
-          gte: oneWeekAgo,
-        }
+    const workoutPlan = await ctx.prisma.workoutPlanTwo.findFirst({
+      where: {userId: ctx.userId},
+      orderBy: [{date: "desc"}]
+    })
+    if (workoutPlan){
+      const workouts = await ctx.prisma.actualWorkout.findMany({
+        where: {
+          userId: ctx.userId,
+          date: {
+            gte: oneWeekAgo,
+          },
+          planId: workoutPlan.planId
+        },
+        include: { exercises: { include: { sets: {include: {priorSet: true}} } }
       },
-      include: { exercises: { include: { sets: {include: {priorSet: true}} } }
-    },
-      orderBy: [{ date: "asc" }],
-    });
-    if (!workouts) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "No workouts with that User",
+        orderBy: [{ date: "asc" }], 
       });
+      if (!workouts) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "No workouts with that User",
+        });
+      }
+      if (!workouts || workouts.length===0){
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "No workouts found for the user"
+        })
+      }
+      return {workouts, workoutPlan};
     }
-    return workouts;
   }),
 
   addExercise: privateProcedure

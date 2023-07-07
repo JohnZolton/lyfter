@@ -70,6 +70,12 @@ const Home: NextPage = () => {
               Home
             </Link>
             <Link
+              href="newplan"
+              className="text-gray-300 hover:text-white hover:underline"
+            >
+              New Plan
+            </Link>
+            <Link
               href="makeplan"
               className="text-slate-300 hover:text-white hover:underline"
             >
@@ -123,15 +129,17 @@ function WorkoutUiHandler() {
 }) | undefined
 >();
 
-  const { data: userWorkoutPlan, isLoading } =
+  const { data: userWorkoutData, isLoading } =
     api.getWorkouts.getUniqueWeekWorkouts.useQuery();
 
+  const userWorkouts = userWorkoutData?.workouts
+
   useEffect(()=>{
-    if (userWorkoutPlan && !todaysWorkout){
-      setWorkoutPlan(sortWorkoutsByNominalDay(userWorkoutPlan))
+    if (userWorkouts && !todaysWorkout){
+      setWorkoutPlan(sortWorkoutsByNominalDay(userWorkouts))
     }
     
-  }, [ workoutPlan, userWorkoutPlan])
+  }, [ workoutPlan, userWorkouts])
 
   function sortWorkoutsByNominalDay(workouts: (ActualWorkout & {
     exercises: (ActualExercise & {

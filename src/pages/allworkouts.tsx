@@ -68,6 +68,12 @@ const Home: NextPage = () => {
               Home
             </Link>
             <Link
+              href="newplan"
+              className="text-gray-300 hover:text-white hover:underline"
+            >
+              New Plan
+            </Link>
+            <Link
               href="makeplan"
               className="text-gray-300 hover:text-white hover:underline"
             >

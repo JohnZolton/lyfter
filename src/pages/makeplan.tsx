@@ -67,6 +67,12 @@ const Home: NextPage = () => {
               Home
             </Link>
             <Link
+              href="newplan"
+              className="text-gray-300 hover:text-white hover:underline"
+            >
+              New Plan
+            </Link>
+            <Link
               href="makeplan"
               className="text-gray-300 hover:text-white hover:underline"
             >
@@ -106,8 +112,7 @@ export default Home;
 function NewWorkoutUi() {
   return (
     <div className="flex flex-col items-center rounded-lg text-white shadow-md">
-      <TestButton></TestButton>
-      <div className="my-2">or make your own</div>
+      <div className=" pt-1 mb-1  text-center text-2xl font-semibold text-white">Edit Workout Plan</div>
       <EditWorkoutMenu />
     </div>
   );
@@ -151,11 +156,14 @@ function EditWorkoutMenu() {
   }
   let workoutPlanSet = false;
 
-  const { data: userWorkouts, isLoading: workoutsLoading } =
+  const { data: userWorkoutData, isLoading: workoutsLoading } =
     api.getWorkouts.getUniqueWeekWorkouts.useQuery();
+
+  const userWorkouts = userWorkoutData?.workouts
   if (
     !workoutsLoading &&
     userWorkouts !== undefined &&
+    userWorkouts &&
     !workoutPlan &&
     !workoutPlanSet
   ) {
@@ -195,35 +203,6 @@ function EditWorkoutMenu() {
 
   return (
     <div className="flex flex-col items-center rounded-lg text-white">
-      {currentAction === MENU_ACTIONS.NONE && (
-        <>
-          <button
-            onClick={() => setCurrentAction(MENU_ACTIONS.CREATE)}
-            className="mt-4 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
-          >
-            Create New Workout Plan
-          </button>
-          <button
-            onClick={() => setCurrentAction(MENU_ACTIONS.EDIT)}
-            className="mt-4 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
-          >
-            Edit Workout Plan
-          </button>
-        </>
-      )}
-      {currentAction === MENU_ACTIONS.CREATE && (
-        <>
-          <WorkoutDayForm planId={planId} addWorkout={addWorkout} />
-          <button
-            onClick={() => setCurrentAction(MENU_ACTIONS.NONE)}
-            className="mt-4 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
-          >
-            Main Menu
-          </button>
-        </>
-      )}
-      {currentAction === MENU_ACTIONS.EDIT && (
-        <>
           <WorkoutPlanForm
             workoutPlan={workoutPlan}
             setWorkoutPlan={setWorkoutPlan}
@@ -234,8 +213,6 @@ function EditWorkoutMenu() {
           >
             Main Menu
           </button>
-        </>
-      )}
     </div>
   );
 }
