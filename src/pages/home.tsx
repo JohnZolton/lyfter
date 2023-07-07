@@ -133,13 +133,34 @@ function WorkoutUiHandler() {
     api.getWorkouts.getUniqueWeekWorkouts.useQuery();
 
   const userWorkouts = userWorkoutData?.workouts
+  const userPlanTemplate = userWorkoutData?.workoutPlan
 
   useEffect(()=>{
-    if (userWorkouts && !todaysWorkout){
-      setWorkoutPlan(sortWorkoutsByNominalDay(userWorkouts))
+    if (userWorkouts && !todaysWorkout && userPlanTemplate && userPlanTemplate.workouts){
+      const workoutsByOriginalWorkout = new Map(
+        userWorkouts.map((workout)=> [workout.originalWorkoutId, workout])
+      )
+      const workoutsToDisplay: ((ActualWorkout & {
+    exercises: (ActualExercise & {
+        sets: (exerciseSet & {
+            priorSet: exerciseSet | null;
+        })[];
+    })[];
+})[] | undefined)= []
+      userPlanTemplate.workouts.map((plannedWorkout)=>{
+        if (workoutsByOriginalWorkout.has(plannedWorkout.originalWorkoutId)){
+          const workout = workoutsByOriginalWorkout.get(plannedWorkout.originalWorkoutId)
+          if (workout !== undefined){
+            workoutsToDisplay.push(workout)
+          }        
+        } else {
+          workoutsToDisplay.push(plannedWorkout)
+        }
+      })
+      setWorkoutPlan(sortWorkoutsByNominalDay(workoutsToDisplay))
     }
     
-  }, [ workoutPlan, userWorkouts])
+  }, [userWorkouts, userPlanTemplate])
 
   function sortWorkoutsByNominalDay(workouts: (ActualWorkout & {
     exercises: (ActualExercise & {

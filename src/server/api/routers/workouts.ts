@@ -20,6 +20,7 @@ import { prisma } from "~/server/db";
 import { Input } from "postcss";
 import internal from "stream";
 import { setServers } from "dns";
+import { v4 } from "uuid";
 
 export const getAllWorkouts = createTRPCRouter({
   getAllWorkouts: publicProcedure.query(({ ctx }) => {
@@ -412,6 +413,7 @@ export const getAllWorkouts = createTRPCRouter({
               nominalDay: workout.nominalDay,
               userId: ctx.userId,
               description: workout.description,
+              originalWorkoutId: v4(),
               workoutNumber: 0,
               exercises: {
                 create: workout.exercises.map((exercise) => ({
@@ -663,8 +665,9 @@ export const getAllWorkouts = createTRPCRouter({
     oneWeekAgo.setDate(oneWeekAgo.getDate()-7)
     const workoutPlan = await ctx.prisma.workoutPlanTwo.findFirst({
       where: {userId: ctx.userId},
-      orderBy: [{date: "desc"}]
-    })
+      orderBy: [{date: "desc"}],
+      include: {workouts: {include: {exercises: { include: { sets: {include: {priorSet: true}} } }}}}})
+
     if (workoutPlan){
       const workouts = await ctx.prisma.actualWorkout.findMany({
         where: {
