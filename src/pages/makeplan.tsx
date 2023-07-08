@@ -1212,8 +1212,6 @@ function WorkoutDisplay3({
       date: new Date(),
       workoutId:
         workoutPlan && workoutPlan[0] ? workoutPlan[0].workoutId : "none",
-      previousExerciseId: null,
-      nextExerciseId: null,
       sets: [
         {
           date: new Date(),

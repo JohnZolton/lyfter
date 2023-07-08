@@ -256,10 +256,10 @@ function WorkoutUi({ todaysWorkout, setTodaysWorkout, endWorkout }: WorkoutUiPro
       },
     });  
   
+  let isNewWorkoutCreated = false //flag variable to avoid firing multiple times
   useEffect(()=>{
   if (todaysWorkout) {
     const oneWeek = 7 * 24 * 60 * 60 * 1000;
-    let isNewWorkoutCreated = false //flag variable to avoid firing multiple times
     if (today.getTime() - todaysWorkout.date.getTime() > oneWeek) {
     //if (today.getTime() - priorWorkout.date.getTime() > oneWeek) {
       if (!isNewWorkoutCreated) {
@@ -271,7 +271,7 @@ function WorkoutUi({ todaysWorkout, setTodaysWorkout, endWorkout }: WorkoutUiPro
           date: today,
           priorWorkoutId: todaysWorkout.workoutId,
           planId: todaysWorkout.planId ?? "none",
-          workoutNumber: todaysWorkout.workoutNumber ?? 0,
+          workoutNumber: todaysWorkout.workoutNumber? + 1 : 0,
           exercises: todaysWorkout.exercises.map((exercise) => ({
             ...exercise,
             description: exercise.description,
@@ -407,6 +407,8 @@ function WorkoutDisplay3({
     }
   }
 
+  
+
   function removeExercise(workoutNumber: string, exerciseId: string) {
     setWorkoutPlan((prevWorkoutPlan) => {
       if (prevWorkoutPlan){
@@ -430,15 +432,13 @@ function WorkoutDisplay3({
       exerciseId: tempExerciseId,
       date: new Date(),
       workoutId: workoutPlan ? workoutPlan.workoutId : "none",
-      previousExerciseId: null,
-      nextExerciseId: null,
       sets: [
         {
           date: new Date(),
           exerciseId: tempExerciseId,
           setId: createUniqueId(),
           weight: 0,
-          reps: 0,
+          reps: 5,
           rir: 3,
           lastSetId: null,
           priorSet: null,

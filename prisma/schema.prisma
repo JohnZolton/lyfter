@@ -179,9 +179,6 @@ model ActualWorkout {
   workoutNumber Int?
   planId String?
   plan WorkoutPlanTwo? @relation(fields: [planId], references: [planId], onDelete: Cascade)
-  priorWorkoutId String? @unique
-  priorWorkout ActualWorkout? @relation("WorkoutRelations", fields: [priorWorkoutId], references: [workoutId], onDelete: NoAction,onUpdate: NoAction)
-  nextWorkout ActualWorkout? @relation("WorkoutRelations")
   originalWorkoutId String? 
 
   @@index([userId])
@@ -198,11 +195,6 @@ model ActualExercise {
   
   workoutId String
   workout ActualWorkout    @relation(fields: [workoutId], references: [workoutId], onDelete: Cascade)
-
-  previousExercise   ActualExercise? @relation("previousExercise", fields: [previousExerciseId], references: [exerciseId], onDelete: NoAction, onUpdate: NoAction)
-  previousExerciseId String? @unique
-  nextExercise       ActualExercise? @relation("previousExercise")
-  nextExerciseId     String?
 
   @@index([workoutId])
 }
