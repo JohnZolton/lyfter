@@ -67,13 +67,6 @@ export const getAllWorkouts = createTRPCRouter({
             include: { sets: true },
             orderBy: { date: "asc" },
           },
-          priorWorkout: {
-            include: {
-              exercises: {
-                include: { sets: true}
-              }
-            }
-          }
         },
       });
       if (!workout) {
@@ -747,7 +740,6 @@ export const getAllWorkouts = createTRPCRouter({
           description: input.description,
           nominalDay: input.nominalDay,
           workoutNumber: input.workoutNumber,
-          priorWorkoutId: input.priorWorkoutId,
           planId: input.planId,
           exercises: {
             create: input.exercises.map((exercise) => ({
@@ -771,15 +763,6 @@ export const getAllWorkouts = createTRPCRouter({
               },
             },
           },
-          priorWorkout: {
-            include: {
-            exercises: {
-              include: {
-                sets: true
-              }
-            }
-            }
-          }
         },
       });
       return savedWorkout;

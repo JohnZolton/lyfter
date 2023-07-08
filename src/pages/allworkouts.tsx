@@ -235,6 +235,7 @@ function DisplayPlan({plan}: DisplayPlanProps){
     )
   }
 
+  //think i need to manipulate data better before feeding to display, issue is descriptions arent aligning vertically with set data, also what if added exercise during workout?
   function sortWorkoutsByDay(workouts: (ActualWorkout & {
         exercises: (ActualExercise & {
             sets: exerciseSet[];
@@ -261,29 +262,44 @@ function DisplayPlan({plan}: DisplayPlanProps){
   }
   
   return(
-    <div className="flex flex-col">
+<div className="flex flex-col">
     {workoutList && Object.keys(workoutList).map((day)=> (
-      <div key={day} className="flex flex-col">
-        <h2 className="text-2xl font-bold">{day}</h2>
-        <div className="flex overflow-x-scroll space-x-4">
-          {workoutList[day as keyof typeof workoutList].map((workout)=> (
-            <div key={workout.workoutId}>
-              {workout.exercises.map((exercise, index)=>(
-                <div key={exercise.exerciseId}>
-                  <p className="text-base">{exercise.description}</p>
-                  {exercise.sets.map((set, setIndex)=> (
-                    <div key={set.setId}>
-                      <p>Set {setIndex+1}: {set.weight}lbs x {set.reps} @ {set.rir}</p>
-                    </div>
-                  ))}
+        <div key={day} className="flex flex-col">
+            <div className=" bg-slate-900">
+              <div className="overflow-x-scroll">
+                <table className="table-fixed whitespace-nowrap">
+                    <thead>
+                        <tr>
+                            <th className="w-1/4">{workoutList[day as keyof typeof workoutList][0]?.description}
+            </th>
+                            {workoutList[day as keyof typeof workoutList].map((workout, workoutCount) => (
+                                <th className="w-1/4" key={workout.workoutId}>Week {workoutCount+1}</th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {workoutList[day as keyof typeof workoutList][0]?.exercises.map((exercise, index)=> (
+                            <tr key={index}>
+                                <td className="border px-4 py-2">{exercise.description}</td>
+                                {workoutList[day as keyof typeof workoutList].map((workout) => (
+                                    <td className="border px-4 py-2" key={workout.workoutId}>
+                                        {workout.exercises[index]?.sets.map((set, setIndex) => (
+                                            <div key={set.setId}>
+                                                <p>Set {setIndex+1}: {set.weight}lbs x {set.reps} @ {set.rir} RIR</p>
+                                            </div>
+                                        ))}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
                 </div>
-              ))}
             </div>
-          ))}
         </div>
-      </div>
     ))}
-    </div>
+</div>
+
   )
 }
 
