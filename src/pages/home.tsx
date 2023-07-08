@@ -407,6 +407,8 @@ function WorkoutDisplay3({
     }
   }
 
+  
+
   function removeExercise(workoutNumber: string, exerciseId: string) {
     setWorkoutPlan((prevWorkoutPlan) => {
       if (prevWorkoutPlan){
@@ -436,7 +438,7 @@ function WorkoutDisplay3({
           exerciseId: tempExerciseId,
           setId: createUniqueId(),
           weight: 0,
-          reps: 0,
+          reps: 5,
           rir: 3,
           lastSetId: null,
           priorSet: null,

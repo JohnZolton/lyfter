@@ -455,7 +455,7 @@ export const getAllWorkouts = createTRPCRouter({
         workouts: {
           include: {
             exercises: {
-              include: { sets: true },
+              include: { sets: {include: {priorSet: true}} },
               orderBy: {date: "asc"}
             },
           },
