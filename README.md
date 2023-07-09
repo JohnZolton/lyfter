@@ -1,21 +1,27 @@
-# [Lyfter](https://lyfter.vercel.app/)
+# [Lyfter](https://lyfter.vercel.app/): Workout Tracker/Coaching App
 
+This is a powerful workout tracking and coaching application, inspired by the match-or-beat algorithm used by Renaissance Periodization for workout progression and planning. It is built using a robust technology stack that emphasizes type safety.
+
+## Tech Stack
 This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+- **Next.js**: Used as the React framework for server-rendered applications.
+- **React**: Used for building user interfaces.
+- **TypeScript**: Used for writing typed JavaScript at any scale.
+- **tRPC**: An end-to-end typesafe API layer.
+- **Clerk**: Used for user authentication (analogous to NextAuth).
+- **Prisma**: Used as the open-source database ORM.
 
-This is a bodybuilding exercise tracker. Heavily inspired by Renaissance Periodization and Dr. Mike Israetel. This app will use their "match-or-beat" progression system, where your goal is to exceed the previous weeks workout in either weight, reps or both. Until you can't, and then its time for a deload (rest week). 
+## Features
+
+- **Workout Management**: Users can create, plan, edit, and log their workouts with ease.
+- **Progress Monitoring**: The app keeps track of users' progress and sends alerts when performance declines.
+- **Missed Workouts Handling**: The app handles missed workouts gracefully, ensuring users can get back on track without any hassle.
+- **Target Display**: Displays target weight and reps for each exercise, making it easy for users to understand their goals.
+- **Add & Remove**: Users can easily add and remove sets, exercises, and workouts.
+- **User Experience**: The app is designed with a clean, easy-to-use interface, ensuring a smooth user experience.
 
 
 
-Users will be able to:
-- create workouts
-- create exercises
-- log weight, reps and sets
-- see their previous weeks workout
-- see their target weight and reps for each set in their session
-- be warned when their performance is decreasing
-- should they miss a day, choose between skipping or shifting the entire workout queue
+## Emphasis on Type Safety
+
+We emphasize type-safe development practices in this project. TypeScript is used throughout the application to ensure types are checked during compile time. Furthermore, tRPC is employed to maintain end-to-end type safety in our API layer.
