@@ -24,6 +24,9 @@ This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3
 <p align="center">
   <img src="https://github.com/JohnZolton/lyfter/assets/102374100/a9842095-a3e1-4565-a10b-896b3ccccf95"/>
 </p>
+<p align="center">
+  <img src="https://github.com/JohnZolton/lyfter/assets/102374100/021e1ae2-a07d-4dbd-b482-a0020ea5d8ef"/>
+</p>
 
 
 ## Emphasis on Type Safety
