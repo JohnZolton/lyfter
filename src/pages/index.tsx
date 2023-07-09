@@ -8,11 +8,10 @@ import {
   SignedIn,
   SignedOut,
   SignInButton,
-  UserButton
+  UserButton,
 } from "@clerk/nextjs";
 
 const Home: NextPage = () => {
-
   return (
     <>
       <Head>
@@ -23,23 +22,30 @@ const Home: NextPage = () => {
       <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b   from-[#000000]  to-[#44454b]  text-white">
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
           <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
-             <span className="text-[hsl(0,0%,43%)]">Lyfter</span> App
+            <span className="text-[hsl(0,0%,43%)]">Lyfter</span> App
           </h1>
-          <h3 className="text-2xl  text-white">Your Workout Tracker</h3>
+          <h3 className="text-2xl text-white ">Your Workout Tracker</h3>
         </div>
-      <div>
-        <div className="rounded-full">
-        <SignedOut>
-          {/* Signed out users get sign in button */}
-          <SignInButton redirectUrl="home">
-            <button className="rounded-full text-xl text-black bg-white p-3">Sign In</button>
-            </SignInButton>
-        </SignedOut>
-        <SignedIn>
-            <Link className="rounded-full text-xl text-black bg-white p-3" href="home">Home</Link>
-        </SignedIn>
+        <div>
+          <div className="rounded-full">
+            <SignedOut>
+              {/* Signed out users get sign in button */}
+              <SignInButton redirectUrl="home">
+                <button className="rounded-full bg-white p-3 text-xl text-black">
+                  Sign In
+                </button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <Link
+                className="rounded-full bg-white p-3 text-xl text-black"
+                href="home"
+              >
+                Home
+              </Link>
+            </SignedIn>
+          </div>
         </div>
-      </div>
       </main>
     </>
   );

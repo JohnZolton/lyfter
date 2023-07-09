@@ -1,4 +1,3 @@
-
 import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
@@ -42,9 +41,13 @@ import { useRouter } from "next/router";
 import { describe } from "node:test";
 import { TEMPORARY_REDIRECT_STATUS } from "next/dist/shared/lib/constants";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faThumbsDown, faCheck, faNetworkWired } from "@fortawesome/free-solid-svg-icons";
-import NavBar from "~/pages/components/navbar"
-import LoadingSpinner from "~/pages/components/loadingspinner"
+import {
+  faThumbsDown,
+  faCheck,
+  faNetworkWired,
+} from "@fortawesome/free-solid-svg-icons";
+import NavBar from "~/pages/components/navbar";
+import LoadingSpinner from "~/pages/components/loadingspinner";
 
 const Home: NextPage = () => {
   return (
@@ -57,7 +60,7 @@ const Home: NextPage = () => {
       <main className="flex min-h-screen flex-col bg-gradient-to-b   from-[#000000]  to-[#44454b]  text-white">
         <div className="">
           <SignedIn>
-            <NavBar/>
+            <NavBar />
           </SignedIn>
           <SignedOut>
             {/* Signed out users get sign in button */}
@@ -73,6 +76,4 @@ const Home: NextPage = () => {
   );
 };
 
-export default Home
-
-
+export default Home;
