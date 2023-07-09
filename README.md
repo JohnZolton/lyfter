@@ -16,6 +16,7 @@ This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3
 - **Workout Management**: Users can create, plan, edit, and log their workouts with ease.
 - **Progress Monitoring**: The app keeps track of users' progress and sends alerts when performance declines.
 - **Missed Workouts Handling**: The app handles missed workouts gracefully, ensuring users can get back on track without any hassle.
+- **Customization**: Use our premade plan or create your own
 - **Target Display**: Displays target weight and reps for each exercise, making it easy for users to understand their goals.
 - **Add & Remove**: Users can easily add and remove sets, exercises, and workouts.
 - **User Experience**: The app is designed with a clean, easy-to-use interface, ensuring a smooth user experience.
