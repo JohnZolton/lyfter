@@ -10,6 +10,7 @@ This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3
 - **tRPC**: An end-to-end typesafe API layer.
 - **Clerk**: Used for user authentication (analogous to NextAuth).
 - **Prisma**: Used as the open-source database ORM.
+- **Tailwind**: A utility-first CSS framework.
 
 ## Features
 
