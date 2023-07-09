@@ -42,6 +42,7 @@ import { describe } from "node:test";
 import { TEMPORARY_REDIRECT_STATUS } from "next/dist/shared/lib/constants";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faThumbsDown, faCheck, faNetworkWired } from "@fortawesome/free-solid-svg-icons";
+import {NavBar} from "~/pages/components/navbar"
 
 const Home: NextPage = () => {
   return (
@@ -52,43 +53,7 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex min-h-screen flex-col bg-gradient-to-b   from-[#000000]  to-[#44454b]  text-white">
-        <nav className="flex items-center justify-between">
-          <SignedIn>
-            <div className="m-2 flex flex-col text-white">
-              <UserButton
-                appearance={{
-                  elements: { userButtonAvatarBox: { width: 45, height: 45 } },
-                }}
-              />
-            </div>
-          </SignedIn>
-          <div className="flex space-x-6 pr-4">
-            <Link
-              href="home"
-              className="text-slate-300 hover:text-white hover:underline"
-            >
-              Home
-            </Link>
-            <Link
-              href="newplan"
-              className="text-gray-300 hover:text-white hover:underline"
-            >
-              New Plan
-            </Link>
-            <Link
-              href="makeplan"
-              className="text-slate-300 hover:text-white hover:underline"
-            >
-              Edit Plan
-            </Link>
-            <Link
-              href="allworkouts"
-              className="text-slate-300 hover:text-white hover:underline"
-            >
-              History
-            </Link>
-          </div>
-        </nav>
+        <NavBar />
         <div className="">
           <SignedIn>
             <WorkoutUiHandler />
