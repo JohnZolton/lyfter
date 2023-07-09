@@ -21,9 +21,14 @@ This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3
 - **Target Display**: Displays target weight and reps for each exercise, making it easy for users to understand their goals.
 - **Add & Remove**: Users can easily add and remove sets, exercises, and workouts.
 - **User Experience**: The app is designed with a clean, easy-to-use interface, ensuring a smooth user experience.
-
+<p align="center">
+  <img src="https://github.com/JohnZolton/lyfter/assets/102374100/a9842095-a3e1-4565-a10b-896b3ccccf95"/>
+</p>
 
 
 ## Emphasis on Type Safety
 
 We emphasize type-safe development practices in this project. TypeScript is used throughout the application to ensure types are checked during compile time. Furthermore, tRPC is employed to maintain end-to-end type safety in our API layer.
+
+
+
