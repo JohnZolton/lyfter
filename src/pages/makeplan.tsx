@@ -40,7 +40,7 @@ import { create } from "domain";
 import { useRouter } from "next/router";
 import { describe } from "node:test";
 import { NavBar } from "~/pages/components/navbar";
-import { PageLayout } from "~/pages/components/pagelayout";
+import  PageLayout  from "~/pages/components/pagelayout";
 
 const Home: NextPage = () => {
   return (

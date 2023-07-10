@@ -42,8 +42,9 @@ import { describe } from "node:test";
 import { TEMPORARY_REDIRECT_STATUS } from "next/dist/shared/lib/constants";
 import { faSortNumericDown } from "@fortawesome/free-solid-svg-icons";
 import { NavBar } from "~/pages/components/navbar";
-import { PageLayout } from "~/pages/components/pagelayout";
+import  PageLayout  from "~/pages/components/pagelayout";
 import LoadingSpinner from "./components/loadingspinner";
+import MenuLayout from "./components/menulayout";
 
 const Home: NextPage = () => {
   return (
@@ -81,7 +82,7 @@ function Content() {
   const user = useUser();
 
   return (
-    <div>
+    <div className="flex flex-col items-center">
       <Workouts />
     </div>
   );
@@ -123,17 +124,24 @@ function Workouts() {
 
   return (
     <div className="flex flex-wrap">
-      <DisplayPlan plan={selectedPlan} />
+        <DisplayPlan plan={selectedPlan} />
       <div>
+
+        <div className="mb-4 text-center text-2xl font-bold text-slate-300">Workout Plans: </div>
+      <MenuLayout>
         {!selectedPlan &&
           workoutPlans.map((plan) => (
-            <div key={plan.planId}>
-              <h2>
-                {plan.description}{" "}
-                <button onClick={() => handleButtonClick(plan)}>Select</button>
-              </h2>
+            <div key={plan.planId} className="my-2 flex flex-row items-center justify-between">
+                <div className="text-lg font-semibold text-slate-100">
+                {plan.description}
+                  </div>
+                <button
+              className="m-1 inline-flex items-center rounded bg-green-600 px-2 py-1 font-bold text-white hover:bg-green-500"
+                 onClick={() => handleButtonClick(plan)}>Select</button>
             </div>
           ))}
+      </MenuLayout>
+      
       </div>
     </div>
   );

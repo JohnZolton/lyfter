@@ -47,7 +47,7 @@ import {
   faNetworkWired,
 } from "@fortawesome/free-solid-svg-icons";
 import { NavBar } from "~/pages/components/navbar";
-import { PageLayout } from "~/pages/components/pagelayout";
+import PageLayout  from "~/pages/components/pagelayout";
 
 const Home: NextPage = () => {
   return (
@@ -321,7 +321,7 @@ function SelectDay({ userWorkoutPlan, setTodaysWorkout }: SelectDayProps) {
             key={workout.workoutId}
             className="my-2 flex items-center justify-between"
           >
-            <div className="text-lg font-semibold text-slate-300">
+            <div className="text-lg font-semibold text-slate-100">
               {workout.description}: {workout.nominalDay}
             </div>
             <button
