@@ -45,6 +45,7 @@ import { NavBar } from "~/pages/components/navbar";
 import  PageLayout  from "~/pages/components/pagelayout";
 import LoadingSpinner from "./components/loadingspinner";
 import MenuLayout from "./components/menulayout";
+import PerformanceWarning from "./components/performancewarning";
 
 const Home: NextPage = () => {
   return (
@@ -82,7 +83,7 @@ function Content() {
   const user = useUser();
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center w-full">
       <Workouts />
     </div>
   );
@@ -123,15 +124,15 @@ function Workouts() {
   };
 
   return (
-    <div className="flex flex-wrap">
-        <DisplayPlan plan={selectedPlan} />
-      <div>
+    <div className="flex flex-wrap w-full pt-5">
+        {selectedPlan && <DisplayPlan plan={selectedPlan} />}
+      <div className="w-full">
 
-        <div className="mb-4 text-center text-2xl font-bold text-slate-300">Workout Plans: </div>
-      <MenuLayout>
+        {!selectedPlan && <div className="mb-4 text-center text-2xl font-bold ">Workout Plans: </div>}
+      {!selectedPlan && <MenuLayout>
         {!selectedPlan &&
           workoutPlans.map((plan) => (
-            <div key={plan.planId} className="my-2 flex flex-row items-center justify-between">
+            <div key={plan.planId} className="px-4 my-2 flex flex-row items-center justify-between w-full">
                 <div className="text-lg font-semibold text-slate-100">
                 {plan.description}
                   </div>
@@ -140,8 +141,12 @@ function Workouts() {
                  onClick={() => handleButtonClick(plan)}>Select</button>
             </div>
           ))}
-      </MenuLayout>
-      
+      </MenuLayout>}
+
+        {selectedPlan && <div className="flex justify-center items-center w-full pb-10">
+           <button
+      className=" flex justify-center items-center rounded bg-green-600 px-2 py-1 font-bold text-white hover:bg-green-500"
+         onClick={() => setSelectedPlan(undefined)}>Back</button></div>}
       </div>
     </div>
   );
@@ -230,7 +235,7 @@ function DisplayPlan({ plan }: DisplayPlanProps) {
   }
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col">
+    <div className="mx-auto max-w-3xl flex-col">
       {workoutList &&
         Object.keys(workoutList).map((day, idx) => (
           <div key={"base" + idx.toString()}>
@@ -273,26 +278,22 @@ function DisplayPlan({ plan }: DisplayPlanProps) {
                           {workoutList[day as keyof typeof workoutList].map(
                             (workout) => (
                               <td
-                                className="border px-4 py-2"
+                                className="border px-3 py-2"
                                 key={workout.workoutId}
                               >
                                 {workout.exercises[index]?.sets.map(
                                   (set, setIndex) => (
                                     <div
+                                        className="flex items-center justify-between"
                                       key={set.setId}
-                                      className={
-                                        (set.priorSet &&
-                                          set.priorSet?.weight > set.weight) ||
-                                        (set.priorSet &&
-                                          set.priorSet?.reps > set.reps)
-                                          ? "bg-red-500"
-                                          : ""
-                                      }
                                     >
-                                      <p>
+                                      <div>
                                         Set {setIndex + 1}: {set.weight}lbs x{" "}
                                         {set.reps} @ {set.rir} RIR
-                                      </p>
+                                      </div>
+                                      <div className="pl-2">
+                                        <PerformanceWarning priorSet={set.priorSet} currentSet={set}/>
+                                      </div>
                                     </div>
                                   )
                                 )}

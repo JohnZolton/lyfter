@@ -41,6 +41,7 @@ import { useRouter } from "next/router";
 import { describe } from "node:test";
 import { NavBar } from "~/pages/components/navbar";
 import  PageLayout  from "~/pages/components/pagelayout";
+import MenuLayout from "./components/menulayout";
 
 const Home: NextPage = () => {
   return (
@@ -61,7 +62,7 @@ const Home: NextPage = () => {
         <SignedOut>
           {/* Signed out users get sign in button */}
           <SignInButton redirectUrl="home">
-            <button className="rounded-full bg-gray-700 p-3 text-xl text-white hover:bg-gray-600">
+            <button className="rounded-full bg-gray-700 p-3 text-xl  hover:bg-gray-600">
               Sign In
             </button>
           </SignInButton>
@@ -146,10 +147,11 @@ function NewWorkoutMenu() {
   }
 
   return (
-    <div className="flex flex-col items-center rounded-lg text-white">
-      <div className="mb-2 pt-1 text-center text-2xl font-semibold text-white ">
+    <div className="flex flex-col items-center rounded-lg ">
+      <div className="mb-2 pt-1 text-center text-2xl font-semibold ">
         New Workout Plan
       </div>
+      <MenuLayout>
       <div className="my-1">
         <TestButton />
       </div>
@@ -168,6 +170,7 @@ function NewWorkoutMenu() {
         )}
         {workoutPlan && <SaveButton save={saveWorkoutPlan} />}
       </div>
+</MenuLayout>
     </div>
   );
 }
@@ -186,7 +189,7 @@ function TestButton() {
   return (
     <div className="flex justify-center">
       <button
-        className="rounded-full bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-600"
+        className="rounded bg-blue-600 px-4 py-2 font-bold  hover:bg-blue-700"
         onClick={handleClick}
       >
         Use Recommended Plan
@@ -202,7 +205,7 @@ function SaveButton({ save }: SaveButtonProps) {
   return (
     <div>
       <button
-        className="mt-4 rounded bg-green-600 px-2 py-1 font-bold text-white hover:bg-green-700"
+        className="mt-4 rounded bg-green-600 px-2 py-1 font-bold  hover:bg-green-700"
         onClick={() => save()}
       >
         Save Plan
@@ -234,19 +237,19 @@ function WorkoutDescriptionForm({
     <div className="flex flex-col items-center justify-center">
       <form onSubmit={(e) => handleSubmit(e)}>
         <div className="space-y-5">
-          <div className="rounded-lg bg-gray-900 p-5 text-white">
+          <div className="rounded-lg bg-gray-900 p-5 ">
             <label className="font-bold">Plan Description:</label>
             <input
               required
               ref={inputRef}
               value={workoutDescription}
               onChange={(event) => setWorkoutDescription(event.target.value)}
-              className="w-full rounded-lg bg-gray-700 p-1 text-white focus:outline-none"
+              className="w-full rounded-lg bg-gray-700 p-1  focus:outline-none"
               type="text"
             ></input>
             <button
               type="submit"
-              className="mt-4 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
+              className="mt-4 rounded bg-blue-600 px-2 py-1 font-bold  hover:bg-blue-700"
             >
               Add Workouts
             </button>
@@ -304,7 +307,7 @@ function WorkoutDayForm({ addWorkout }: WorkoutDayFormProps) {
     <div className="flex flex-col items-center justify-center">
       <form onSubmit={handleAddExercises}>
         <div className="space-y-5">
-          <div className="rounded-lg bg-gray-900 p-5 text-white">
+          <div className="rounded-lg bg-gray-900 p-5 ">
             <label className="font-bold">Day Description:</label>
             <input
               required
@@ -312,7 +315,7 @@ function WorkoutDayForm({ addWorkout }: WorkoutDayFormProps) {
               ref={inputRef}
               value={dayDescription}
               onChange={(event) => setDayDescription(event.target.value)}
-              className="w-full rounded-lg bg-gray-700 p-1 text-white focus:outline-none"
+              className="w-full rounded-lg bg-gray-700 p-1  focus:outline-none"
               type="text"
             ></input>
             <div>
@@ -321,7 +324,7 @@ function WorkoutDayForm({ addWorkout }: WorkoutDayFormProps) {
                 value={nominalDay}
                 onChange={(event) => setNominalDay(event.target.value)}
                 required
-                className="w-full rounded-lg bg-gray-700 p-1 text-white focus:outline-none"
+                className="w-full rounded-lg bg-gray-700 p-1  focus:outline-none"
               >
                 <option value="">Select Day</option>
                 <option value="Monday">Monday</option>
@@ -335,7 +338,7 @@ function WorkoutDayForm({ addWorkout }: WorkoutDayFormProps) {
             </div>
             <button
               type="submit"
-              className="mt-4 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
+              className="mt-4 rounded bg-blue-600 px-2 py-1 font-bold  hover:bg-blue-700"
             >
               Add Exercsies
             </button>
@@ -366,7 +369,7 @@ function AddExerciseForm({
     }
   }
   return (
-    <div className="flex flex-col items-center justify-center rounded-lg bg-gray-900 text-white">
+    <div className="flex flex-col items-center justify-center rounded-lg bg-gray-900 ">
       <div>
         {description}: {nominalDay}
       </div>
@@ -383,7 +386,7 @@ function AddExerciseForm({
       </div>
       <button
         onClick={saveExercises}
-        className="mt-4 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
+        className="mt-4 rounded bg-blue-600 px-2 py-1 font-bold  hover:bg-blue-700"
       >
         Save Day
       </button>
@@ -451,7 +454,7 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
   };
 
   return (
-    <div className="flex flex-row justify-center rounded-lg bg-gray-900 p-5 text-white">
+    <div className="flex flex-row justify-center rounded-lg bg-gray-900 p-5 ">
       <form
         onSubmit={handleSubmit}
         className="w-full items-center justify-center space-y-1"
@@ -466,7 +469,7 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
               type="text"
               ref={inputRef}
               required
-              className="w-full rounded-md bg-gray-800 px-2 py-1 text-white focus:outline-none sm:w-48"
+              className="w-full rounded-md bg-gray-800 px-2 py-1  focus:outline-none sm:w-48"
               value={description}
               onChange={handleDescriptionChange}
             />
@@ -482,7 +485,7 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
                 id="weight"
                 type="number"
                 required
-                className="w-14 rounded-md bg-gray-800 px-2 py-1 text-center text-white focus:outline-none"
+                className="w-14 rounded-md bg-gray-800 px-2 py-1 text-center  focus:outline-none"
                 value={weight}
                 onChange={handleWeightChange}
               />
@@ -497,7 +500,7 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
                 id="weight"
                 type="number"
                 required
-                className="w-12 rounded-md bg-gray-800 px-2 py-1 text-center text-white focus:outline-none"
+                className="w-12 rounded-md bg-gray-800 px-2 py-1 text-center  focus:outline-none"
                 value={reps}
                 onChange={handleRepsChange}
               />
@@ -514,7 +517,7 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
                 type="number"
                 min="1"
                 required
-                className="w-12 rounded-md bg-gray-800 px-2 py-1 text-center text-white focus:outline-none"
+                className="w-12 rounded-md bg-gray-800 px-2 py-1 text-center  focus:outline-none"
                 value={sets}
                 onChange={handleSetsChange}
               />
@@ -561,10 +564,10 @@ function WorkoutPlanDisplay({
   }
 
   return (
-    <div className="flex flex-col items-center rounded-lg text-white">
+    <div className="flex flex-col items-center rounded-lg ">
       {plan && (
         <div key={plan.description} className="w-full">
-          <div className="pt-1 text-center text-2xl font-semibold  text-slate-300">
+          <div className="pt-1 text-center text-2xl font-semibold">
             {plan.description}
           </div>
           <div className="flex flex-col items-center">
@@ -587,7 +590,7 @@ function WorkoutPlanDisplay({
           <div className="flex flex-col items-center">
             {readyAddDay && (
               <button
-                className="mt-4 rounded bg-green-600 px-2 py-1 font-bold text-white hover:bg-green-700"
+                className="mt-4 rounded bg-green-600 px-2 py-1 font-bold  hover:bg-green-700"
                 onClick={() => (setAddingDay(true), setReadyAddDay(false))}
               >
                 Add Day
@@ -645,10 +648,10 @@ function IndividualWorkoutDisplay({
   }
 
   return (
-    <div className="flex flex-col items-center rounded-lg bg-slate-700 text-white">
+    <div className="flex flex-col items-center rounded-lg bg-slate-700 ">
       {workout && (
         <div key={"w" + workout.description} className="w-full">
-          <div className="pt-1 text-center text-2xl font-semibold  text-slate-300">
+          <div className="pt-1 text-center text-2xl font-semibold">
             {workout.description}: {workout.nominalDay}
           </div>
           <div className="flex flex-col items-center">
@@ -668,7 +671,7 @@ function IndividualWorkoutDisplay({
               ))}
             {addingExercise && (
               <form
-                className="mx-1 my-1 rounded-lg bg-slate-900 p-2 font-semibold text-white shadow-md"
+                className="mx-1 my-1 rounded-lg bg-slate-900 p-2 font-semibold  shadow-md"
                 onSubmit={handleAddExercise}
               >
                 <label>Exercise: </label>
@@ -676,7 +679,7 @@ function IndividualWorkoutDisplay({
                   type="text"
                   value={newExerciseDescription}
                   onChange={handleDescriptionChange}
-                  className="rounded-lg bg-slate-700 px-2 py-1 text-white focus:outline-none"
+                  className="rounded-lg bg-slate-700 px-2 py-1  focus:outline-none"
                   autoFocus
                 />
               </form>
@@ -684,7 +687,7 @@ function IndividualWorkoutDisplay({
             {!addingExercise && (
               <button
                 onClick={() => setAddingExercise(true)}
-                className="m-1 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
+                className="m-1 rounded bg-blue-600 px-2 py-1 font-bold  hover:bg-blue-700"
               >
                 Add Exercise
               </button>
@@ -824,7 +827,7 @@ function ExercisePlanDisplay({
   return (
     <div
       key={exercise.description}
-      className="mx-1 my-1 rounded-lg bg-slate-900 p-2 text-white shadow-md"
+      className="mx-1 my-1 rounded-lg bg-slate-900 p-2  shadow-md"
     >
       <div className="flex items-center justify-center">
         {descriptionInputActive ? (
@@ -834,7 +837,7 @@ function ExercisePlanDisplay({
             onChange={handleDescriptionChange}
             onKeyDown={handleKeyDown}
             onBlur={handleBlur}
-            className="rounded-lg bg-slate-700 px-2 py-1 text-white focus:outline-none"
+            className="rounded-lg bg-slate-700 px-2 py-1  focus:outline-none"
             autoFocus
           />
         ) : (
@@ -847,7 +850,7 @@ function ExercisePlanDisplay({
         )}
         <button
           onClick={handleRemoveExercise}
-          className="m-1 inline-flex items-center rounded bg-red-600 px-2 py-1 font-bold text-white hover:bg-red-700"
+          className="m-1 inline-flex items-center rounded bg-red-600 px-2 py-1 font-bold  hover:bg-red-700"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -877,7 +880,7 @@ function ExercisePlanDisplay({
       <div className="flex justify-center">
         <button
           onClick={handleAddSet}
-          className="m-1 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
+          className="m-1 rounded bg-blue-600 px-2 py-1 font-bold  hover:bg-blue-700"
         >
           Add Set
         </button>
@@ -961,7 +964,7 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
   const [rirInputActive, setRirInputActive] = useState(false);
 
   return (
-    <div className="m-1 rounded-lg bg-slate-800 p-1 text-white shadow-md">
+    <div className="m-1 rounded-lg bg-slate-800 p-1  shadow-md">
       <div className="flex flex-auto justify-center space-x-2">
         {weightInputActive ? (
           <input
@@ -970,7 +973,7 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
             onChange={handleWeightChange}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
-            className="w-14 rounded-lg bg-slate-700 text-center text-white focus:outline-none"
+            className="w-14 rounded-lg bg-slate-700 text-center  focus:outline-none"
             autoFocus
           />
         ) : (
@@ -989,7 +992,7 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
             onKeyDown={handleKeyDown}
             onChange={handleRepsChange}
             onBlur={handleBlur}
-            className="w-14 rounded-lg bg-slate-700 text-center text-white focus:outline-none"
+            className="w-14 rounded-lg bg-slate-700 text-center  focus:outline-none"
             autoFocus
           />
         ) : (
@@ -1008,7 +1011,7 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
             onChange={handleRirChange}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
-            className="w-14 rounded-lg bg-slate-700 text-center text-white focus:outline-none"
+            className="w-14 rounded-lg bg-slate-700 text-center  focus:outline-none"
             autoFocus
           />
         ) : (
@@ -1021,7 +1024,7 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
         )}
         <button
           onClick={handleRemoveSet}
-          className="mx-1 justify-center rounded bg-red-600 px-1 font-bold text-white  hover:bg-red-700"
+          className="mx-1 justify-center rounded bg-red-600 px-1 font-bold   hover:bg-red-700"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

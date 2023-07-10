@@ -41,6 +41,7 @@ import { useRouter } from "next/router";
 import { describe } from "node:test";
 import { NavBar } from "~/pages/components/navbar";
 import  PageLayout  from "~/pages/components/pagelayout";
+import MenuLayout from "./components/menulayout";
 
 const Home: NextPage = () => {
   return (
@@ -77,12 +78,14 @@ export default Home;
 
 function NewWorkoutUi() {
   return (
-    <div className="flex flex-col items-center rounded-lg text-white shadow-md">
-      <div className="mb-1 pt-1 text-center text-2xl font-semibold text-white ">
+    <>
+      <div className="mb-2 pt-1 text-center text-2xl font-semibold  ">
         Edit Workout Plan
       </div>
+    <div className="flex flex-col items-center rounded-lg  shadow-md">
       <EditWorkoutMenu />
     </div>
+    </>
   );
 }
 
@@ -170,14 +173,14 @@ function EditWorkoutMenu() {
   const [currentAction, setCurrentAction] = useState(MENU_ACTIONS.NONE);
 
   return (
-    <div className="flex flex-col items-center rounded-lg text-white">
+    <div className="flex flex-col items-center rounded-lg">
       <WorkoutPlanForm
         workoutPlan={workoutPlan}
         setWorkoutPlan={setWorkoutPlan}
       />
       <button
         onClick={() => setCurrentAction(MENU_ACTIONS.NONE)}
-        className="mt-4 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
+        className="mt-4 rounded bg-blue-600 px-2 py-1 font-bold  hover:bg-blue-700"
       >
         Main Menu
       </button>
@@ -274,7 +277,7 @@ function WorkoutPlanForm({
   const priorSetArray: exerciseSet[] = [];
 
   return (
-    <div className="flex flex-col items-center rounded-lg text-white">
+    <div className="flex flex-col items-center rounded-lg">
       {workoutPlan?.map((workout) => (
         <WorkoutDisplay3
           priorSetsArray={priorSetArray}

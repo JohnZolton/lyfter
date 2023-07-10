@@ -48,6 +48,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { NavBar } from "~/pages/components/navbar";
 import PageLayout  from "~/pages/components/pagelayout";
+import LoadingSpinner from "./components/loadingspinner";
+import PerformanceWarning from "./components/performancewarning";
 
 const Home: NextPage = () => {
   return (
@@ -66,7 +68,7 @@ const Home: NextPage = () => {
           <SignedOut>
             {/* Signed out users get sign in button */}
             <SignInButton redirectUrl="home">
-              <button className="rounded-full bg-slate-700 p-3 text-xl text-white hover:bg-gray-600">
+              <button className="rounded-full bg-slate-700 p-3 text-xl  hover:bg-gray-600">
                 Sign In
               </button>
             </SignInButton>
@@ -169,7 +171,8 @@ function WorkoutUiHandler() {
   }
 
   if (isLoading) {
-    return <div>loading</div>;
+    return (<div className="flex justify-center p-10"
+    ><LoadingSpinner/></div>)
   }
   function endWorkout() {
     setTodaysWorkout(undefined);
@@ -179,9 +182,9 @@ function WorkoutUiHandler() {
     return (
       <div
         style={{ maxWidth: "600px", margin: "0 auto" }}
-        className="rounded-lg p-4 text-white"
+        className="rounded-lg p-4"
       >
-        <div className="mb-4 text-center text-2xl font-bold text-slate-300">
+        <div className="mb-4 text-center text-2xl font-bold">
           Current Workouts:
         </div>
         <SelectDay
@@ -193,7 +196,7 @@ function WorkoutUiHandler() {
   }
   if (todaysWorkout) {
     return (
-      <div className="rounded-lg text-white shadow-md">
+      <div className="rounded-lg  shadow-md">
         <WorkoutUi
           endWorkout={endWorkout}
           todaysWorkout={todaysWorkout}
@@ -271,14 +274,14 @@ function WorkoutUi({
   }, [todaysWorkout]);
 
   return (
-    <div className="flex flex-col items-center rounded-lg text-white ">
+    <div className="flex flex-col items-center rounded-lg  ">
       <WorkoutDisplay3
         priorSetsArray={lastSetsArray}
         workoutPlan={todaysWorkout}
         setWorkoutPlan={setTodaysWorkout}
       />
       <button
-        className="mb-4 mt-4 rounded bg-red-600 px-2 py-1 font-bold text-white hover:bg-red-700"
+        className="mb-4 mt-4 rounded bg-red-600 px-2 py-1 font-bold  hover:bg-red-700"
         onClick={() => endWorkout("")}
       >
         End Workout
@@ -314,7 +317,7 @@ interface SelectDayProps {
 
 function SelectDay({ userWorkoutPlan, setTodaysWorkout }: SelectDayProps) {
   return (
-    <div className="rounded-lg bg-slate-800 p-4 text-white shadow-md">
+    <div className="rounded-lg bg-slate-800 p-4  shadow-md">
       {userWorkoutPlan &&
         userWorkoutPlan.map((workout) => (
           <div
@@ -326,7 +329,7 @@ function SelectDay({ userWorkoutPlan, setTodaysWorkout }: SelectDayProps) {
             </div>
             <button
               value={workout.nominalDay}
-              className="m-1 inline-flex items-center rounded bg-green-600 px-2 py-1 font-bold text-white hover:bg-green-500"
+              className="m-1 inline-flex items-center rounded bg-green-600 px-2 py-1 font-bold  hover:bg-green-500"
               onClick={() => setTodaysWorkout(workout)}
             >
               Begin
@@ -462,7 +465,7 @@ function WorkoutDisplay3({
   }
 
   return (
-    <div className="flex flex-col items-center rounded-lg text-white">
+    <div className="flex flex-col items-center rounded-lg ">
       {workoutPlan && (
         <div key={"w" + workoutPlan.workoutId.toString()} className="w-full">
           <div className="pt-1 text-center text-2xl font-semibold  text-slate-300">
@@ -659,7 +662,7 @@ function ExerciseDisplay({
   return (
     <div
       key={exercise.description}
-      className="mx-1 my-1 rounded-lg bg-slate-900 p-2 text-white shadow-md"
+      className="mx-1 my-1 rounded-lg bg-slate-900 p-2  shadow-md"
     >
       <div className="flex items-center justify-center">
         {descriptionInputActive ? (
@@ -669,7 +672,7 @@ function ExerciseDisplay({
             onChange={handleDescriptionChange}
             onKeyDown={handleKeyDown}
             onBlur={handleBlur}
-            className="rounded-lg bg-slate-700 px-2 py-1 text-white focus:outline-none"
+            className="rounded-lg bg-slate-700 px-2 py-1  focus:outline-none"
             autoFocus
           />
         ) : (
@@ -682,7 +685,7 @@ function ExerciseDisplay({
         )}
         <button
           onClick={handleRemoveExercise}
-          className="m-1 inline-flex items-center rounded bg-red-600 px-2 py-1 font-bold text-white hover:bg-red-700"
+          className="m-1 inline-flex items-center rounded bg-red-600 px-2 py-1 font-bold  hover:bg-red-700"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -713,13 +716,13 @@ function ExerciseDisplay({
       <div className="flex justify-center">
         <button
           onClick={handleAddSet}
-          className="m-1 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
+          className="m-1 rounded bg-blue-600 px-2 py-1 font-bold  hover:bg-blue-700"
         >
           Add Set
         </button>
         <button
           onClick={handleAddExercise}
-          className="m-1 rounded bg-blue-600 px-2 py-1 font-bold text-white hover:bg-blue-700"
+          className="m-1 rounded bg-blue-600 px-2 py-1 font-bold  hover:bg-blue-700"
         >
           Add Exercise
         </button>
@@ -846,7 +849,7 @@ function SetDisplay({
   }
 
   return (
-    <div className="m-1 rounded-lg bg-slate-800 p-1 text-white shadow-md">
+    <div className="m-1 rounded-lg bg-slate-800 p-1  shadow-md">
       {set.priorSet && (
         <div className="mb-2 text-center font-semibold ">
           Last time: {set.priorSet?.weight} lbs x {set.priorSet?.reps} reps @{" "}
@@ -861,7 +864,7 @@ function SetDisplay({
             onChange={handleWeightChange}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
-            className="w-14 rounded-lg bg-slate-700 text-center text-white focus:outline-none"
+            className="w-14 rounded-lg bg-slate-700 text-center  focus:outline-none"
             autoFocus
           />
         ) : (
@@ -880,7 +883,7 @@ function SetDisplay({
             onKeyDown={handleKeyDown}
             onChange={handleRepsChange}
             onBlur={handleBlur}
-            className="w-14 rounded-lg bg-slate-700 text-center text-white focus:outline-none"
+            className="w-14 rounded-lg bg-slate-700 text-center  focus:outline-none"
             autoFocus
           />
         ) : (
@@ -899,7 +902,7 @@ function SetDisplay({
             onChange={handleRirChange}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
-            className="w-14 rounded-lg bg-slate-700 text-center text-white focus:outline-none"
+            className="w-14 rounded-lg bg-slate-700 text-center  focus:outline-none"
             autoFocus
           />
         ) : (
@@ -912,7 +915,7 @@ function SetDisplay({
         )}
         <button
           onClick={handleRemoveSet}
-          className="mx-1 justify-center rounded bg-red-600 px-1 font-bold text-white  hover:bg-red-700"
+          className="mx-1 justify-center rounded bg-red-600 px-1 font-bold   hover:bg-red-700"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -933,32 +936,4 @@ function SetDisplay({
       </div>
     </div>
   );
-}
-
-interface PerformanceWarningProps {
-  priorSet: exerciseSet | undefined;
-  currentSet: exerciseSet | undefined;
-}
-
-function PerformanceWarning({ priorSet, currentSet }: PerformanceWarningProps) {
-  if (!priorSet || !currentSet) {
-    return <div></div>;
-  }
-
-  if (priorSet.weight > currentSet.weight || priorSet.reps > currentSet.reps) {
-    return (
-      <div className="text-red-500">
-        <FontAwesomeIcon icon={faThumbsDown} />
-      </div>
-    );
-  }
-  if (priorSet.weight < currentSet.weight || priorSet.reps < currentSet.reps) {
-    return (
-      <div className="text-green-500">
-        <FontAwesomeIcon icon={faCheck} />
-      </div>
-    );
-  } else {
-    return <div></div>;
-  }
 }
