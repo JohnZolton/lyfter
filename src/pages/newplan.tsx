@@ -1,44 +1,17 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import Link from "next/link";
 import { api } from "~/utils/api";
 import React, {
   useState,
-  useTransition,
   useRef,
   useEffect,
-  HtmlHTMLAttributes,
-  useDebugValue,
 } from "react";
 import {
-  ClerkProvider,
-  RedirectToOrganizationProfile,
-  RedirectToSignIn,
-  useUser,
   SignedIn,
   SignedOut,
   SignInButton,
-  UserButton,
 } from "@clerk/nextjs";
-import { userAgent } from "next/server";
-import { userInfo } from "os";
-import { boolean } from "zod";
-import type {
-  User,
-  Workout,
-  ActualWorkout,
-  ActualExercise,
-  exerciseSet,
-  WorkoutPlanTwo,
-} from "@prisma/client";
-import { prisma } from "~/server/db";
-import { empty } from "@prisma/client/runtime";
-import { SourceTextModule } from "vm";
 import { v4 } from "uuid";
-import { existsSync } from "fs";
-import { create } from "domain";
-import { useRouter } from "next/router";
-import { describe } from "node:test";
 import { NavBar } from "~/pages/components/navbar";
 import  PageLayout  from "~/pages/components/pagelayout";
 import MenuLayout from "./components/menulayout";

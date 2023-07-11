@@ -1,17 +1,10 @@
 import type {
-  User,
-  Workout,
-  WorkoutPlan,
-  ActualWorkout,
-  ActualExercise,
   exerciseSet,
-  WorkoutPlanTwo,
 } from "@prisma/client";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faThumbsDown,
   faCheck,
-  faNetworkWired,
 } from "@fortawesome/free-solid-svg-icons";
 
 interface PerformanceWarningProps {

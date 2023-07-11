@@ -1,46 +1,20 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import Link from "next/link";
 import { api } from "~/utils/api";
 import React, {
   useState,
-  useTransition,
-  useRef,
-  useEffect,
-  HtmlHTMLAttributes,
 } from "react";
 import {
-  ClerkProvider,
-  RedirectToOrganizationProfile,
-  RedirectToSignIn,
-  useUser,
   SignedIn,
   SignedOut,
   SignInButton,
-  UserButton,
 } from "@clerk/nextjs";
-import { userAgent } from "next/server";
-import { userInfo } from "os";
-import { boolean, record } from "zod";
 import type {
-  User,
-  Workout,
-  WorkoutPlan,
   ActualWorkout,
   ActualExercise,
   exerciseSet,
   WorkoutPlanTwo,
 } from "@prisma/client";
-import { prisma } from "~/server/db";
-import { empty } from "@prisma/client/runtime";
-import { SourceTextModule } from "vm";
-import { v4 } from "uuid";
-import { existsSync } from "fs";
-import { create } from "domain";
-import { useRouter } from "next/router";
-import { describe } from "node:test";
-import { TEMPORARY_REDIRECT_STATUS } from "next/dist/shared/lib/constants";
-import { faSortNumericDown } from "@fortawesome/free-solid-svg-icons";
 import { NavBar } from "~/pages/components/navbar";
 import  PageLayout  from "~/pages/components/pagelayout";
 import LoadingSpinner from "./components/loadingspinner";
@@ -80,7 +54,6 @@ const Home: NextPage = () => {
 export default Home;
 
 function Content() {
-  const user = useUser();
 
   return (
     <div className="flex flex-col items-center w-full">

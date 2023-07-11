@@ -1,6 +1,5 @@
-import { clerkClient } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
-import { string, z } from "zod";
+import { z } from "zod";
 import {
   createTRPCRouter,
   privateProcedure,
@@ -8,18 +7,8 @@ import {
 } from "~/server/api/trpc";
 
 import type {
-  User,
-  Workout,
-  Exercise,
-  WorkoutPlan,
-  ModelWorkoutPlan,
-  exerciseSet,
   ActualWorkout,
 } from "@prisma/client";
-import { prisma } from "~/server/db";
-import { Input } from "postcss";
-import internal from "stream";
-import { setServers } from "dns";
 import { v4 } from "uuid";
 
 export const getAllWorkouts = createTRPCRouter({
@@ -471,71 +460,6 @@ export const getAllWorkouts = createTRPCRouter({
     return workouts;
   }),
 
-  newTestPlan: privateProcedure
-    .input(
-      z.object({
-        workouts: z.array(
-          z.object({
-            description: z.string(),
-            nominalDay: z.string(),
-            exercises: z.array(
-              z.object({
-                description: z.string(),
-                weight: z.number(),
-                sets: z.number(),
-              })
-            ),
-          })
-        ),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const { workouts } = input;
-      const deleteExercises = await ctx.prisma.modelExercise.deleteMany({
-        where: { userId: ctx.userId },
-      });
-      const deleteWorkouts = await ctx.prisma.modelWorkout.deleteMany({
-        where: { userId: ctx.userId },
-      });
-      const deleteWorkoutPlan = await ctx.prisma.modelWorkoutPlan.deleteMany({
-        where: { userId: ctx.userId },
-      });
-
-      const workoutplan = await ctx.prisma.modelWorkoutPlan.create({
-        data: {
-          userId: ctx.userId,
-          workouts: {
-            create: workouts.map((workout) => ({
-              description: workout.description,
-              nominalDay: workout.nominalDay,
-              exercises: {
-                create: workout.exercises.map((exercise) => ({
-                  description: exercise.description,
-                  weight: exercise.weight,
-                  sets: exercise.sets,
-                  userId: ctx.userId,
-                })),
-              },
-            })),
-          },
-        },
-        include: {
-          workouts: {
-            include: {
-              exercises: true,
-            },
-          },
-        },
-      });
-
-      if (!workoutplan) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Failed to create workout plan",
-        });
-      }
-      return workoutplan;
-    }),
 
   updateWorkoutPlan: privateProcedure
     .input(
