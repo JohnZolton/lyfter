@@ -1,53 +1,12 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import Link from "next/link";
-import { api } from "~/utils/api";
-import React, {
-  useState,
-  useTransition,
-  useRef,
-  useEffect,
-  HtmlHTMLAttributes,
-} from "react";
+import React from "react";
 import {
-  ClerkProvider,
-  RedirectToOrganizationProfile,
-  RedirectToSignIn,
-  useUser,
   SignedIn,
   SignedOut,
   SignInButton,
-  UserButton,
 } from "@clerk/nextjs";
-import { userAgent } from "next/server";
-import { userInfo } from "os";
-import { boolean, record } from "zod";
-import type {
-  User,
-  Workout,
-  WorkoutPlan,
-  ActualWorkout,
-  ActualExercise,
-  exerciseSet,
-  WorkoutPlanTwo,
-} from "@prisma/client";
-import { prisma } from "~/server/db";
-import { empty } from "@prisma/client/runtime";
-import { SourceTextModule } from "vm";
-import { v4 } from "uuid";
-import { existsSync } from "fs";
-import { create } from "domain";
-import { useRouter } from "next/router";
-import { describe } from "node:test";
-import { TEMPORARY_REDIRECT_STATUS } from "next/dist/shared/lib/constants";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faThumbsDown,
-  faCheck,
-  faNetworkWired,
-} from "@fortawesome/free-solid-svg-icons";
 import NavBar from "~/pages/components/navbar";
-import LoadingSpinner from "~/pages/components/loadingspinner";
 
 const Home: NextPage = () => {
   return (

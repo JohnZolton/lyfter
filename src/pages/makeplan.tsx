@@ -1,10 +1,8 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import Link from "next/link";
 import { api } from "~/utils/api";
 import React, {
   useState,
-  useTransition,
   useRef,
   useEffect,
   HtmlHTMLAttributes,
@@ -12,36 +10,19 @@ import React, {
 import {
   ClerkProvider,
   RedirectToOrganizationProfile,
-  RedirectToSignIn,
-  useUser,
   SignedIn,
   SignedOut,
   SignInButton,
-  UserButton,
 } from "@clerk/nextjs";
-import { userAgent } from "next/server";
-import { userInfo } from "os";
-import { boolean } from "zod";
 import type {
-  User,
-  Workout,
-  WorkoutPlan,
   ActualWorkout,
   ActualExercise,
   exerciseSet,
-  WorkoutPlanTwo,
 } from "@prisma/client";
-import { prisma } from "~/server/db";
-import { empty } from "@prisma/client/runtime";
-import { SourceTextModule } from "vm";
 import { v4 } from "uuid";
-import { existsSync } from "fs";
-import { create } from "domain";
-import { useRouter } from "next/router";
-import { describe } from "node:test";
 import { NavBar } from "~/pages/components/navbar";
 import  PageLayout  from "~/pages/components/pagelayout";
-import MenuLayout from "./components/menulayout";
+import SetDisplay from "./components/setdisplay";
 
 const Home: NextPage = () => {
   return (
@@ -725,35 +706,6 @@ function NewDay({ day, updatePlan }: NewDayProps) {
   );
 }
 
-function MakePplSplit() {
-  const { mutate: makePlan, isLoading } =
-    api.getWorkouts.newTestPlan.useMutation({
-      onSuccess(data, variables, context) {
-        console.log(data);
-        window.location.reload();
-      },
-    });
-
-  function handleClick() {
-    makePlan({ workouts: pplPlanArray });
-  }
-  return (
-    <div>
-      <div className="mb-4 text-center text-3xl font-bold text-slate-300">
-        Our Recommended Plan
-      </div>
-      <div className="mb-4 text-center text-2xl font-bold text-slate-300">
-        (Push, Pull, Legs)
-      </div>
-      <button
-        onClick={handleClick}
-        className="rounded-full bg-slate-400 p-5 hover:bg-slate-300 hover:underline"
-      >
-        Use Recommended
-      </button>
-    </div>
-  );
-}
 
 function createUniqueId(): string {
   return v4();
@@ -1718,9 +1670,8 @@ function ExerciseDisplay({
         {sets.map((set, index) => (
           <SetDisplay
             key={index}
-            set={set}
+            set={{...set, priorSet: null}}
             index={index}
-            priorSetsArray={priorSetsArray}
             removeSet={handleRemoveSet}
             updateSets={handleSetChange}
           />
@@ -1740,194 +1691,6 @@ function ExerciseDisplay({
           Add Exercise
         </button>
       </div>
-    </div>
-  );
-}
-
-interface SetDisplayProps {
-  index: number;
-  set: exerciseSet;
-  priorSetsArray: exerciseSet[] | undefined;
-  updateSets: (set: exerciseSet, index: number) => void;
-  removeSet: (index: number) => void;
-}
-
-function SetDisplay({
-  index,
-  set,
-  priorSetsArray,
-  updateSets,
-  removeSet,
-}: SetDisplayProps) {
-  const [weight, setWeight] = useState(set.weight);
-  const [reps, setReps] = useState(set.reps);
-  const [rir, setRir] = useState(set.rir);
-
-  const { mutate: recordSet } = api.getWorkouts.updateSets.useMutation({
-    onSuccess(data) {
-      console.log(data);
-    },
-  });
-  const { mutate: deleteSet } = api.getWorkouts.removeSet.useMutation({
-    onSuccess(data) {
-      console.log(data);
-    },
-  });
-
-  const handleWeightClick = () => {
-    setWeightInputActive(true);
-  };
-  const handleRepsClick = () => {
-    setRepsInputActive(true);
-  };
-  const handleRirClick = () => {
-    setRirInputActive(true);
-  };
-  const handleBlur = () => {
-    setWeightInputActive(false);
-    setRepsInputActive(false);
-    setRirInputActive(false);
-    const newSet: exerciseSet = {
-      date: new Date(),
-      setId: set.setId,
-      exerciseId: set.exerciseId,
-      weight: weight,
-      reps: reps,
-      rir: rir,
-      lastSetId: set.lastSetId,
-    };
-    updateSets(newSet, index);
-    recordSet({ ...newSet });
-  };
-
-  useEffect(() => {
-    setWeight(set.weight);
-    setReps(set.reps);
-    setRir(set.rir);
-  }, [set.weight, set.reps, set.rir]);
-
-  const handleWeightChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(event.target.value);
-    if (!isNaN(value) && value >= 0) {
-      setWeight(parseInt(event.target.value));
-    }
-  };
-
-  const handleRepsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(event.target.value);
-    if (!isNaN(value) && value >= 0) {
-      setReps(parseInt(event.target.value));
-    }
-  };
-
-  const handleRirChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(event.target.value);
-    if (!isNaN(value) && value >= 0) {
-      setRir(parseInt(event.target.value));
-    }
-  };
-
-  function handleRemoveSet() {
-    removeSet(index);
-    deleteSet({ setId: set.setId });
-  }
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter" || event.key === "esc") {
-      handleBlur();
-    }
-  };
-
-  const [weightInputActive, setWeightInputActive] = useState(false);
-  const [repsInputActive, setRepsInputActive] = useState(false);
-  const [rirInputActive, setRirInputActive] = useState(false);
-
-  const [priorSet, setPriorSet] = useState<exerciseSet | undefined>();
-  if (!priorSet && priorSetsArray) {
-    console.log("finding set...");
-    const lastWeeksSet = priorSetsArray?.find(
-      (lastSet) => lastSet.setId === set.lastSetId
-    );
-    if (lastWeeksSet) {
-      console.log("found: ", lastWeeksSet);
-      setPriorSet(lastWeeksSet);
-    }
-  }
-
-  return (
-    <div className="m-1 flex flex-auto justify-center space-x-2 rounded-lg bg-gray-800 px-2 py-1 text-white shadow-md">
-      {weightInputActive ? (
-        <input
-          type="number"
-          value={weight}
-          onChange={handleWeightChange}
-          onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-          className="w-14 rounded-lg bg-gray-700 text-center focus:outline-none"
-          autoFocus
-        />
-      ) : (
-        <span
-          className="mx-2 cursor-pointer rounded-lg bg-gray-600 px-2 py-1 hover:bg-gray-500"
-          onClick={handleWeightClick}
-        >
-          {weight} lbs
-        </span>
-      )}{" "}
-      x{" "}
-      {repsInputActive ? (
-        <input
-          type="number"
-          value={reps}
-          onKeyDown={handleKeyDown}
-          onChange={handleRepsChange}
-          onBlur={handleBlur}
-          className="w-14 rounded-lg bg-gray-700 text-center focus:outline-none"
-          autoFocus
-        />
-      ) : (
-        <span
-          className="mx-2 cursor-pointer rounded-lg bg-gray-600 px-2 py-1 hover:bg-gray-500"
-          onClick={handleRepsClick}
-        >
-          {reps} reps
-        </span>
-      )}
-      <div className="w-.75 inline-block" />@
-      {rirInputActive ? (
-        <input
-          type="number"
-          value={rir}
-          onChange={handleRirChange}
-          onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-          className="w-14 rounded-lg bg-gray-700 text-center focus:outline-none"
-          autoFocus
-        />
-      ) : (
-        <span
-          className="mx-2 cursor-pointer rounded-lg bg-gray-600 px-2 py-1 hover:bg-gray-500"
-          onClick={handleRirClick}
-        >
-          {rir} RIR
-        </span>
-      )}
-      <button
-        onClick={handleRemoveSet}
-        className="inline-flex items-center rounded bg-red-600 px-2 py-1 font-bold text-white hover:bg-red-700"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fillRule="evenodd"
-            d="M10 11.414L15.657 17.071l1.414-1.414L11.414 10l5.657-5.657L15.657 2.93 10 8.586 4.343 2.93 2.93 4.343 8.586 10l-5.657 5.657 1.414 1.414L10 11.414z"
-            clipRule="evenodd"
-          />
-        </svg>
-      </button>
     </div>
   );
 }
