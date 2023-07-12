@@ -12,6 +12,9 @@ This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3
 - **Prisma**: Used as the open-source database ORM.
 - **Tailwind**: A utility-first CSS framework.
 
+## The Algorithm
+The match-or-beat system compares the current workouts performance to last week's performance. As long as performance is improving, keep going. Performance is measured by weight, reps, or both. The app warns you when performance declines and when its time to take a deload.
+
 ## Features
 
 - **Workout Management**: Users can create, plan, edit, and log their workouts with ease.
