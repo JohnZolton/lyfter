@@ -83,16 +83,6 @@ function WorkoutUiHandler() {
       !todaysWorkout &&
       userWorkouts.workoutPlan
     ) {
-      //const workoutsToDisplay:
-        //| (ActualWorkout & {
-            //exercises: (ActualExercise & {
-              //sets: (exerciseSet & {
-                //priorSet: exerciseSet | null;
-              //})[];
-            //})[];
-          //})[]
-        //| undefined = [];
-
         const uniqueWorkouts = new Set()
         const workoutsToDisplay: (ActualWorkout & {
     exercises: (ActualExercise & {
