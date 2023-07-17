@@ -1,11 +1,6 @@
-import type {
-  exerciseSet,
-} from "@prisma/client";
+import type { exerciseSet } from "@prisma/client";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faThumbsDown,
-  faCheck,
-} from "@fortawesome/free-solid-svg-icons";
+import { faThumbsDown, faCheck } from "@fortawesome/free-solid-svg-icons";
 
 interface PerformanceWarningProps {
   priorSet: exerciseSet | undefined | null;
@@ -35,4 +30,4 @@ function PerformanceWarning({ priorSet, currentSet }: PerformanceWarningProps) {
   }
 }
 
-export default PerformanceWarning
+export default PerformanceWarning;

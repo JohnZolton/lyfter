@@ -1,14 +1,8 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import { api } from "~/utils/api";
-import React, {
-  useState,
-} from "react";
-import {
-  SignedIn,
-  SignedOut,
-  SignInButton,
-} from "@clerk/nextjs";
+import React, { useState } from "react";
+import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import type {
   ActualWorkout,
   ActualExercise,
@@ -16,7 +10,7 @@ import type {
   WorkoutPlanTwo,
 } from "@prisma/client";
 import { NavBar } from "~/pages/components/navbar";
-import  PageLayout  from "~/pages/components/pagelayout";
+import PageLayout from "~/pages/components/pagelayout";
 import LoadingSpinner from "./components/loadingspinner";
 import MenuLayout from "./components/menulayout";
 import PerformanceWarning from "./components/performancewarning";
@@ -54,9 +48,8 @@ const Home: NextPage = () => {
 export default Home;
 
 function Content() {
-
   return (
-    <div className="flex flex-col items-center w-full">
+    <div className="flex w-full flex-col items-center">
       <Workouts />
     </div>
   );
@@ -97,29 +90,46 @@ function Workouts() {
   };
 
   return (
-    <div className="flex flex-wrap w-full pt-5">
-        {selectedPlan && <DisplayPlan plan={selectedPlan} />}
+    <div className="flex w-full flex-wrap pt-5">
+      {selectedPlan && <DisplayPlan plan={selectedPlan} />}
       <div className="w-full">
-
-        {!selectedPlan && <div className="mb-4 text-center text-2xl font-bold ">Workout Plans: </div>}
-      {!selectedPlan && <MenuLayout>
-        {!selectedPlan &&
-          workoutPlans.map((plan) => (
-            <div key={plan.planId} className="px-4 my-2 flex flex-row items-center justify-between w-full">
-                <div className="text-lg font-semibold text-slate-100">
-                {plan.description}
+        {!selectedPlan && (
+          <div className="mb-4 text-center text-2xl font-bold ">
+            Workout Plans:{" "}
+          </div>
+        )}
+        {!selectedPlan && (
+          <MenuLayout>
+            {!selectedPlan &&
+              workoutPlans.map((plan) => (
+                <div
+                  key={plan.planId}
+                  className="my-2 flex w-full flex-row items-center justify-between px-4"
+                >
+                  <div className="text-lg font-semibold text-slate-100">
+                    {plan.description}
                   </div>
-                <button
-              className="m-1 inline-flex items-center rounded bg-green-600 px-2 py-1 font-bold text-white hover:bg-green-500"
-                 onClick={() => handleButtonClick(plan)}>Select</button>
-            </div>
-          ))}
-      </MenuLayout>}
+                  <button
+                    className="m-1 inline-flex items-center rounded bg-green-600 px-2 py-1 font-bold text-white hover:bg-green-500"
+                    onClick={() => handleButtonClick(plan)}
+                  >
+                    Select
+                  </button>
+                </div>
+              ))}
+          </MenuLayout>
+        )}
 
-        {selectedPlan && <div className="flex justify-center items-center w-full pb-10">
-           <button
-      className=" flex justify-center items-center rounded bg-green-600 px-2 py-1 font-bold text-white hover:bg-green-500"
-         onClick={() => setSelectedPlan(undefined)}>Back</button></div>}
+        {selectedPlan && (
+          <div className="flex w-full items-center justify-center pb-10">
+            <button
+              className=" flex items-center justify-center rounded bg-green-600 px-2 py-1 font-bold text-white hover:bg-green-500"
+              onClick={() => setSelectedPlan(undefined)}
+            >
+              Back
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -257,7 +267,7 @@ function DisplayPlan({ plan }: DisplayPlanProps) {
                                 {workout.exercises[index]?.sets.map(
                                   (set, setIndex) => (
                                     <div
-                                        className="flex items-center justify-between"
+                                      className="flex items-center justify-between"
                                       key={set.setId}
                                     >
                                       <div>
@@ -265,7 +275,10 @@ function DisplayPlan({ plan }: DisplayPlanProps) {
                                         {set.reps} @ {set.rir} RIR
                                       </div>
                                       <div className="pl-2">
-                                        <PerformanceWarning priorSet={set.priorSet} currentSet={set}/>
+                                        <PerformanceWarning
+                                          priorSet={set.priorSet}
+                                          currentSet={set}
+                                        />
                                       </div>
                                     </div>
                                   )

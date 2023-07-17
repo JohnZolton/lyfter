@@ -1,15 +1,7 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import { api } from "~/utils/api";
-import {
-  ClerkProvider,
-  RedirectToUserProfile,
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  UserButton,
-} from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 
 const Home: NextPage = () => {
   return (

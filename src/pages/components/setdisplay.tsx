@@ -1,31 +1,23 @@
-import type {
-  exerciseSet,
-} from "@prisma/client";
+import type { exerciseSet } from "@prisma/client";
 import { useState, useEffect } from "react";
 import { api } from "~/utils/api";
 import PerformanceWarning from "./performancewarning";
 
-
 interface SetDisplayProps {
   index: number;
   set: exerciseSet & {
-    priorSet: exerciseSet | null;
+    priorSet?: exerciseSet | null;
   };
   updateSets: (
     set: exerciseSet & {
-      priorSet: exerciseSet | null;
+      priorSet?: exerciseSet | null;
     },
     index: number
   ) => void;
   removeSet: (index: number) => void;
 }
 
-function SetDisplay({
-  index,
-  set,
-  updateSets,
-  removeSet,
-}: SetDisplayProps) {
+function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
   const [weight, setWeight] = useState(set?.weight || 0);
   const [reps, setReps] = useState(set?.reps || 0);
   const [rir, setRir] = useState(set?.rir || 0);
@@ -54,7 +46,7 @@ function SetDisplay({
     setWeightInputActive(false);
     setRepsInputActive(false);
     setRirInputActive(false);
-    const newSet: exerciseSet & { priorSet: exerciseSet | null } = {
+    const newSet: exerciseSet & { priorSet?: exerciseSet | null } = {
       date: new Date(),
       setId: set.setId,
       exerciseId: set.exerciseId,
@@ -110,8 +102,8 @@ function SetDisplay({
   const [rirInputActive, setRirInputActive] = useState(false);
 
   const [priorSet, setPriorSet] = useState<exerciseSet | undefined>();
-  if (!priorSet && set && set.priorSet){
-    setPriorSet(set.priorSet)
+  if (!priorSet && set && set.priorSet) {
+    setPriorSet(set.priorSet);
   }
 
   return (
@@ -204,4 +196,4 @@ function SetDisplay({
   );
 }
 
-export default SetDisplay
+export default SetDisplay;
