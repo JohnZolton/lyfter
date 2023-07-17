@@ -5,11 +5,8 @@ import React, {
   useState,
   useRef,
   useEffect,
-  HtmlHTMLAttributes,
 } from "react";
 import {
-  ClerkProvider,
-  RedirectToOrganizationProfile,
   SignedIn,
   SignedOut,
   SignInButton,
@@ -111,7 +108,7 @@ function EditWorkoutMenu() {
   const { data: userWorkoutData, isLoading: workoutsLoading } =
     api.getWorkouts.getUniqueWeekWorkouts.useQuery();
 
-  const userWorkouts = userWorkoutData?.workouts;
+  const userWorkouts = userWorkoutData?.workoutPlan?.workouts;
   if (
     !workoutsLoading &&
     userWorkouts !== undefined &&

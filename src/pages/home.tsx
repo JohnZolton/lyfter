@@ -4,7 +4,6 @@ import { api } from "~/utils/api";
 import React, {
   useState,
   useEffect,
-  HtmlHTMLAttributes,
 } from "react";
 import {
   SignedIn,
@@ -74,46 +73,48 @@ function WorkoutUiHandler() {
     | undefined
   >();
 
-  const { data: userWorkoutData, isLoading } =
+  const { data: userWorkouts, isLoading } =
     api.getWorkouts.getUniqueWeekWorkouts.useQuery();
 
-  const userWorkouts = userWorkoutData?.workouts;
-  const userPlanTemplate = userWorkoutData?.workoutPlan;
 
   useEffect(() => {
     if (
       userWorkouts &&
       !todaysWorkout &&
-      userPlanTemplate &&
-      userPlanTemplate.workouts
+      userWorkouts.workoutPlan
     ) {
-      const workoutsByOriginalWorkout = new Map(
-        userWorkouts.map((workout) => [workout.originalWorkoutId, workout])
-      );
-      const workoutsToDisplay:
-        | (ActualWorkout & {
-            exercises: (ActualExercise & {
-              sets: (exerciseSet & {
-                priorSet: exerciseSet | null;
-              })[];
-            })[];
-          })[]
-        | undefined = [];
-      userPlanTemplate.workouts.map((plannedWorkout) => {
-        if (workoutsByOriginalWorkout.has(plannedWorkout.originalWorkoutId)) {
-          const workout = workoutsByOriginalWorkout.get(
-            plannedWorkout.originalWorkoutId
-          );
-          if (workout !== undefined) {
-            workoutsToDisplay.push(workout);
+      //const workoutsToDisplay:
+        //| (ActualWorkout & {
+            //exercises: (ActualExercise & {
+              //sets: (exerciseSet & {
+                //priorSet: exerciseSet | null;
+              //})[];
+            //})[];
+          //})[]
+        //| undefined = [];
+
+        const uniqueWorkouts = new Set()
+        const workoutsToDisplay: (ActualWorkout & {
+    exercises: (ActualExercise & {
+        sets: (exerciseSet & {
+            priorSet: exerciseSet | null;
+        })[];
+    })[];
+})[] = []
+        userWorkouts.workoutPlan.workouts.map((workout) => {
+          console.log(workout)
+          if (!uniqueWorkouts.has(workout.originalWorkoutId)){
+            console.log("ADDING")
+            uniqueWorkouts.add(workout.originalWorkoutId)
+            workoutsToDisplay.push(workout)
           }
-        } else {
-          workoutsToDisplay.push(plannedWorkout);
         }
-      });
+        )
+
+
       setWorkoutPlan(sortWorkoutsByNominalDay(workoutsToDisplay));
-    }
-  }, [userWorkouts, userPlanTemplate, todaysWorkout]);
+      }
+  }, [userWorkouts, todaysWorkout]);
 
   function sortWorkoutsByNominalDay(
     workouts: (ActualWorkout & {
@@ -208,11 +209,10 @@ function WorkoutUi({
   endWorkout,
 }: WorkoutUiProps) {
   const today = new Date();
-  const [lastSetsArray, setLastSetsArray] = useState<exerciseSet[]>();
 
-  const { mutate: saveWorkout, isLoading } =
+  const { mutate: saveWorkout } =
     api.getWorkouts.createNewWorkoutFromPrevious.useMutation({
-      onSuccess(data, variables, context) {
+      onSuccess(data) {
         setTodaysWorkout(data);
       },
     });
@@ -222,7 +222,6 @@ function WorkoutUi({
     if (todaysWorkout) {
       const oneWeek = 7 * 24 * 60 * 60 * 1000;
       if (today.getTime() - todaysWorkout.date.getTime() > oneWeek) {
-        //if (today.getTime() - priorWorkout.date.getTime() > oneWeek) {
         if (!isNewWorkoutCreated) {
           isNewWorkoutCreated = true;
           console.log("need new workout");
@@ -230,7 +229,7 @@ function WorkoutUi({
           const newWorkout = {
             ...todaysWorkout,
             date: today,
-            priorWorkoutId: todaysWorkout.workoutId,
+            priorWorkoutId: todaysWorkout.originalWorkoutId !== null ?  todaysWorkout.originalWorkoutId : todaysWorkout.workoutId,
             planId: todaysWorkout.planId ?? "none",
             workoutNumber: todaysWorkout.workoutNumber ? +1 : 0,
             exercises: todaysWorkout.exercises.map((exercise) => ({
@@ -247,7 +246,6 @@ function WorkoutUi({
   return (
     <div className="flex flex-col items-center rounded-lg  ">
       <WorkoutDisplay3
-        priorSetsArray={lastSetsArray}
         workoutPlan={todaysWorkout}
         setWorkoutPlan={setTodaysWorkout}
       />
@@ -338,12 +336,10 @@ interface display3Props {
       | undefined
     >
   >;
-  priorSetsArray: exerciseSet[] | undefined;
 }
 function WorkoutDisplay3({
   workoutPlan,
   setWorkoutPlan,
-  priorSetsArray,
 }: display3Props) {
   console.log("workoutplan: ");
   console.log(workoutPlan);
@@ -454,7 +450,6 @@ function WorkoutDisplay3({
                     workoutNumber={workoutPlan.workoutId}
                     exerciseNumber={exercise.exerciseId}
                     exerciseIndex={exerciseNumber}
-                    priorSetsArray={priorSetsArray}
                     updatePlan={updateWorkoutPlan}
                     addExercise={addExercise}
                     key={
@@ -492,7 +487,6 @@ interface ExerciseDisplayProps {
     exerciseId: string
   ) => void;
 
-  priorSetsArray: exerciseSet[] | undefined;
   removeExercise: (workoutNumber: string, exerciseNumber: string) => void;
 }
 
@@ -502,7 +496,6 @@ function ExerciseDisplay({
   workoutNumber,
   exerciseNumber,
   exerciseIndex,
-  priorSetsArray,
   addExercise,
   updatePlan,
 }: ExerciseDisplayProps) {

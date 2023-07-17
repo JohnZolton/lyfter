@@ -366,6 +366,7 @@ export const getAllWorkouts = createTRPCRouter({
           z.object({
             description: z.string(),
             nominalDay: z.string(),
+            workoutId: z.string(),
             exercises: z.array(
               z.object({
                 description: z.string(),
@@ -395,7 +396,7 @@ export const getAllWorkouts = createTRPCRouter({
               nominalDay: workout.nominalDay,
               userId: ctx.userId,
               description: workout.description,
-              originalWorkoutId: v4(),
+              originalWorkoutId: workout.workoutId,
               workoutNumber: 0,
               exercises: {
                 create: workout.exercises.map((exercise) => ({
@@ -578,41 +579,18 @@ export const getAllWorkouts = createTRPCRouter({
     }),
 
   getUniqueWeekWorkouts: privateProcedure.query(async ({ ctx }) => {
-    const oneWeekAgo = new Date()
-    oneWeekAgo.setDate(oneWeekAgo.getDate()-7)
     const workoutPlan = await ctx.prisma.workoutPlanTwo.findFirst({
       where: {userId: ctx.userId},
       orderBy: [{date: "desc"}],
-      include: {workouts: {include: {exercises: { include: { sets: {include: {priorSet: true}} } }}}}})
+      include: {workouts: 
+        {
+          orderBy: [{date: "desc"}],
+          include: {exercises: { include: { sets: {include: {priorSet: true}} } }}}
+      }})
 
-    if (workoutPlan){
-      const workouts = await ctx.prisma.actualWorkout.findMany({
-        where: {
-          userId: ctx.userId,
-          date: {
-            gte: oneWeekAgo,
-          },
-          planId: workoutPlan.planId
-        },
-        include: { exercises: { include: { sets: {include: {priorSet: true}} } }
-      },
-        orderBy: [{ date: "asc" }], 
-      });
-      if (!workouts) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "No workouts with that User",
-        });
-      }
-      if (!workouts || workouts.length===0){
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "No workouts found for the user"
-        })
-      }
-      return {workouts, workoutPlan};
+      return {workoutPlan};
     }
-  }),
+  ),
 
   addExercise: privateProcedure
     .input(
@@ -663,8 +641,9 @@ export const getAllWorkouts = createTRPCRouter({
           userId: ctx.userId,
           description: input.description,
           nominalDay: input.nominalDay,
-          workoutNumber: input.workoutNumber,
+          workoutNumber: input.workoutNumber + 1,
           planId: input.planId,
+          originalWorkoutId: input.priorWorkoutId,
           exercises: {
             create: input.exercises.map((exercise) => ({
               description: exercise.description,
