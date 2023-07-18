@@ -1,16 +1,10 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import { api } from "~/utils/api";
-import React, {
-  useState,
-  useRef,
-  useEffect,
-} from "react";
-import {
-  SignedIn,
-  SignedOut,
-  SignInButton,
-} from "@clerk/nextjs";
+
+import React, { useState, useRef, useEffect } from "react";
+import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
+
 import type {
   ActualWorkout,
   ActualExercise,
@@ -18,8 +12,10 @@ import type {
 } from "@prisma/client";
 import { v4 } from "uuid";
 import { NavBar } from "~/pages/components/navbar";
-import  PageLayout  from "~/pages/components/pagelayout";
+import PageLayout from "~/pages/components/pagelayout";
 import SetDisplay from "./components/setdisplay";
+import WorkoutDisplay3 from "./components/workoutdisplay";
+import ExerciseDisplay from "./components/exercisedisplay";
 
 const Home: NextPage = () => {
   return (
@@ -60,18 +56,45 @@ function NewWorkoutUi() {
       <div className="mb-2 pt-1 text-center text-2xl font-semibold  ">
         Edit Workout Plan
       </div>
-    <div className="flex flex-col items-center rounded-lg  shadow-md">
-      <EditWorkoutMenu />
-    </div>
+      <div className="flex flex-col items-center rounded-lg  shadow-md">
+        <EditWorkoutMenu />
+      </div>
     </>
   );
+}
+function filterUniqueWorkouts(
+  userWorkouts: (ActualWorkout & {
+    exercises: (ActualExercise & {
+      sets: (exerciseSet & {
+        priorSet?: exerciseSet | null;
+      })[];
+    })[];
+  })[]
+) {
+  const uniqueWorkouts = new Set();
+  const workoutsToDisplay: (ActualWorkout & {
+    exercises: (ActualExercise & {
+      sets: (exerciseSet & {
+        priorSet?: exerciseSet | null;
+      })[];
+    })[];
+  })[] = [];
+  userWorkouts.map((workout) => {
+    console.log(workout);
+    if (!uniqueWorkouts.has(workout.originalWorkoutId)) {
+      console.log("ADDING");
+      uniqueWorkouts.add(workout.originalWorkoutId);
+      workoutsToDisplay.push(workout);
+    }
+  });
+  return workoutsToDisplay;
 }
 
 function EditWorkoutMenu() {
   const [workoutPlan, setWorkoutPlan] = useState<
     | (ActualWorkout & {
         exercises: (ActualExercise & {
-          sets: exerciseSet[];
+          sets: (exerciseSet & { priorSet?: exerciseSet | null })[];
         })[];
       })[]
     | undefined
@@ -80,7 +103,7 @@ function EditWorkoutMenu() {
   function sortWorkoutsByNominalDay(
     workouts: (ActualWorkout & {
       exercises: (ActualExercise & {
-        sets: exerciseSet[];
+        sets: (exerciseSet & { priorSet?: exerciseSet | null })[];
       })[];
     })[]
   ) {
@@ -117,8 +140,9 @@ function EditWorkoutMenu() {
     !workoutPlanSet
   ) {
     console.log("user workouts:");
+
     const workoutPlanActual = userWorkouts
-      ? sortWorkoutsByNominalDay(userWorkouts)
+      ? sortWorkoutsByNominalDay(filterUniqueWorkouts(userWorkouts))
       : [];
     //console.log(workoutPlanActual)
     setWorkoutPlan(workoutPlanActual);
@@ -127,21 +151,20 @@ function EditWorkoutMenu() {
     setPlanId(workoutPlanActual[0]?.planId ?? "");
   }
 
-  function addWorkout(
-    workout:
-      | (ActualWorkout & {
-          exercises: (ActualExercise & { sets: exerciseSet[] })[];
-        })
-      | undefined
-  ) {
-    console.log(workout);
-    if (!workout) {
-      return;
-    }
-    const newWorkoutPlan = workoutPlan ? [...workoutPlan, workout] : [workout];
-    setWorkoutPlan(newWorkoutPlan);
-  }
-  const priorSetArray: exerciseSet[] = [];
+  //function addWorkout(
+  //workout:
+  //| (ActualWorkout & {
+  //exercises: (ActualExercise & { sets: exerciseSet[] })[];
+  //})
+  //| undefined
+  //) {
+  //console.log(workout);
+  //if (!workout) {
+  //return;
+  //}
+  //const newWorkoutPlan = workoutPlan ? [...workoutPlan, workout] : [workout];
+  //setWorkoutPlan(newWorkoutPlan);
+  //}
 
   const MENU_ACTIONS = {
     NONE: "none",
@@ -165,11 +188,86 @@ function EditWorkoutMenu() {
     </div>
   );
 }
+
+
+interface WorkoutDisplayHandlerProps {
+  fullWorkoutPlan:
+    | (ActualWorkout & {
+        exercises: (ActualExercise & {
+          sets: (exerciseSet & { priorSet?: exerciseSet | null })[];
+        })[];
+      })[]
+    | undefined;
+
+  workoutPlan:
+    | (ActualWorkout & {
+        exercises: (ActualExercise & {
+          sets: (exerciseSet & { priorSet?: exerciseSet | null })[];
+        })[];
+      })
+    | undefined;
+  setWorkoutPlan: React.Dispatch<
+    React.SetStateAction<
+      | (ActualWorkout & {
+          exercises: (ActualExercise & {
+            sets: (exerciseSet & {
+              priorSet?: exerciseSet | null;
+            })[];
+          })[];
+        })[]
+      | undefined
+    >
+  >;
+}
+function WorkoutDisplayHandler({workoutPlan, setWorkoutPlan, fullWorkoutPlan}:WorkoutDisplayHandlerProps){
+  const [workout, setWorkout] = useState<
+    | (ActualWorkout & {
+        exercises: (ActualExercise & {
+          sets: (exerciseSet & {
+            priorSet?: exerciseSet | null | undefined;
+          })[];
+        })[];
+      })
+    | undefined
+  >();
+  useEffect(()=>{
+    setWorkout(workoutPlan)
+  }, [workoutPlan])
+
+  useEffect(()=>{
+    console.log("edit workout fired")
+    const workoutIndex = fullWorkoutPlan?.findIndex(w => w === workoutPlan)
+    if (workoutIndex !== -1 && workoutIndex !== undefined && workout && fullWorkoutPlan && workout !== fullWorkoutPlan[workoutIndex]){
+      setWorkoutPlan(prev => {
+        if (!prev || workout === prev[workoutIndex]) { return [workout]}
+        else {
+        return [
+          ...prev.slice(0, workoutIndex),
+          workout,
+          ...prev.slice(workoutIndex + 1)
+        ]
+
+        }
+      })
+    }
+  }, [workout])
+
+  return(
+    <div>
+      {workoutPlan && <WorkoutDisplay3 workoutPlan={workoutPlan} setWorkoutPlan={setWorkout}/>}
+       </div>
+  )
+}
+
+
+
+
+
 interface WorkoutPlanFormProps {
   workoutPlan:
     | (ActualWorkout & {
         exercises: (ActualExercise & {
-          sets: exerciseSet[];
+          sets: (exerciseSet & { priorSet?: exerciseSet | null })[];
         })[];
       })[]
     | undefined;
@@ -177,7 +275,9 @@ interface WorkoutPlanFormProps {
     React.SetStateAction<
       | (ActualWorkout & {
           exercises: (ActualExercise & {
-            sets: exerciseSet[];
+            sets: (exerciseSet & {
+              priorSet?: exerciseSet | null;
+            })[];
           })[];
         })[]
       | undefined
@@ -192,7 +292,7 @@ function WorkoutPlanForm({
   function sortWorkoutsByNominalDay(
     workouts: (ActualWorkout & {
       exercises: (ActualExercise & {
-        sets: exerciseSet[];
+        sets: (exerciseSet & { priorSet?: exerciseSet })[];
       })[];
     })[]
   ) {
@@ -215,33 +315,13 @@ function WorkoutPlanForm({
 
     return sortedWorkouts;
   }
-  let workoutPlanSet = false;
-
-  const { data: userWorkouts, isLoading: workoutsLoading } =
-    api.getWorkouts.getPlanByUserId.useQuery();
-  if (
-    !workoutsLoading &&
-    userWorkouts !== undefined &&
-    userWorkouts[0] !== undefined &&
-    userWorkouts[0].workouts &&
-    !workoutPlan &&
-    !workoutPlanSet
-  ) {
-    console.log("user workouts:");
-    const workoutPlanActual = userWorkouts[0].workouts
-      ? sortWorkoutsByNominalDay(userWorkouts[0].workouts)
-      : [];
-    //console.log(workoutPlanActual)
-    setWorkoutPlan(workoutPlanActual);
-    workoutPlanSet = true;
-    console.log(workoutPlanActual);
-    setPlanId(workoutPlanActual[0]?.planId ?? "");
-  }
 
   function addWorkout(
     workout:
       | (ActualWorkout & {
-          exercises: (ActualExercise & { sets: exerciseSet[] })[];
+          exercises: (ActualExercise & {
+            sets: (exerciseSet & { priorSet?: exerciseSet | null })[];
+          })[];
         })
       | undefined
   ) {
@@ -252,52 +332,21 @@ function WorkoutPlanForm({
     const newWorkoutPlan = workoutPlan ? [...workoutPlan, workout] : [workout];
     setWorkoutPlan(newWorkoutPlan);
   }
-  const priorSetArray: exerciseSet[] = [];
+
+  function updateWorkoutPlanForDisplay() {
+    console.log("todo");
+  }
 
   return (
     <div className="flex flex-col items-center rounded-lg">
       {workoutPlan?.map((workout) => (
-        <WorkoutDisplay3
-          priorSetsArray={priorSetArray}
-          workoutPlan={[workout]}
+        <WorkoutDisplayHandler
+          workoutPlan={workout}
           setWorkoutPlan={setWorkoutPlan}
+          fullWorkoutPlan={workoutPlan}
           key={workout.workoutId}
         />
       ))}
-      <WorkoutDayForm planId={planId} addWorkout={addWorkout} />
-    </div>
-  );
-}
-
-function NewWorkoutPlanForm() {
-  const [workoutPlan, setWorkoutPlan] = useState<
-    | (ActualWorkout & {
-        exercises: (ActualExercise & {
-          sets: exerciseSet[];
-        })[];
-      })[]
-    | undefined
-  >();
-
-  function addWorkout(
-    workout:
-      | (ActualWorkout & {
-          exercises: (ActualExercise & { sets: exerciseSet[] })[];
-        })
-      | undefined
-  ) {
-    console.log(workout);
-    if (!workout) {
-      return;
-    }
-    const newWorkoutPlan = workoutPlan ? [...workoutPlan, workout] : [workout];
-    setWorkoutPlan(newWorkoutPlan);
-  }
-
-  const [planId, setPlanId] = useState("");
-  return (
-    <div>
-      <div>New Workout Form</div>
       <WorkoutDayForm planId={planId} addWorkout={addWorkout} />
     </div>
   );
@@ -308,7 +357,7 @@ interface WorkoutDayFormProps {
     workout:
       | (ActualWorkout & {
           exercises: (ActualExercise & {
-            sets: exerciseSet[];
+            sets: (exerciseSet & { priorSet?: exerciseSet | null })[];
           })[];
         })
       | undefined
@@ -593,117 +642,6 @@ function NewExercise({ exercises, setExercises }: NewExerciseProps) {
   );
 }
 
-interface NewDayProps {
-  day: string;
-  updatePlan: (newDay: WorkoutTemplate) => void;
-}
-
-function NewDay({ day, updatePlan }: NewDayProps) {
-  const [exercises, setExercises] = useState<ExerciseTemplate[]>();
-  const [description, setDescription] = useState("");
-  const [submittedDescription, setSubmittedDescription] = useState("");
-  const [descriptionset, setdescriptionset] = useState(false);
-  const [daySaved, setDaySaved] = useState(false);
-
-  const handleDescriptionChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setDescription(event.target.value);
-  };
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setSubmittedDescription(description);
-    setdescriptionset(true);
-  };
-  //need to have a running day plan and populate with exercises as they add
-  const handleSetDay = () => {
-    if (description && exercises) {
-      const dayWorkout: WorkoutTemplate = {
-        workoutId: createUniqueId(),
-        description: description,
-        nominalDay: day,
-        exercises: exercises,
-      };
-      console.log("newday comp");
-      console.log(dayWorkout);
-      setDescription("");
-      updatePlan(dayWorkout);
-      setDaySaved(true);
-    }
-  };
-
-  return (
-    <div className="mx-auto max-w-md">
-      <div className="w-full sm:w-1/4">{day}</div>
-      <div>
-        {!submittedDescription && (
-          <form onSubmit={handleSubmit} className="mb-4">
-            <div className="flex flex-wrap">
-              <div className="mb-2 flex items-center sm:mb-0 sm:w-1/4">
-                <label className="mr-2">Description:</label>
-                <input
-                  type="text"
-                  className="w-full max-w-xs rounded-md border border-gray-300 px-4 py-2 text-black"
-                  value={description}
-                  onChange={handleDescriptionChange}
-                />
-              </div>
-            </div>
-            <div className="flex w-full justify-end sm:w-3/4">
-              <button
-                type="submit"
-                className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-              >
-                Enter
-              </button>
-            </div>
-          </form>
-        )}
-        {submittedDescription && (
-          <div className="mb-4">{submittedDescription}</div>
-        )}
-      </div>
-
-      {exercises && (
-        <div className="mb-4 flex flex-col">
-          <table className="min-w-full divide-y">
-            <thead>
-              <tr>
-                <th className="py-2">Description</th>
-                <th className="py-2">Weight</th>
-                <th className="py-2">Sets</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {exercises.map((exercise) => (
-                <tr key={exercise.description}>
-                  <td className="py-2">{exercise.description}</td>
-                  <td className="py-2">{exercise.sets.length}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {!daySaved && descriptionset && (
-        <NewExercise exercises={exercises} setExercises={setExercises} />
-      )}
-
-      {!daySaved && descriptionset && (
-        <button
-          onClick={handleSetDay}
-          className="m-2 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-        >
-          Save Day
-        </button>
-      )}
-    </div>
-  );
-}
-
-
 function createUniqueId(): string {
   return v4();
 }
@@ -727,125 +665,6 @@ type WorkoutTemplate = {
   exercises: ExerciseTemplate[];
 };
 
-const emptyWorkoutPlan: WorkoutTemplate[] = [
-  {
-    workoutId: createUniqueId(),
-    description: "",
-    nominalDay: "Sunday",
-    exercises: [],
-  },
-  {
-    workoutId: createUniqueId(),
-    description: "",
-    nominalDay: "Monday",
-    exercises: [],
-  },
-  {
-    workoutId: createUniqueId(),
-    description: "",
-    nominalDay: "Tuesday",
-    exercises: [],
-  },
-  {
-    workoutId: createUniqueId(),
-    description: "",
-    nominalDay: "Wednesday",
-    exercises: [],
-  },
-  {
-    workoutId: createUniqueId(),
-    description: "",
-    nominalDay: "Thursday",
-    exercises: [],
-  },
-  {
-    workoutId: createUniqueId(),
-    description: "",
-    nominalDay: "Friday",
-    exercises: [],
-  },
-  {
-    workoutId: createUniqueId(),
-    description: "",
-    nominalDay: "Saturday",
-    exercises: [],
-  },
-];
-const PushFirst = {
-  description: "Push #1",
-  nominalDay: "Monday",
-  workoutId: createUniqueId(),
-  exercises: [
-    { description: "Atlantis Side Raise", weight: 90, sets: 4 },
-    { description: "Calf Raise", weight: 220, sets: 4 },
-    { description: "Machine Press", weight: 185, sets: 3 },
-    { description: "Incline DB Press", weight: 60, sets: 2 },
-    { description: "Cable Pushdown", weight: 120, sets: 4 },
-  ],
-};
-const PushSecond = {
-  description: "Push #2",
-  workoutId: createUniqueId(),
-  nominalDay: "Thursday",
-  exercises: [
-    { description: "Machine Press", weight: 185, sets: 3 },
-    { description: "Incline DB Press", weight: 60, sets: 2 },
-    { description: "Cable Upright Row", weight: 70, sets: 4 },
-    { description: "Cable Pushdown", weight: 120, sets: 4 },
-    { description: "Leg Raise", weight: 0, sets: 4 },
-  ],
-};
-const LegFirst = {
-  description: "Legs #1",
-  nominalDay: "Tuesday",
-  workoutId: createUniqueId(),
-  exercises: [
-    { description: "DB RDL", weight: 100, sets: 2 },
-    { description: "Belt Squat", weight: 135, sets: 4 },
-    { description: "Candlesticks", weight: 0, sets: 4 },
-  ],
-};
-const LegSecond = {
-  description: "Legs #2",
-  workoutId: createUniqueId(),
-  nominalDay: "Friday",
-  exercises: [
-    { description: "Belt Squat", weight: 135, sets: 4 },
-    { description: "Ham Curl", weight: 100, sets: 4 },
-    { description: "Calf Raise", weight: 220, sets: 4 },
-  ],
-};
-const PullFirst = {
-  description: "Pull #1",
-  workoutId: createUniqueId(),
-  nominalDay: "Wednesday",
-  exercises: [
-    { description: "Calf Raise", weight: 220, sets: 4 },
-    { description: "Lat Pulldown", weight: 140, sets: 4 },
-    { description: "Machine Row", weight: 185, sets: 4 },
-    { description: "Bicep Curl", weight: 40, sets: 4 },
-  ],
-};
-const PullSecond = {
-  description: "Pull #2",
-  nominalDay: "Saturday",
-  workoutId: createUniqueId(),
-  exercises: [
-    { description: "Machine Row", weight: 185, sets: 4 },
-    { description: "Lat Pulldown", weight: 140, sets: 4 },
-    { description: "Atlantis Side Raise", weight: 90, sets: 4 },
-    { description: "Bicep Curl", weight: 40, sets: 4 },
-    { description: "Candlesticks", weight: 0, sets: 4 },
-  ],
-};
-const pplPlanArray = [
-  PushFirst,
-  PushSecond,
-  LegFirst,
-  LegSecond,
-  PullFirst,
-  PullSecond,
-];
 const emptySet = { rir: 3, reps: 5, weight: 0 };
 const PushFirstTwo = {
   description: "Push #1",
@@ -1053,221 +872,6 @@ function TestButton() {
   );
 }
 
-interface display3Props {
-  workoutPlan:
-    | (ActualWorkout & {
-        exercises: (ActualExercise & {
-          sets: exerciseSet[];
-        })[];
-      })[]
-    | undefined;
-  setWorkoutPlan: React.Dispatch<
-    React.SetStateAction<
-      | (ActualWorkout & {
-          exercises: (ActualExercise & {
-            sets: exerciseSet[];
-          })[];
-        })[]
-      | undefined
-    >
-  >;
-  priorSetsArray: exerciseSet[] | undefined;
-}
-function WorkoutDisplay3({
-  workoutPlan,
-  setWorkoutPlan,
-  priorSetsArray,
-}: display3Props) {
-  console.log("workoutplan: ");
-  console.log(workoutPlan);
-
-  function updateWorkoutPlan(
-    exercise: ActualExercise & { sets: exerciseSet[] },
-    workoutId: string,
-    exerciseId: string
-  ) {
-    if (workoutPlan) {
-      //exercise in workout to update
-      setWorkoutPlan((prevWorkoutPlan) => {
-        const newWorkoutPlan = [...(prevWorkoutPlan ?? [])];
-        const workoutIndex = newWorkoutPlan.findIndex(
-          (workout) => workout.workoutId === workoutId
-        );
-        if (workoutIndex !== -1) {
-          const workout = newWorkoutPlan[workoutIndex];
-          if (workout && newWorkoutPlan[workoutIndex] !== undefined) {
-            const exerciseIndex = workout.exercises.findIndex(
-              (oldExercise) => oldExercise.exerciseId === exerciseId
-            );
-            if (exerciseIndex !== -1) {
-              newWorkoutPlan[workoutIndex]!.exercises[exerciseIndex] = exercise;
-            }
-          }
-        }
-        return newWorkoutPlan;
-      });
-    }
-  }
-
-  function removeExercise(workoutNumber: string, exerciseId: string) {
-    setWorkoutPlan((prevWorkoutPlan) => {
-      const updateWorkoutPlan = prevWorkoutPlan?.map((workout) => {
-        const updatedExercises = workout.exercises.filter(
-          (exercise) => exercise.exerciseId !== exerciseId
-        );
-        return { ...workout, exercises: updatedExercises };
-      });
-      console.log(updateWorkoutPlan);
-      return updateWorkoutPlan;
-    });
-  }
-
-  function addExercise(workoutNumber: string, exerciseIndex: number) {
-    console.log("workout", workoutNumber);
-    console.log("exercise", exerciseIndex);
-    const tempExerciseId = createUniqueId();
-    const newExercise: ActualExercise & { sets: exerciseSet[] } = {
-      description: "New Exercise",
-      exerciseId: tempExerciseId,
-      date: new Date(),
-      workoutId:
-        workoutPlan && workoutPlan[0] ? workoutPlan[0].workoutId : "none",
-      sets: [
-        {
-          date: new Date(),
-          exerciseId: tempExerciseId,
-          setId: createUniqueId(),
-          weight: 0,
-          reps: 0,
-          rir: 3,
-          lastSetId: null,
-        },
-      ],
-    };
-
-    setWorkoutPlan((prevWorkoutPlan) => {
-      const updatedWorkoutPlan = [...(prevWorkoutPlan ?? [])];
-      const workoutIndex = updatedWorkoutPlan.findIndex(
-        (workout) => workout.workoutId === workoutNumber
-      );
-      if (workoutIndex !== -1) {
-        const workout = updatedWorkoutPlan[workoutIndex];
-        if (workout) {
-          const newExercises = [
-            ...workout.exercises.slice(0, exerciseIndex + 1),
-            newExercise,
-            ...workout.exercises.slice(exerciseIndex + 1),
-          ];
-          updatedWorkoutPlan[workoutIndex] = {
-            ...workout,
-            exercises: newExercises,
-          };
-        }
-      }
-      return updatedWorkoutPlan;
-    });
-  }
-  const { mutate: saveWorkoutDescription } =
-    api.getWorkouts.updateWorkoutDescription.useMutation({
-      onSuccess(data) {
-        console.log("updated description");
-        console.log(data);
-      },
-    });
-  function updateWorkoutDescription(
-    description: string,
-    workoutNumber: string,
-    nominalDay: string
-  ) {
-    console.log("descriptION: ", description);
-    console.log("workoutNumber: ", workoutNumber);
-    console.log("nominalDay: ", nominalDay);
-
-    setWorkoutPlan((prevWorkoutPlan) => {
-      const updatedWorkoutPlan = [...(prevWorkoutPlan ?? [])];
-      const workoutIndex = updatedWorkoutPlan.findIndex(
-        (workout) => workout.workoutId === workoutNumber
-      );
-      if (workoutIndex !== -1) {
-        const workout = updatedWorkoutPlan[workoutIndex];
-        if (workout) {
-          updatedWorkoutPlan[workoutIndex] = {
-            ...workout,
-            description: description,
-            nominalDay: nominalDay,
-          };
-        }
-      }
-      return updatedWorkoutPlan;
-    });
-    //write to db
-    saveWorkoutDescription({
-      description: description,
-      workoutId: workoutNumber,
-      nominalDay: nominalDay,
-    });
-  }
-  function removeWorkoutFromDisplay(workoutId: string) {
-    console.log("remove: ", workoutId);
-    setWorkoutPlan((prevWorkoutPlan) => {
-      const updatedWorkoutPlan = [...(prevWorkoutPlan ?? [])];
-      const workoutIndex = updatedWorkoutPlan.findIndex(
-        (workout) => workout.workoutId === workoutId
-      );
-      if (workoutIndex !== -1) {
-        updatedWorkoutPlan.splice(workoutIndex, 1);
-      }
-      return updatedWorkoutPlan;
-    });
-  }
-
-  return (
-    <div className="my-1 flex flex-col items-center rounded-lg bg-gray-700 text-white">
-      {workoutPlan &&
-        workoutPlan.map((workout, workoutNumber) => (
-          <div key={"w" + workoutNumber.toString()} className="w-full">
-            <div className="pt-1 text-center text-xl font-semibold text-gray-300">
-              <WorkoutDescription
-                description={workout.description}
-                nominalDay={workout.nominalDay}
-                workoutNumber={workout.workoutId}
-                removeWorkoutFromDisplay={removeWorkoutFromDisplay}
-                updateDescription={updateWorkoutDescription}
-              />
-            </div>
-            <div className="flex flex-col items-center">
-              {workout.exercises &&
-                workout.exercises.map((exercise, exerciseNumber) => (
-                  <ExerciseDisplay
-                    removeExercise={removeExercise}
-                    workoutNumber={workout.workoutId}
-                    exerciseNumber={exercise.exerciseId}
-                    exerciseIndex={exerciseNumber}
-                    priorSetsArray={priorSetsArray}
-                    updatePlan={updateWorkoutPlan}
-                    addExercise={addExercise}
-                    key={workoutNumber.toString() + exerciseNumber.toString()}
-                    exercise={exercise}
-                  />
-                ))}
-            </div>
-            <div>
-              {!(workout.exercises.length > 0) && (
-                <EmptyExerciseDisplay
-                  workoutNumber={workout.workoutId}
-                  updatePlan={updateWorkoutPlan}
-                  addExercise={addExercise}
-                  key={workoutNumber.toString()}
-                />
-              )}
-            </div>
-            <br></br>
-          </div>
-        ))}
-    </div>
-  );
-}
-
 interface WorkoutDescriptionProps {
   description: string;
   nominalDay: string;
@@ -1399,295 +1003,6 @@ function WorkoutDescription({
           />
         </svg>
       </button>
-    </div>
-  );
-}
-interface EmptyExerciseDisplayProps {
-  workoutNumber: string;
-  addExercise: (workoutNumber: string, exerciseIndex: number) => void;
-  updatePlan: (
-    exercise: ActualExercise & {
-      sets: exerciseSet[];
-    },
-    workoutId: string,
-    exerciseId: string
-  ) => void;
-}
-
-function EmptyExerciseDisplay({
-  workoutNumber,
-  addExercise,
-  updatePlan,
-}: EmptyExerciseDisplayProps) {
-  const [description, setDescription] = useState("");
-
-  const handleDescriptionChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const value = event.target.value;
-    setDescription(value);
-  };
-
-  const { mutate: recordNewExercise } =
-    api.getWorkouts.addNewExercise.useMutation({
-      onSuccess(data) {
-        console.log(data);
-      },
-    });
-  const { mutate: recordUpdatedDescription } =
-    api.getWorkouts.updateExerciseDescription.useMutation({
-      onSuccess(data) {
-        console.log(data);
-      },
-    });
-
-  function handleAddExercise() {
-    addExercise(workoutNumber, 0);
-    recordNewExercise({ workoutId: workoutNumber });
-  }
-
-  return (
-    <div key={workoutNumber + "empty"} className="m-1 bg-red-700 ">
-      <button
-        onClick={handleAddExercise}
-        className="m-1 rounded bg-blue-500 px-1 py-1 font-bold text-white  hover:bg-blue-700"
-      >
-        Add Exercise
-      </button>
-    </div>
-  );
-}
-
-interface ExerciseDisplayProps {
-  exercise: ActualExercise & {
-    sets: exerciseSet[];
-  };
-  workoutNumber: string;
-  exerciseNumber: string;
-  exerciseIndex: number;
-  addExercise: (workoutNumber: string, exerciseIndex: number) => void;
-  updatePlan: (
-    exercise: ActualExercise & {
-      sets: exerciseSet[];
-    },
-    workoutId: string,
-    exerciseId: string
-  ) => void;
-  priorSetsArray: exerciseSet[] | undefined;
-  removeExercise: (workoutNumber: string, exerciseNumber: string) => void;
-}
-
-interface ExerciseDisplayProps {
-  exercise: ActualExercise & {
-    sets: exerciseSet[];
-  };
-  workoutNumber: string;
-  exerciseNumber: string;
-  exerciseIndex: number;
-  addExercise: (workoutNumber: string, exerciseIndex: number) => void;
-  updatePlan: (
-    exercise: ActualExercise & {
-      sets: exerciseSet[];
-    },
-    workoutId: string,
-    exerciseId: string
-  ) => void;
-  priorSetsArray: exerciseSet[] | undefined;
-  removeExercise: (workoutNumber: string, exerciseNumber: string) => void;
-}
-
-function ExerciseDisplay({
-  removeExercise,
-  exercise,
-  workoutNumber,
-  exerciseNumber,
-  exerciseIndex,
-  priorSetsArray,
-  addExercise,
-  updatePlan,
-}: ExerciseDisplayProps) {
-  const [description, setDescription] = useState(exercise.description);
-  const [sets, setSets] = useState(exercise.sets);
-
-  useEffect(() => {
-    setDescription(exercise.description);
-    setSets(exercise.sets);
-  }, [exercise.description, exercise.sets]);
-
-  const handleDescriptionChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const value = event.target.value;
-    setDescription(value);
-  };
-
-  function handleSetChange(set: exerciseSet, index: number) {
-    const newSets = [...sets];
-    newSets[index] = set;
-    setSets(newSets);
-  }
-  function handleSaveButton() {
-    const newData: ActualExercise & { sets: exerciseSet[] } = {
-      ...exercise,
-      sets: sets,
-      description: description,
-    };
-
-    updatePlan(newData, workoutNumber, exerciseNumber);
-  }
-  const { mutate: recordNewExercise } =
-    api.getWorkouts.addNewExercise.useMutation({
-      onSuccess(data) {
-        console.log(data);
-      },
-    });
-  const { mutate: deleteExercise } = api.getWorkouts.deleteExercise.useMutation(
-    {
-      onSuccess(data) {
-        console.log(data);
-      },
-    }
-  );
-  const { mutate: recordUpdatedDescription } =
-    api.getWorkouts.updateExerciseDescription.useMutation({
-      onSuccess(data) {
-        console.log(data);
-      },
-    });
-
-  const { mutate: recordNewSet } = api.getWorkouts.createSet.useMutation({
-    onSuccess(data) {
-      console.log(data);
-    },
-  });
-
-  function handleAddSet() {
-    const newSet: exerciseSet = {
-      date: new Date(),
-      exerciseId: exercise.exerciseId,
-      setId: createUniqueId(),
-      weight: 0,
-      reps: 5,
-      rir: 3,
-      lastSetId: null,
-    };
-    const lastSet = sets[sets.length - 1];
-    if (lastSet !== undefined) {
-      newSet.reps = lastSet.reps;
-      newSet.rir = lastSet.rir;
-      newSet.weight = lastSet.weight;
-    }
-    const newSets = [...sets, newSet];
-    setSets(newSets);
-    recordNewSet({ ...newSet });
-  }
-  function handleAddExercise() {
-    addExercise(workoutNumber, exerciseIndex);
-    recordNewExercise({ workoutId: exercise.workoutId });
-  }
-  function handleRemoveExercise() {
-    removeExercise(workoutNumber, exercise.exerciseId);
-    deleteExercise({ exerciseId: exercise.exerciseId });
-  }
-  function handleRemoveSet(index: number) {
-    console.log("remove set");
-    const newSets = [...sets];
-    if (index >= 0 && index < newSets.length) {
-      newSets.splice(index, 1);
-    }
-    console.log(newSets);
-    setSets(newSets);
-  }
-  const [descriptionInputActive, setDescriptionInputActive] = useState(false);
-  const handleBlur = () => {
-    if (description.length > 0) {
-      setDescriptionInputActive(false);
-    }
-    recordUpdatedDescription({
-      exerciseId: exercise.exerciseId,
-      description: description,
-    });
-  };
-  const handleDescriptionClick = () => {
-    setDescriptionInputActive(true);
-  };
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter" || event.key === "Escape") {
-      handleBlur();
-    }
-  };
-  useEffect(() => {
-    handleSaveButton();
-  }, [sets, description]);
-
-  return (
-    <div
-      key={exercise.description}
-      className="mx-1 my-1 rounded-lg bg-gray-900 p-2 text-white shadow-md"
-    >
-      <div className="flex items-center justify-center">
-        {descriptionInputActive ? (
-          <input
-            type="text"
-            value={description}
-            onChange={handleDescriptionChange}
-            onKeyDown={handleKeyDown}
-            onBlur={handleBlur}
-            className="rounded-lg bg-gray-700 px-2 py-1 text-white focus:outline-none"
-            autoFocus
-          />
-        ) : (
-          <span
-            className="cursor-pointer rounded-lg bg-gray-600 px-2 py-1 font-semibold hover:bg-gray-500"
-            onClick={handleDescriptionClick}
-          >
-            {description}
-          </span>
-        )}
-
-        <button
-          onClick={handleRemoveExercise}
-          className="m-1 inline-flex items-center rounded bg-red-600 px-2 py-1 font-bold text-white hover:bg-red-700"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 11.414L15.657 17.071l1.414-1.414L11.414 10l5.657-5.657L15.657 2.93 10 8.586 4.343 2.93 2.93 4.343 8.586 10l-5.657 5.657 1.414 1.414L10 11.414z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </button>
-      </div>
-      <div>
-        {sets.map((set, index) => (
-          <SetDisplay
-            key={index}
-            set={{...set, priorSet: null}}
-            index={index}
-            removeSet={handleRemoveSet}
-            updateSets={handleSetChange}
-          />
-        ))}
-      </div>
-      <div className="flex justify-center">
-        <button
-          onClick={handleAddSet}
-          className="m-1 rounded bg-blue-500 px-1 py-1 font-bold text-white hover:bg-blue-700"
-        >
-          Add Set
-        </button>
-        <button
-          onClick={handleAddExercise}
-          className="m-1 rounded bg-blue-500 px-1 py-1 font-bold text-white  hover:bg-blue-700"
-        >
-          Add Exercise
-        </button>
-      </div>
     </div>
   );
 }

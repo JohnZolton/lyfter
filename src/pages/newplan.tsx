@@ -1,19 +1,11 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import { api } from "~/utils/api";
-import React, {
-  useState,
-  useRef,
-  useEffect,
-} from "react";
-import {
-  SignedIn,
-  SignedOut,
-  SignInButton,
-} from "@clerk/nextjs";
+import React, { useState, useRef, useEffect } from "react";
+import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import { v4 } from "uuid";
 import { NavBar } from "~/pages/components/navbar";
-import  PageLayout  from "~/pages/components/pagelayout";
+import PageLayout from "~/pages/components/pagelayout";
 import MenuLayout from "./components/menulayout";
 
 const Home: NextPage = () => {
@@ -125,25 +117,25 @@ function NewWorkoutMenu() {
         New Workout Plan
       </div>
       <MenuLayout>
-      <div className="my-1">
-        <TestButton />
-      </div>
-      <div>Push, Pull, Legs</div>
-      <div>or make your own</div>
-      <div className="my-1">
-        {!workoutPlan?.description && (
-          <WorkoutDescriptionForm updateDescription={updatePlanDescription} />
-        )}
-        {workoutPlan?.description && (
-          <WorkoutPlanDisplay
-            addWorkout={addWorkoutToNewPlan}
-            plan={workoutPlan}
-            setPlan={setWorkoutPlan}
-          />
-        )}
-        {workoutPlan && <SaveButton save={saveWorkoutPlan} />}
-      </div>
-</MenuLayout>
+        <div className="my-1">
+          <TestButton />
+        </div>
+        <div>Push, Pull, Legs</div>
+        <div>or make your own</div>
+        <div className="my-1">
+          {!workoutPlan?.description && (
+            <WorkoutDescriptionForm updateDescription={updatePlanDescription} />
+          )}
+          {workoutPlan?.description && (
+            <WorkoutPlanDisplay
+              addWorkout={addWorkoutToNewPlan}
+              plan={workoutPlan}
+              setPlan={setWorkoutPlan}
+            />
+          )}
+          {workoutPlan && <SaveButton save={saveWorkoutPlan} />}
+        </div>
+      </MenuLayout>
     </div>
   );
 }
