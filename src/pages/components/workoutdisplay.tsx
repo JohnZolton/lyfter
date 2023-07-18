@@ -49,14 +49,11 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
           return prevWorkoutPlan;
         }
         const newWorkout = { ...prevWorkoutPlan };
-        newWorkout.exercises = [...newWorkout.exercises];
-        if (newWorkout) {
-          const exerciseIndex = newWorkout.exercises.findIndex(
-            (oldExercise) => oldExercise.exerciseId === exerciseId
-          );
-          if (exerciseIndex !== -1) {
-            newWorkout.exercises[exerciseIndex] = exercise;
-          }
+        const exerciseIndex = newWorkout.exercises.findIndex(
+          (oldExercise) => oldExercise.exerciseId === exerciseId
+        );
+        if (exerciseIndex !== -1) {
+          newWorkout.exercises[exerciseIndex] = exercise;
         }
         return newWorkout;
       });
@@ -66,7 +63,6 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
   function removeExercise(workoutNumber: string, exerciseId: string) {
     setWorkoutPlan((prevWorkoutPlan) => {
       if (prevWorkoutPlan) {
-        const updatedWorkoutPlan = { ...prevWorkoutPlan };
         const updatedExercises = prevWorkoutPlan?.exercises.filter(
           (exercise) => exercise.exerciseId !== exerciseId
         );
@@ -76,8 +72,6 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
   }
 
   function addExercise(workoutNumber: string, exerciseIndex: number) {
-    console.log("workout", workoutNumber);
-    console.log("exercise", exerciseIndex);
     const tempExerciseId = createUniqueId();
     const newExercise: ActualExercise & {
       sets: (exerciseSet & {

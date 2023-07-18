@@ -137,7 +137,6 @@ function ExerciseDisplay({
     deleteExercise({ exerciseId: exercise.exerciseId });
   }
   function handleRemoveSet(index: number) {
-    console.log("remove set");
     const newSets = [...sets];
     if (index >= 0 && index < newSets.length) {
       newSets.splice(index, 1);

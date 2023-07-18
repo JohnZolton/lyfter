@@ -74,7 +74,7 @@ function WorkoutUiHandler() {
     api.getWorkouts.getUniqueWeekWorkouts.useQuery();
 
   useEffect(() => {
-    if (userWorkouts && !todaysWorkout && userWorkouts.workoutPlan) {
+    if (userWorkouts && !todaysWorkout && !workoutPlan && userWorkouts.workoutPlan) {
       const uniqueWorkouts = new Set();
       const workoutsToDisplay: (ActualWorkout & {
         exercises: (ActualExercise & {
@@ -93,22 +93,17 @@ function WorkoutUiHandler() {
 
       setWorkoutPlan(sortWorkoutsByNominalDay(workoutsToDisplay));
     }
-    if (todaysWorkout && workoutPlan && Array.isArray(workoutPlan)){
-      console.log("useEffect fired")
-      console.log(workoutPlan)
+    if (todaysWorkout && workoutPlan){
       //on todaysWorkout change, need to update parent prop workoutPlan
       const workoutIndex = workoutPlan.findIndex(workout => workout.workoutId === todaysWorkout.workoutId)
-      console.log("index: ", workoutIndex)
-      console.log("todays workout: ", todaysWorkout)
       if (workoutIndex !== -1 && workoutPlan){
         const updatedPlan = [
           ...workoutPlan.splice(0, workoutIndex),
           todaysWorkout,
           ...workoutPlan.splice(workoutIndex+1),
         ]
-        console.log("old plan", workoutPlan[workoutIndex])
-        console.log("new plan", updatedPlan)
         setWorkoutPlan(updatedPlan)
+        console.log("plan prop updated")
       }
     }
   }, [userWorkouts, todaysWorkout]);
