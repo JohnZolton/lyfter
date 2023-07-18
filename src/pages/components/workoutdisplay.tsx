@@ -29,10 +29,9 @@ interface display3Props {
       | undefined
     >
   >;
+
 }
 function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
-  console.log("workoutplan: ");
-  console.log(workoutPlan);
 
   function updateWorkoutPlan(
     exercise: ActualExercise & {
@@ -82,7 +81,7 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
     const tempExerciseId = createUniqueId();
     const newExercise: ActualExercise & {
       sets: (exerciseSet & {
-        priorSet: null;
+        priorSet?: null;
       })[];
     } = {
       description: "New Exercise",

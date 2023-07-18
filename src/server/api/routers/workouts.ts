@@ -703,6 +703,11 @@ export const getAllWorkouts = createTRPCRouter({
         data: {
           workoutId: input.workoutId,
           description: "New Exercise",
+          sets: {create: {
+            weight: 0,
+            reps: 5,
+            rir:3,
+          }}
         },
       });
       return createdExercise;

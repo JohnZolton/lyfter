@@ -13,6 +13,7 @@ import { NavBar } from "~/pages/components/navbar";
 import PageLayout from "~/pages/components/pagelayout";
 import SetDisplay from "./components/setdisplay";
 import WorkoutDisplay3 from "./components/workoutdisplay";
+import ExerciseDisplay from "./components/exercisedisplay";
 
 const Home: NextPage = () => {
   return (
@@ -185,6 +186,81 @@ function EditWorkoutMenu() {
     </div>
   );
 }
+
+
+interface WorkoutDisplayHandlerProps {
+  fullWorkoutPlan:
+    | (ActualWorkout & {
+        exercises: (ActualExercise & {
+          sets: (exerciseSet & { priorSet?: exerciseSet | null })[];
+        })[];
+      })[]
+    | undefined;
+
+  workoutPlan:
+    | (ActualWorkout & {
+        exercises: (ActualExercise & {
+          sets: (exerciseSet & { priorSet?: exerciseSet | null })[];
+        })[];
+      })
+    | undefined;
+  setWorkoutPlan: React.Dispatch<
+    React.SetStateAction<
+      | (ActualWorkout & {
+          exercises: (ActualExercise & {
+            sets: (exerciseSet & {
+              priorSet?: exerciseSet | null;
+            })[];
+          })[];
+        })[]
+      | undefined
+    >
+  >;
+}
+function WorkoutDisplayHandler({workoutPlan, setWorkoutPlan, fullWorkoutPlan}:WorkoutDisplayHandlerProps){
+  const [workout, setWorkout] = useState<
+    | (ActualWorkout & {
+        exercises: (ActualExercise & {
+          sets: (exerciseSet & {
+            priorSet?: exerciseSet | null | undefined;
+          })[];
+        })[];
+      })
+    | undefined
+  >();
+  useEffect(()=>{
+    setWorkout(workoutPlan)
+  }, [workoutPlan])
+
+  useEffect(()=>{
+    console.log("edit workout fired")
+    const workoutIndex = fullWorkoutPlan?.findIndex(w => w === workoutPlan)
+    if (workoutIndex !== -1 && workoutIndex !== undefined && workout && fullWorkoutPlan && workout !== fullWorkoutPlan[workoutIndex]){
+      setWorkoutPlan(prev => {
+        if (!prev || workout === prev[workoutIndex]) { return [workout]}
+        else {
+        return [
+          ...prev.slice(0, workoutIndex),
+          workout,
+          ...prev.slice(workoutIndex + 1)
+        ]
+
+        }
+      })
+    }
+  }, [workout])
+
+  return(
+    <div>
+      {workoutPlan && <WorkoutDisplay3 workoutPlan={workoutPlan} setWorkoutPlan={setWorkout}/>}
+       </div>
+  )
+}
+
+
+
+
+
 interface WorkoutPlanFormProps {
   workoutPlan:
     | (ActualWorkout & {
@@ -237,27 +313,6 @@ function WorkoutPlanForm({
 
     return sortedWorkouts;
   }
-  //let workoutPlanSet = false;
-
-  const { data: userWorkouts, isLoading: workoutsLoading } =
-    api.getWorkouts.getUniqueWeekWorkouts.useQuery();
-  //  if (
-  //!workoutsLoading &&
-  //userWorkouts !== undefined &&
-  //!workoutPlan &&
-  //!workoutPlanSet &&
-  //userWorkouts.workoutPlan
-  //) {
-  //console.log("user workouts:");
-  //const workoutPlanActual = userWorkouts.workoutPlan.workouts
-  //? sortWorkoutsByNominalDay(filterUniqueWorkouts(userWorkouts.workoutPlan.workouts))
-  //: [];
-  ////console.log(workoutPlanActual)
-  //setWorkoutPlan(workoutPlanActual);
-  //workoutPlanSet = true;
-  //console.log(workoutPlanActual);
-  //setPlanId(workoutPlanActual[0]?.planId ?? "");
-  //}
 
   function addWorkout(
     workout:
@@ -275,7 +330,6 @@ function WorkoutPlanForm({
     const newWorkoutPlan = workoutPlan ? [...workoutPlan, workout] : [workout];
     setWorkoutPlan(newWorkoutPlan);
   }
-  const priorSetArray: exerciseSet[] = [];
 
   function updateWorkoutPlanForDisplay() {
     console.log("todo");
@@ -284,9 +338,10 @@ function WorkoutPlanForm({
   return (
     <div className="flex flex-col items-center rounded-lg">
       {workoutPlan?.map((workout) => (
-        <WorkoutDisplay3
+        <WorkoutDisplayHandler
           workoutPlan={workout}
-          setWorkoutPlan={updateWorkoutPlanForDisplay}
+          setWorkoutPlan={setWorkoutPlan}
+          fullWorkoutPlan={workoutPlan}
           key={workout.workoutId}
         />
       ))}

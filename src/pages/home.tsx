@@ -45,6 +45,9 @@ const Home: NextPage = () => {
 
 export default Home;
 
+
+
+
 function WorkoutUiHandler() {
   const [workoutPlan, setWorkoutPlan] = useState<
     | (ActualWorkout & {
@@ -83,13 +86,30 @@ function WorkoutUiHandler() {
       userWorkouts.workoutPlan.workouts.map((workout) => {
         console.log(workout);
         if (!uniqueWorkouts.has(workout.originalWorkoutId)) {
-          console.log("ADDING");
           uniqueWorkouts.add(workout.originalWorkoutId);
           workoutsToDisplay.push(workout);
         }
       });
 
       setWorkoutPlan(sortWorkoutsByNominalDay(workoutsToDisplay));
+    }
+    if (todaysWorkout && workoutPlan && Array.isArray(workoutPlan)){
+      console.log("useEffect fired")
+      console.log(workoutPlan)
+      //on todaysWorkout change, need to update parent prop workoutPlan
+      const workoutIndex = workoutPlan.findIndex(workout => workout.workoutId === todaysWorkout.workoutId)
+      console.log("index: ", workoutIndex)
+      console.log("todays workout: ", todaysWorkout)
+      if (workoutIndex !== -1 && workoutPlan){
+        const updatedPlan = [
+          ...workoutPlan.splice(0, workoutIndex),
+          todaysWorkout,
+          ...workoutPlan.splice(workoutIndex+1),
+        ]
+        console.log("old plan", workoutPlan[workoutIndex])
+        console.log("new plan", updatedPlan)
+        setWorkoutPlan(updatedPlan)
+      }
     }
   }, [userWorkouts, todaysWorkout]);
 
@@ -189,7 +209,6 @@ function WorkoutUi({
   endWorkout,
 }: WorkoutUiProps) {
   const today = new Date();
-  const [lastSetsArray, setLastSetsArray] = useState<exerciseSet[]>();
 
   const { mutate: saveWorkout, isLoading } =
     api.getWorkouts.createNewWorkoutFromPrevious.useMutation({
