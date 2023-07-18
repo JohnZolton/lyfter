@@ -3,7 +3,7 @@ import Head from "next/head";
 import Link from "next/link";
 
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
-=======
+
 
 
 const Home: NextPage = () => {
