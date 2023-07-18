@@ -1,8 +1,10 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import { api } from "~/utils/api";
+
 import React, { useState, useRef, useEffect } from "react";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
+
 import type {
   ActualWorkout,
   ActualExercise,
@@ -129,7 +131,7 @@ function EditWorkoutMenu() {
   const { data: userWorkoutData, isLoading: workoutsLoading } =
     api.getWorkouts.getUniqueWeekWorkouts.useQuery();
 
-  const userWorkouts = userWorkoutData?.workouts;
+  const userWorkouts = userWorkoutData?.workoutPlan?.workouts;
   if (
     !workoutsLoading &&
     userWorkouts !== undefined &&

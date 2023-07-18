@@ -1,8 +1,10 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import { api } from "~/utils/api";
+
 import React, { useState, useEffect } from "react";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
+
 import type {
   ActualWorkout,
   ActualExercise,
@@ -73,6 +75,7 @@ function WorkoutUiHandler() {
   const { data: userWorkouts, isLoading } =
     api.getWorkouts.getUniqueWeekWorkouts.useQuery();
 
+
   useEffect(() => {
     if (userWorkouts && !todaysWorkout && !workoutPlan && userWorkouts.workoutPlan) {
       const uniqueWorkouts = new Set();
@@ -106,6 +109,7 @@ function WorkoutUiHandler() {
         console.log("plan prop updated")
       }
     }
+
   }, [userWorkouts, todaysWorkout]);
 
   function sortWorkoutsByNominalDay(
@@ -205,9 +209,9 @@ function WorkoutUi({
 }: WorkoutUiProps) {
   const today = new Date();
 
-  const { mutate: saveWorkout, isLoading } =
+  const { mutate: saveWorkout } =
     api.getWorkouts.createNewWorkoutFromPrevious.useMutation({
-      onSuccess(data, variables, context) {
+      onSuccess(data) {
         setTodaysWorkout(data);
       },
     });
@@ -217,7 +221,6 @@ function WorkoutUi({
     if (todaysWorkout) {
       const oneWeek = 7 * 24 * 60 * 60 * 1000;
       if (today.getTime() - todaysWorkout.date.getTime() > oneWeek) {
-        //if (today.getTime() - priorWorkout.date.getTime() > oneWeek) {
         if (!isNewWorkoutCreated) {
           isNewWorkoutCreated = true;
           console.log("need new workout");
@@ -225,10 +228,12 @@ function WorkoutUi({
           const newWorkout = {
             ...todaysWorkout,
             date: today,
+
             priorWorkoutId:
               todaysWorkout.originalWorkoutId !== null
                 ? todaysWorkout.originalWorkoutId
                 : todaysWorkout.workoutId,
+
             planId: todaysWorkout.planId ?? "none",
             workoutNumber: todaysWorkout.workoutNumber ? +1 : 0,
             exercises: todaysWorkout.exercises.map((exercise) => ({
@@ -313,3 +318,4 @@ function createUniqueId(): string {
 }
 
 const emptySet = { rir: 3, reps: 5, weight: 0 };
+
