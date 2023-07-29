@@ -18,7 +18,10 @@ interface ExerciseDisplayProps {
   workoutNumber: string;
   exerciseNumber: string;
   exerciseIndex: number;
-  addExercise: (workoutNumber: string, exerciseIndex: number) => void;
+  addExercise: (exerciseIndex: number, exercise: ActualExercise & {
+    sets: exerciseSet[];
+}) => void
+  
   updatePlan: (
     exercise: ActualExercise & {
       sets: (exerciseSet & {
@@ -84,6 +87,7 @@ function ExerciseDisplay({
   const { mutate: recordNewExercise } =
     api.getWorkouts.addNewExercise.useMutation({
       onSuccess(data) {
+        addExercise(exerciseIndex, data );
         console.log(data);
       },
     });
@@ -129,7 +133,6 @@ function ExerciseDisplay({
     recordNewSet({ ...newSet });
   }
   function handleAddExercise() {
-    addExercise(workoutNumber, exerciseIndex);
     recordNewExercise({ workoutId: exercise.workoutId });
   }
   function handleRemoveExercise() {
