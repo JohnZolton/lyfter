@@ -63,123 +63,51 @@ model VerificationToken {
 }
 
 model Workout {
-  workoutId  String    @id @default(cuid())
-  date       DateTime   @default(now())
-  nominalDay String
-  userId     String 
+  workoutId   String   @id @default(cuid())
+  date        DateTime @default(now())
+  nominalDay  String
+  userId      String
   description String
+
   //maybe add mesocycles and weeks for clumping/display?
   @@index([userId])
 }
 
 model WorkoutPlan {
-  planId  String    @id @default(cuid())
-  userId     String  @unique
-  sunday String
-  monday String
-  tuesday String
+  planId    String @id @default(cuid())
+  userId    String @unique
+  sunday    String
+  monday    String
+  tuesday   String
   wednesday String
-  thursday String
-  friday String
-  saturday String
+  thursday  String
+  friday    String
+  saturday  String
 
   @@index([userId])
-}
-
-model Exercise {
-  exerciseId  String @id @default(cuid())
-  date       DateTime   @default(now())
-  description String
-  weight      Int
-  sets        String
-  workoutId String
-
-  @@index([workoutId])
-}
-
-model TestWorkout {
-  workoutId  String    @id @default(cuid())
-  date       DateTime   @default(now())
-  nominalDay String
-  userId     String 
-  description String
-  exercises TestExercise[]
-  completed Boolean @default(false)
-  //maybe add mesocycles and weeks for clumping/display?
-  @@index([userId])
-}
-
-model TestExercise {
-  exerciseId  String @id @default(cuid())
-  date       DateTime   @default(now())
-  description String
-  weight      Int
-  sets        String
-  workoutId String
-  workout TestWorkout  @relation(fields: [workoutId], references: [workoutId])
-
-  @@index([workoutId])
-}
-
-model ModelWorkoutPlan {
-  planId  String    @id @default(cuid())
-  userId     String  @unique
-  workouts ModelWorkout[]
-  @@index([userId])
-}
-
-model ModelWorkout {
-  workoutId  String    @id @default(cuid())
-  date       DateTime   @default(now())
-  nominalDay String @unique
-  userId     String 
-  description String
-  exercises ModelExercise[]
-  workoutPlan  ModelWorkoutPlan  @relation(fields: [userId], references: [userId])
-
-
-  //maybe add mesocycles and weeks for clumping/display?
-  @@index([userId, nominalDay])
-}
-
-model ModelExercise {
-  exerciseId  String @id @default(cuid())
-  date       DateTime   @default(now())
-  description String
-  weight      Int?
-  sets        Int
-  workoutId String
-  workout ModelWorkout    @relation(fields: [workoutId], references: [workoutId])
-  userId String
-
-  previousExercise   ModelExercise? @relation("previousExercise", fields: [previousExerciseId], references: [exerciseId], onDelete: NoAction, onUpdate: NoAction)
-  previousExerciseId String? @unique
-  nextExercise       ModelExercise? @relation("previousExercise")
-  nextExerciseId     String?
-
-  @@index([workoutId, userId])
 }
 
 model WorkoutPlanTwo {
-  planId  String    @id @default(cuid())
-  date       DateTime   @default(now())
-  userId String
+  planId      String          @id @default(cuid())
+  date        DateTime        @default(now())
+  userId      String
   description String
-  workouts ActualWorkout[]
+  workouts    ActualWorkout[]
+
   @@index([userId, planId])
 }
 
 model ActualWorkout {
-  workoutId  String    @id @default(cuid())
-  date       DateTime   @default(now())
-  nominalDay String
-  userId     String 
-  description String
-  exercises ActualExercise[]
-  workoutNumber Int?
-  planId String?
-  plan WorkoutPlanTwo? @relation(fields: [planId], references: [planId], onDelete: Cascade)
-  originalWorkoutId String? 
+  workoutId         String           @id @default(cuid())
+  date              DateTime         @default(now())
+  nominalDay        String
+  userId            String
+  description       String
+  exercises         ActualExercise[]
+  workoutNumber     Int?
+  planId            String?
+  plan              WorkoutPlanTwo?  @relation(fields: [planId], references: [planId], onDelete: Cascade)
+  originalWorkoutId String?
 
   @@index([userId])
   @@index([date])
@@ -188,28 +116,28 @@ model ActualWorkout {
 }
 
 model ActualExercise {
-  exerciseId  String @id @default(cuid())
-  date       DateTime   @default(now())
+  exerciseId  String        @id @default(cuid())
+  date        DateTime      @default(now())
   description String
   sets        exerciseSet[]
-  
+
   workoutId String
-  workout ActualWorkout    @relation(fields: [workoutId], references: [workoutId], onDelete: Cascade)
+  workout   ActualWorkout @relation(fields: [workoutId], references: [workoutId], onDelete: Cascade)
 
   @@index([workoutId])
 }
 
 model exerciseSet {
-  setId String @id @default(cuid())
-  date       DateTime   @default(now())
+  setId      String         @id @default(cuid())
+  date       DateTime       @default(now())
   exerciseId String
-  weight Int
-  reps Int
-  rir Int
-  exercise  ActualExercise  @relation(fields: [exerciseId], references: [exerciseId], onDelete: Cascade)
-  lastSetId String? @unique
-  priorSet exerciseSet? @relation("SetRelation", fields: [lastSetId], references: [setId], onDelete: NoAction,onUpdate: NoAction)
-  nextSet exerciseSet? @relation("SetRelation")
+  weight     Int
+  reps       Int
+  rir        Int
+  exercise   ActualExercise @relation(fields: [exerciseId], references: [exerciseId], onDelete: Cascade)
+  lastSetId  String?        @unique
+  priorSet   exerciseSet?   @relation("SetRelation", fields: [lastSetId], references: [setId], onDelete: NoAction, onUpdate: NoAction)
+  nextSet    exerciseSet?   @relation("SetRelation")
 
   @@index([exerciseId, setId])
 }

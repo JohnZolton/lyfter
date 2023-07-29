@@ -82,7 +82,6 @@ function filterUniqueWorkouts(
   userWorkouts.map((workout) => {
     console.log(workout);
     if (!uniqueWorkouts.has(workout.originalWorkoutId)) {
-      console.log("ADDING");
       uniqueWorkouts.add(workout.originalWorkoutId);
       workoutsToDisplay.push(workout);
     }
@@ -151,21 +150,6 @@ function EditWorkoutMenu() {
     setPlanId(workoutPlanActual[0]?.planId ?? "");
   }
 
-  //function addWorkout(
-  //workout:
-  //| (ActualWorkout & {
-  //exercises: (ActualExercise & { sets: exerciseSet[] })[];
-  //})
-  //| undefined
-  //) {
-  //console.log(workout);
-  //if (!workout) {
-  //return;
-  //}
-  //const newWorkoutPlan = workoutPlan ? [...workoutPlan, workout] : [workout];
-  //setWorkoutPlan(newWorkoutPlan);
-  //}
-
   const MENU_ACTIONS = {
     NONE: "none",
     CREATE: "create",
@@ -188,7 +172,6 @@ function EditWorkoutMenu() {
     </div>
   );
 }
-
 
 interface WorkoutDisplayHandlerProps {
   fullWorkoutPlan:
@@ -219,7 +202,11 @@ interface WorkoutDisplayHandlerProps {
     >
   >;
 }
-function WorkoutDisplayHandler({workoutPlan, setWorkoutPlan, fullWorkoutPlan}:WorkoutDisplayHandlerProps){
+function WorkoutDisplayHandler({
+  workoutPlan,
+  setWorkoutPlan,
+  fullWorkoutPlan,
+}: WorkoutDisplayHandlerProps) {
   const [workout, setWorkout] = useState<
     | (ActualWorkout & {
         exercises: (ActualExercise & {
@@ -230,38 +217,45 @@ function WorkoutDisplayHandler({workoutPlan, setWorkoutPlan, fullWorkoutPlan}:Wo
       })
     | undefined
   >();
-  useEffect(()=>{
-    setWorkout(workoutPlan)
-  }, [workoutPlan])
+  useEffect(() => {
+    setWorkout(workoutPlan);
+  }, [workoutPlan]);
 
-  useEffect(()=>{
-    console.log("edit workout fired")
-    const workoutIndex = fullWorkoutPlan?.findIndex(w => w === workoutPlan)
-    if (workoutIndex !== -1 && workoutIndex !== undefined && workout && fullWorkoutPlan && workout !== fullWorkoutPlan[workoutIndex]){
-      setWorkoutPlan(prev => {
-        if (!prev || workout === prev[workoutIndex]) { return [workout]}
-        else {
-        return [
-          ...prev.slice(0, workoutIndex),
-          workout,
-          ...prev.slice(workoutIndex + 1)
-        ]
-
+  useEffect(() => {
+    console.log("edit workout fired");
+    const workoutIndex = fullWorkoutPlan?.findIndex((w) => w === workoutPlan);
+    if (
+      workoutIndex !== -1 &&
+      workoutIndex !== undefined &&
+      workout &&
+      fullWorkoutPlan &&
+      workout !== fullWorkoutPlan[workoutIndex]
+    ) {
+      setWorkoutPlan((prev) => {
+        if (!prev || workout === prev[workoutIndex]) {
+          return [workout];
+        } else {
+          return [
+            ...prev.slice(0, workoutIndex),
+            workout,
+            ...prev.slice(workoutIndex + 1),
+          ];
         }
-      })
+      });
     }
-  }, [workout])
+  }, [workout]);
 
-  return(
+  return (
     <div>
-      {workoutPlan && <WorkoutDisplay3 workoutPlan={workoutPlan} setWorkoutPlan={setWorkout}/>}
-       </div>
-  )
+      {workoutPlan && (
+        <WorkoutDisplay3
+          workoutPlan={workoutPlan}
+          setWorkoutPlan={setWorkout}
+        />
+      )}
+    </div>
+  );
 }
-
-
-
-
 
 interface WorkoutPlanFormProps {
   workoutPlan:

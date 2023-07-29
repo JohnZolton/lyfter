@@ -29,10 +29,8 @@ interface display3Props {
       | undefined
     >
   >;
-
 }
 function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
-
   function updateWorkoutPlan(
     exercise: ActualExercise & {
       sets: (exerciseSet & {
@@ -71,31 +69,12 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
     });
   }
 
-  function addExercise(workoutNumber: string, exerciseIndex: number) {
-    const tempExerciseId = createUniqueId();
-    const newExercise: ActualExercise & {
-      sets: (exerciseSet & {
-        priorSet?: null;
-      })[];
-    } = {
-      description: "New Exercise",
-      exerciseId: tempExerciseId,
-      date: new Date(),
-      workoutId: workoutPlan ? workoutPlan.workoutId : "none",
-      sets: [
-        {
-          date: new Date(),
-          exerciseId: tempExerciseId,
-          setId: createUniqueId(),
-          weight: 0,
-          reps: 5,
-          rir: 3,
-          lastSetId: null,
-          priorSet: null,
-        },
-      ],
-    };
-
+  function addExercise(
+    exerciseIndex: number,
+    exercise: ActualExercise & {
+      sets: exerciseSet[];
+    }
+  ) {
     setWorkoutPlan((prevWorkoutPlan) => {
       if (!prevWorkoutPlan) {
         return prevWorkoutPlan;
@@ -105,7 +84,7 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
       if (updatedWorkoutPlan && updatedWorkoutPlan.exercises) {
         const newExercises = [
           ...updatedWorkoutPlan.exercises.slice(0, exerciseIndex + 1),
-          newExercise,
+          exercise,
           ...updatedWorkoutPlan.exercises.slice(exerciseIndex + 1),
         ];
         updatedWorkoutPlan.exercises = newExercises;
