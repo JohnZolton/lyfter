@@ -80,8 +80,7 @@ function filterUniqueWorkouts(
     })[];
   })[] = [];
   userWorkouts.map((workout) => {
-    console.log(workout);
-    if (!uniqueWorkouts.has(workout.originalWorkoutId)) {
+    if (!uniqueWorkouts.has(workout.originalWorkoutId) && workout.exercises.length > 0) {
       uniqueWorkouts.add(workout.originalWorkoutId);
       workoutsToDisplay.push(workout);
     }
@@ -283,34 +282,9 @@ function WorkoutPlanForm({
   setWorkoutPlan,
 }: WorkoutPlanFormProps) {
   const [planId, setPlanId] = useState("");
-  function sortWorkoutsByNominalDay(
-    workouts: (ActualWorkout & {
-      exercises: (ActualExercise & {
-        sets: (exerciseSet & { priorSet?: exerciseSet })[];
-      })[];
-    })[]
-  ) {
-    const daysOfWeek = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ];
-    const sortedWorkouts = [...workouts];
+  if (!planId && workoutPlan && workoutPlan[0]?.planId){setPlanId(workoutPlan[0]?.planId)}
 
-    sortedWorkouts.sort((a, b) => {
-      const dayA = daysOfWeek.indexOf(a.nominalDay);
-      const dayB = daysOfWeek.indexOf(b.nominalDay);
-      return dayA - dayB;
-    });
-
-    return sortedWorkouts;
-  }
-
-  function addWorkout(
+  function addWorkout( 
     workout:
       | (ActualWorkout & {
           exercises: (ActualExercise & {
@@ -325,10 +299,6 @@ function WorkoutPlanForm({
     }
     const newWorkoutPlan = workoutPlan ? [...workoutPlan, workout] : [workout];
     setWorkoutPlan(newWorkoutPlan);
-  }
-
-  function updateWorkoutPlanForDisplay() {
-    console.log("todo");
   }
 
   return (
@@ -398,7 +368,6 @@ function WorkoutDayForm({ addWorkout, planId }: WorkoutDayFormProps) {
         saveNewWorkout({ ...newWorkoutPlan, planId: createUniqueId() });
       }
 
-      //addWorkout(newWorkoutPlan);
       setShowAddExercises(false);
       setDayDescription("");
       setNominalDay("");

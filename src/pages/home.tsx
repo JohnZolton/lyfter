@@ -88,7 +88,7 @@ function WorkoutUiHandler() {
       })[] = [];
       userWorkouts.workoutPlan.workouts.map((workout) => {
         console.log(workout);
-        if (!uniqueWorkouts.has(workout.originalWorkoutId)) {
+        if (!uniqueWorkouts.has(workout.originalWorkoutId) && workout.exercises.length > 0) {
           uniqueWorkouts.add(workout.originalWorkoutId);
           workoutsToDisplay.push(workout);
         }
