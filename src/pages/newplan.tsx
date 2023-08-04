@@ -7,6 +7,7 @@ import { v4 } from "uuid";
 import { NavBar } from "~/pages/components/navbar";
 import PageLayout from "~/pages/components/pagelayout";
 import MenuLayout from "./components/menulayout";
+import LoadingSpinner from "./components/loadingspinner";
 
 const Home: NextPage = () => {
   return (
@@ -89,7 +90,7 @@ function NewWorkoutMenu() {
     };
     setWorkoutPlan(newWorkoutPlan);
   }
-  const { mutate: saveNewWorkout } = api.getWorkouts.newTestPlanTwo.useMutation(
+  const { mutate: saveNewWorkout, isLoading } = api.getWorkouts.newTestPlanTwo.useMutation(
     {
       onSuccess(data) {
         console.log(data);
@@ -109,6 +110,13 @@ function NewWorkoutMenu() {
         workouts: [...workoutPlan.workouts],
       });
     }
+  }
+  if (isLoading){
+    return(
+      <>
+      <LoadingSpinner />
+      </>
+    )
   }
 
   return (
@@ -144,12 +152,18 @@ function TestButton() {
     api.getWorkouts.newTestPlanTwo.useMutation({
       onSuccess(data, variables, context) {
         console.log(data);
-        window.location.reload();
       },
     });
 
   function handleClick() {
     makePlan({ description: "Push Pull Legs", workouts: pplPlanArrayTwo });
+  }
+  if (isLoading){
+    return(
+      <>
+      <LoadingSpinner/>
+      </>
+    )
   }
   return (
     <div className="flex justify-center">
