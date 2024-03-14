@@ -6,9 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider     = "mysql"
-  url          = env("DATABASE_URL")
-  relationMode = "prisma"
+  provider = "postgresql"
+  url = env("POSTGRES_DB_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_DB_URL_NON_POOLING") // uses a direct connection
 }
 
 model Example {
@@ -62,51 +62,27 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-model Workout {
-  workoutId   String   @id @default(cuid())
-  date        DateTime @default(now())
-  nominalDay  String
-  userId      String
-  description String
-
-  //maybe add mesocycles and weeks for clumping/display?
-  @@index([userId])
-}
 
 model WorkoutPlan {
-  planId    String @id @default(cuid())
-  userId    String @unique
-  sunday    String
-  monday    String
-  tuesday   String
-  wednesday String
-  thursday  String
-  friday    String
-  saturday  String
-
-  @@index([userId])
-}
-
-model WorkoutPlanTwo {
   planId      String          @id @default(cuid())
   date        DateTime        @default(now())
   userId      String
   description String
-  workouts    ActualWorkout[]
+  workouts    Workout[]
 
   @@index([userId, planId])
 }
 
-model ActualWorkout {
+model Workout {
   workoutId         String           @id @default(cuid())
   date              DateTime         @default(now())
   nominalDay        String
   userId            String
   description       String
-  exercises         ActualExercise[]
+  exercises         Exercise[]
   workoutNumber     Int?
   planId            String?
-  plan              WorkoutPlanTwo?  @relation(fields: [planId], references: [planId], onDelete: Cascade)
+  plan              WorkoutPlan?  @relation(fields: [planId], references: [planId], onDelete: Cascade)
   originalWorkoutId String?
 
   @@index([userId])
@@ -115,14 +91,14 @@ model ActualWorkout {
   @@index([workoutId])
 }
 
-model ActualExercise {
+model Exercise {
   exerciseId  String        @id @default(cuid())
   date        DateTime      @default(now())
   description String
   sets        exerciseSet[]
 
   workoutId String
-  workout   ActualWorkout @relation(fields: [workoutId], references: [workoutId], onDelete: Cascade)
+  workout   Workout @relation(fields: [workoutId], references: [workoutId], onDelete: Cascade)
 
   @@index([workoutId])
 }
@@ -134,7 +110,7 @@ model exerciseSet {
   weight     Int
   reps       Int
   rir        Int
-  exercise   ActualExercise @relation(fields: [exerciseId], references: [exerciseId], onDelete: Cascade)
+  exercise   Exercise @relation(fields: [exerciseId], references: [exerciseId], onDelete: Cascade)
   lastSetId  String?        @unique
   priorSet   exerciseSet?   @relation("SetRelation", fields: [lastSetId], references: [setId], onDelete: NoAction, onUpdate: NoAction)
   nextSet    exerciseSet?   @relation("SetRelation")

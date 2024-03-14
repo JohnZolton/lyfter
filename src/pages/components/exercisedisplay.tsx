@@ -1,16 +1,29 @@
 import { v4 } from "uuid";
-import { ActualWorkout, ActualExercise, exerciseSet } from "@prisma/client";
+import { Workout, Exercise, exerciseSet } from "@prisma/client";
 import { useState } from "react";
 import { useEffect } from "react";
 import { api } from "~/utils/api";
 import SetDisplay from "./setdisplay";
+import { Menu } from 'lucide-react';
+
+
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu"
+
 
 function createUniqueId(): string {
   return v4();
 }
 
 interface ExerciseDisplayProps {
-  exercise: ActualExercise & {
+  exercise: Exercise & {
     sets: (exerciseSet & {
       priorSet?: exerciseSet | null;
     })[];
@@ -18,12 +31,12 @@ interface ExerciseDisplayProps {
   workoutNumber: string;
   exerciseNumber: string;
   exerciseIndex: number;
-  addExercise: (exerciseIndex: number, exercise: ActualExercise & {
+  addExercise: (exerciseIndex: number, exercise: Exercise & {
     sets: exerciseSet[];
 }) => void
   
   updatePlan: (
-    exercise: ActualExercise & {
+    exercise: Exercise & {
       sets: (exerciseSet & {
         priorSet?: exerciseSet | null;
       })[];
@@ -74,7 +87,7 @@ function ExerciseDisplay({
     setSets(newSets);
   }
   function handleSaveButton() {
-    const newData: ActualExercise & {
+    const newData: Exercise & {
       sets: (exerciseSet & { priorSet?: exerciseSet | null })[];
     } = {
       ...exercise,
@@ -177,42 +190,26 @@ function ExerciseDisplay({
       key={exercise.description}
       className="mx-1 my-1 rounded-lg bg-slate-900 p-2  shadow-md"
     >
-      <div className="flex items-center justify-center">
-        {descriptionInputActive ? (
-          <input
-            type="text"
-            value={description}
-            onChange={handleDescriptionChange}
-            onKeyDown={handleKeyDown}
-            onBlur={handleBlur}
-            className="rounded-lg bg-slate-700 px-2 py-1  focus:outline-none"
-            autoFocus
-          />
-        ) : (
-          <span
-            className="cursor-pointer rounded-lg bg-slate-600 px-2 py-1 font-semibold hover:bg-gray-500"
-            onClick={handleDescriptionClick}
-          >
-            {description}
-          </span>
-        )}
-        <button
-          onClick={handleRemoveExercise}
-          className="m-1 inline-flex items-center rounded bg-red-600 px-2 py-1 font-bold  hover:bg-red-700"
+
+
+      <div className="flex items-center justify-center gap-x-2">
+        <span
+          className="cursor-pointer rounded-lg bg-slate-600 px-2 py-1 font-semibold hover:bg-gray-500"
+          onClick={handleDescriptionClick}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 11.414L15.657 17.071l1.414-1.414L11.414 10l5.657-5.657L15.657 2.93 10 8.586 4.343 2.93 2.93 4.343 8.586 10l-5.657 5.657 1.414 1.414L10 11.414z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </button>
+          {description}
+        </span>
+        <DropdownMenu>
+          <DropdownMenuTrigger><Menu/></DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={()=>console.log("clicked")}>Add Set</DropdownMenuItem>
+            <DropdownMenuItem onClick={()=>console.log("clicked")}>Remove Set</DropdownMenuItem>
+            <DropdownMenuItem onClick={()=>console.log("clicked")}>Add Exercise</DropdownMenuItem>
+            <DropdownMenuItem onClick={()=>console.log("clicked")}>Delete Exercise</DropdownMenuItem>
+            <DropdownMenuItem onClick={()=>console.log("clicked")}>Replace Exercise</DropdownMenuItem>
+            <DropdownMenuItem onClick={()=>console.log("clicked")}>Edit Exercise</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       <div>
         {sets &&
@@ -225,20 +222,6 @@ function ExerciseDisplay({
               updateSets={handleSetChange}
             />
           ))}
-      </div>
-      <div className="flex justify-center">
-        <button
-          onClick={handleAddSet}
-          className="m-1 rounded bg-blue-600 px-2 py-1 font-bold  hover:bg-blue-700"
-        >
-          Add Set
-        </button>
-        <button
-          onClick={handleAddExercise}
-          className="m-1 rounded bg-blue-600 px-2 py-1 font-bold  hover:bg-blue-700"
-        >
-          Add Exercise
-        </button>
       </div>
     </div>
   );

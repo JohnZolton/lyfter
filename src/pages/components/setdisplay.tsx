@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { api } from "~/utils/api";
 import PerformanceWarning from "./performancewarning";
 
+
 interface SetDisplayProps {
   index: number;
   set: exerciseSet & {
@@ -107,91 +108,34 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
   }
 
   return (
-    <div className="m-1 rounded-lg bg-slate-800 p-1  shadow-md">
-      {set && set.priorSet && (
-        <div className="mb-2 text-center font-semibold ">
-          Last time: {set.priorSet?.weight} lbs x {set.priorSet?.reps} reps @{" "}
-          {set.priorSet?.rir}RIR
-        </div>
-      )}
-      <div className="flex flex-auto justify-center space-x-2">
-        {weightInputActive ? (
-          <input
-            type="number"
-            value={weight}
-            onChange={handleWeightChange}
-            onBlur={handleBlur}
-            onKeyDown={handleKeyDown}
-            className="w-14 rounded-lg bg-slate-700 text-center  focus:outline-none"
-            autoFocus
-          />
-        ) : (
-          <span
-            className="mx-2 cursor-pointer rounded-lg bg-slate-600 px-2  py-1 hover:bg-gray-500"
-            onClick={handleWeightClick}
-          >
-            {weight} lbs
-          </span>
-        )}{" "}
-        x{" "}
-        {repsInputActive ? (
-          <input
-            type="number"
-            value={reps}
-            onKeyDown={handleKeyDown}
-            onChange={handleRepsChange}
-            onBlur={handleBlur}
-            className="w-14 rounded-lg bg-slate-700 text-center  focus:outline-none"
-            autoFocus
-          />
-        ) : (
-          <span
-            className="cursor-pointer rounded-lg bg-slate-600 px-2 py-1 hover:bg-gray-500"
-            onClick={handleRepsClick}
-          >
-            {reps} reps
-          </span>
-        )}
-        <div className="w-.75 inline-block" />@
-        {rirInputActive ? (
-          <input
-            type="number"
-            value={rir}
-            onChange={handleRirChange}
-            onBlur={handleBlur}
-            onKeyDown={handleKeyDown}
-            className="w-14 rounded-lg bg-slate-700 text-center  focus:outline-none"
-            autoFocus
-          />
-        ) : (
-          <span
-            className="cursor-pointer rounded-lg bg-slate-600 px-2 py-1 hover:bg-gray-500"
-            onClick={handleRirClick}
-          >
-            {rir} RIR
-          </span>
-        )}
-        <button
-          onClick={handleRemoveSet}
-          className="mx-1 justify-center rounded bg-red-600 px-1 font-bold   hover:bg-red-700"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 text-white"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 11.414L15.657 17.071l1.414-1.414L11.414 10l5.657-5.657L15.657 2.93 10 8.586 4.343 2.93 2.93 4.343 8.586 10l-5.657 5.657 1.414 1.414L10 11.414z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </button>
+    <div className="m-1 rounded-lg bg-slate-800 p-1  shadow-md flex flex-row justify-between">
+    <div>
+    <div className="flex flex-row items-center gap-x-1">
+      
+    <select className="p-2 mr-2 bg-gray-700 text-white rounded">
+          <option value=""></option>
+          {Array.from({ length: 501 }, (_, i) => (
+            <option key={i} value={i}>
+              {i}
+            </option>
+          ))}
+        </select>
+        lbs
+        <select className=" p-2 bg-gray-700 text-white rounded">
+          <option value=""></option>
+          {Array.from({ length: 35  }, (_, i) => (
+            <option key={i} value={i}>
+              {i}
+            </option>
+          ))}
+        </select>
+      reps
+    </div>
+    </div>
+
         <div className="mt-1 text-xl">
           <PerformanceWarning priorSet={priorSet} currentSet={set} />
         </div>
-      </div>
     </div>
   );
 }
