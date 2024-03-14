@@ -9,7 +9,7 @@ interface PerformanceWarningProps {
 
 function PerformanceWarning({ priorSet, currentSet }: PerformanceWarningProps) {
   if (!priorSet || !currentSet) {
-    return <div></div>;
+    return <div className="w-6 h-6"></div>;
   }
 
   if (priorSet.weight > currentSet.weight || priorSet.reps > currentSet.reps) {
@@ -26,7 +26,7 @@ function PerformanceWarning({ priorSet, currentSet }: PerformanceWarningProps) {
       </div>
     );
   } else {
-    return <div></div>;
+    return <div className="w-6 h-6"></div>;
   }
 }
 

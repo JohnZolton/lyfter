@@ -16,91 +16,50 @@ interface SetDisplayProps {
     index: number
   ) => void;
   removeSet: (index: number) => void;
+  cascadeWeightChange: (index: number, weight: number)=>void;
 }
 
-function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
-  const [weight, setWeight] = useState(set?.weight || 0);
-  const [reps, setReps] = useState(set?.reps || 0);
-  const [rir, setRir] = useState(set?.rir || 0);
+function SetDisplay({ index, set, updateSets, removeSet, cascadeWeightChange }: SetDisplayProps) {
+  const [weight, setWeight] = useState(set?.weight || null);
+  const [reps, setReps] = useState(set?.reps || null);
+  const [rir, setRir] = useState(set?.rir || null);
 
   const { mutate: recordSet } = api.getWorkouts.updateSets.useMutation({
     onSuccess(data) {
       console.log(data);
     },
   });
-  const { mutate: deleteSet } = api.getWorkouts.removeSet.useMutation({
-    onSuccess(data) {
-      console.log(data);
-    },
-  });
 
-  const handleWeightClick = () => {
-    setWeightInputActive(true);
-  };
-  const handleRepsClick = () => {
-    setRepsInputActive(true);
-  };
-  const handleRirClick = () => {
-    setRirInputActive(true);
-  };
-  const handleBlur = () => {
-    setWeightInputActive(false);
-    setRepsInputActive(false);
-    setRirInputActive(false);
-    const newSet: exerciseSet & { priorSet?: exerciseSet | null } = {
-      date: new Date(),
-      setId: set.setId,
-      exerciseId: set.exerciseId,
-      weight: weight,
-      reps: reps,
-      rir: rir,
-      lastSetId: set.lastSetId,
-      priorSet: set.priorSet,
-    };
-    updateSets(newSet, index);
-    recordSet({ ...newSet });
-  };
 
   useEffect(() => {
-    setWeight(set?.weight || 0);
-    setReps(set?.reps || 0);
-    setRir(set?.rir || 0);
+    setWeight(set?.weight);
+    setReps(set?.reps);
+    setRir(set?.rir);
   }, [set?.weight, set?.reps, set?.rir]);
+  
+  useEffect(()=>{
+    recordSet({
+      setId: set.setId,
+      weight: weight ?? 0,
+      reps: reps ?? 0,
+      rir: rir ?? 3
+    })
+  }, [weight, reps, rir])
 
-  const handleWeightChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(event.target.value);
-    if (!isNaN(value) && value >= 0) {
+  const handleWeightChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = parseInt(event.target.value) ?? null;
+    if (value!==null && value >= 0) {
       setWeight(value);
+      cascadeWeightChange(index, value)
     }
   };
 
-  const handleRepsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(event.target.value);
-    if (!isNaN(value) && value >= 0) {
+  const handleRepsChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = parseInt(event.target.value) ?? null;
+    if (value!==null && value >= 0) {
       setReps(parseInt(event.target.value));
     }
   };
-
-  const handleRirChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(event.target.value);
-    if (!isNaN(value) && value >= 0) {
-      setRir(parseInt(event.target.value));
-    }
-  };
-
-  function handleRemoveSet() {
-    removeSet(index);
-    deleteSet({ setId: set.setId });
-  }
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter" || event.key === "esc") {
-      handleBlur();
-    }
-  };
-
-  const [weightInputActive, setWeightInputActive] = useState(false);
-  const [repsInputActive, setRepsInputActive] = useState(false);
-  const [rirInputActive, setRirInputActive] = useState(false);
 
   const [priorSet, setPriorSet] = useState<exerciseSet | undefined>();
   if (!priorSet && set && set.priorSet) {
@@ -111,29 +70,34 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
     <div className="m-1 rounded-lg bg-slate-800 p-1  shadow-md flex flex-row justify-between">
     <div>
     <div className="flex flex-row items-center gap-x-1">
-      
-    <select className="p-2 mr-2 bg-gray-700 text-white rounded">
-          <option value=""></option>
+    Weight  
+    <select className="p-2 mr-2 bg-gray-700 text-white rounded"
+    value={weight ?? ""}
+    onChange={handleWeightChange}
+    >
+          <option value={""}></option>
           {Array.from({ length: 501 }, (_, i) => (
             <option key={i} value={i}>
               {i}
             </option>
           ))}
         </select>
-        lbs
-        <select className=" p-2 bg-gray-700 text-white rounded">
-          <option value=""></option>
+      Reps
+        <select className=" p-2 bg-gray-700 text-white rounded"
+        onChange={handleRepsChange}
+        value={reps ?? ""}
+        >
+          <option value={""}></option>
           {Array.from({ length: 35  }, (_, i) => (
             <option key={i} value={i}>
               {i}
             </option>
           ))}
         </select>
-      reps
     </div>
     </div>
 
-        <div className="mt-1 text-xl">
+        <div className="mt-1 text-xl w-6 h-6">
           <PerformanceWarning priorSet={priorSet} currentSet={set} />
         </div>
     </div>

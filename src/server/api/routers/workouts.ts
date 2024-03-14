@@ -24,9 +24,9 @@ export const getAllWorkouts = createTRPCRouter({
                 description: z.string(),
                 sets: z.array(
                   z.object({
-                    weight: z.number(),
-                    reps: z.number(),
-                    rir: z.number(),
+                    weight: z.number().optional(),
+                    reps: z.number().optional(),
+                    rir: z.number().optional(),
                   })
                 ),
               })
@@ -55,9 +55,9 @@ export const getAllWorkouts = createTRPCRouter({
                   description: exercise.description,
                   sets: {
                     create: exercise.sets.map((set) => ({
-                      rir: set.rir,
-                      weight: set.weight,
-                      reps: set.reps,
+                      rir:  set.rir
+                      //weight: set.weight,
+                      //reps: set.reps,
                     })),
                   },
                 })),

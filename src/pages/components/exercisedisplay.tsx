@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { api } from "~/utils/api";
 import SetDisplay from "./setdisplay";
-import { Menu } from 'lucide-react';
+import { Menu, Newspaper } from 'lucide-react';
 
 
 
@@ -71,12 +71,6 @@ function ExerciseDisplay({
     setSets(exercise.sets);
   }, [exercise?.description, exercise?.sets]);
 
-  const handleDescriptionChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const value = event.target.value;
-    setDescription(value);
-  };
 
   function handleSetChange(
     set: exerciseSet & { priorSet?: exerciseSet | null },
@@ -111,12 +105,6 @@ function ExerciseDisplay({
       },
     }
   );
-  const { mutate: recordUpdatedDescription } =
-    api.getWorkouts.updateExerciseDescription.useMutation({
-      onSuccess(data) {
-        console.log(data);
-      },
-    });
 
   const { mutate: recordNewSet } = api.getWorkouts.createSet.useMutation({
     onSuccess(data) {
@@ -152,32 +140,30 @@ function ExerciseDisplay({
     removeExercise(workoutNumber, exercise.exerciseId);
     deleteExercise({ exerciseId: exercise.exerciseId });
   }
-  function handleRemoveSet(index: number) {
-    const newSets = [...sets];
-    if (index >= 0 && index < newSets.length) {
-      newSets.splice(index, 1);
-    }
-    console.log(newSets);
+  const { mutate: deleteSet } = api.getWorkouts.removeSet.useMutation({
+    onSuccess(data) {
+      console.log(data);
+    },
+  });
+  function handleRemoveSet() {
+    deleteSet({ setId: sets[sets.length-1]?.setId ?? "" });
+    const newSets = sets.slice(0,-1)
     setSets(newSets);
   }
-  const [descriptionInputActive, setDescriptionInputActive] = useState(false);
-  const handleBlur = () => {
-    if (description.length > 0) {
-      setDescriptionInputActive(false);
-    }
-    recordUpdatedDescription({
-      exerciseId: exercise.exerciseId,
-      description: description,
-    });
-  };
-  const handleDescriptionClick = () => {
-    setDescriptionInputActive(true);
-  };
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter" || event.key === "Escape") {
-      handleBlur();
-    }
-  };
+  
+  function cascadeWeightChange(index: number, weight:number){
+    const newSets = [...sets]
+    if (index < newSets.length &&index >=0 && newSets[index]){
+      newSets[index]!.weight=weight
+      //for every set after current set, update the weight IF there is no weight already
+      for (let i=index+1; i<newSets.length; i++){
+          newSets[i]!.weight=weight
+        }
+      }
+      console.log(newSets)
+      setSets(newSets)
+  }
+
   useEffect(() => {
     handleSaveButton();
   }, [sets, description]);
@@ -188,22 +174,15 @@ function ExerciseDisplay({
   return (
     <div
       key={exercise.description}
-      className="mx-1 my-1 rounded-lg bg-slate-900 p-2  shadow-md"
+      className="mx-1 my-1 rounded-xl bg-slate-700 p-2  w-full shadow-md"
     >
-
-
-      <div className="flex items-center justify-center gap-x-2">
-        <span
-          className="cursor-pointer rounded-lg bg-slate-600 px-2 py-1 font-semibold hover:bg-gray-500"
-          onClick={handleDescriptionClick}
-        >
+      <div className="flex items-center justify-between px-1">
           {description}
-        </span>
         <DropdownMenu>
           <DropdownMenuTrigger><Menu/></DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={()=>console.log("clicked")}>Add Set</DropdownMenuItem>
-            <DropdownMenuItem onClick={()=>console.log("clicked")}>Remove Set</DropdownMenuItem>
+            <DropdownMenuItem onClick={()=>handleAddSet()}>Add Set</DropdownMenuItem>
+            <DropdownMenuItem onClick={()=>handleRemoveSet()}>Remove Set</DropdownMenuItem>
             <DropdownMenuItem onClick={()=>console.log("clicked")}>Add Exercise</DropdownMenuItem>
             <DropdownMenuItem onClick={()=>console.log("clicked")}>Delete Exercise</DropdownMenuItem>
             <DropdownMenuItem onClick={()=>console.log("clicked")}>Replace Exercise</DropdownMenuItem>
@@ -220,6 +199,7 @@ function ExerciseDisplay({
               index={index}
               removeSet={handleRemoveSet}
               updateSets={handleSetChange}
+              cascadeWeightChange={cascadeWeightChange}
             />
           ))}
       </div>

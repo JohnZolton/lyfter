@@ -1,5 +1,5 @@
 import { v4 } from "uuid";
-import { ActualWorkout, ActualExercise, exerciseSet } from "@prisma/client";
+import { Workout, Exercise, exerciseSet } from "@prisma/client";
 import ExerciseDisplay from "./exercisedisplay";
 
 function createUniqueId(): string {
@@ -9,8 +9,8 @@ function createUniqueId(): string {
 const emptySet = { rir: 3, reps: 5, weight: 0 };
 
 interface display3Props {
-  workoutPlan: ActualWorkout & {
-    exercises: (ActualExercise & {
+  workoutPlan: Workout & {
+    exercises: (Exercise & {
       sets: (exerciseSet & {
         priorSet?: exerciseSet | null;
       })[];
@@ -19,8 +19,8 @@ interface display3Props {
 
   setWorkoutPlan: React.Dispatch<
     React.SetStateAction<
-      | (ActualWorkout & {
-          exercises: (ActualExercise & {
+      | (Workout & {
+          exercises: (Exercise & {
             sets: (exerciseSet & {
               priorSet?: exerciseSet | null;
             })[];
@@ -32,7 +32,7 @@ interface display3Props {
 }
 function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
   function updateWorkoutPlan(
-    exercise: ActualExercise & {
+    exercise: Exercise & {
       sets: (exerciseSet & {
         priorSet?: exerciseSet | null;
       })[];
@@ -71,7 +71,7 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
 
   function addExercise(
     exerciseIndex: number,
-    exercise: ActualExercise & {
+    exercise: Exercise & {
       sets: exerciseSet[];
     }
   ) {
@@ -94,17 +94,17 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
   }
 
   return (
-    <div className="flex flex-col items-center rounded-lg ">
+    <div className="flex flex-col items-center rounded-lg w-11/12">
       {workoutPlan && (
         <div key={"w" + workoutPlan.workoutId.toString()} className="w-full">
-          <div className="pt-1 text-center text-2xl font-semibold  text-slate-300">
+          <div className="pt-1 text-center text-2xl w-full font-semibold  text-slate-300">
             {workoutPlan.description}: {workoutPlan.nominalDay}
           </div>
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center w-full">
             {workoutPlan.exercises &&
               workoutPlan.exercises.map((exercise, exerciseNumber) => (
                 <div
-                  className="rounded-lg p-1 "
+                  className="p-1 w-full"
                   key={exercise.exerciseId.toString()}
                 >
                   <ExerciseDisplay

@@ -317,8 +317,3 @@ function SelectDay({ userWorkoutPlan, setTodaysWorkout }: SelectDayProps) {
   );
 }
 
-function createUniqueId(): string {
-  return v4();
-}
-
-const emptySet = { rir: 3, reps: 5, weight: 0 };
