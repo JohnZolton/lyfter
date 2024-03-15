@@ -9,17 +9,24 @@ interface PerformanceWarningProps {
 
 function PerformanceWarning({ priorSet, currentSet }: PerformanceWarningProps) {
   if (!priorSet || !currentSet) {
-    return <div className="w-6 h-6"></div>;
+    return (
+      <div className="w-6 h-6"></div>
+    )
   }
 
-  if (priorSet.weight > currentSet.weight || priorSet.reps > currentSet.reps) {
+  const priorWeight = priorSet.weight ?? 0;
+  const priorReps = priorSet.reps ?? 0;
+  const currentWeight = currentSet.weight ?? 0;
+  const currentReps = currentSet.reps ?? 0;
+
+  if (priorWeight > currentWeight || priorReps > currentReps) {
     return (
       <div className="text-red-500">
         <FontAwesomeIcon icon={faThumbsDown} />
       </div>
     );
   }
-  if (priorSet.weight < currentSet.weight || priorSet.reps < currentSet.reps) {
+  if (priorWeight < currentWeight || priorReps < currentReps) {
     return (
       <div className="text-green-500">
         <FontAwesomeIcon icon={faCheck} />

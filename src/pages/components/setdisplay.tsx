@@ -67,11 +67,10 @@ function SetDisplay({ index, set, updateSets, removeSet, cascadeWeightChange }: 
   }
 
   return (
-    <div className="m-1 rounded-lg bg-slate-800 p-1  shadow-md flex flex-row justify-between">
-    <div>
+    <div className="m-1 rounded-lg bg-slate-800 p-1  shadow-md flex flex-row items-center justify-center">
     <div className="flex flex-row items-center gap-x-1">
     Weight  
-    <select className="p-2 mr-2 bg-gray-700 text-white rounded"
+    <select className="p-2 mr-2 bg-gray-700 text-white rounded text-center"
     value={weight ?? ""}
     onChange={handleWeightChange}
     >
@@ -83,7 +82,7 @@ function SetDisplay({ index, set, updateSets, removeSet, cascadeWeightChange }: 
           ))}
         </select>
       Reps
-        <select className=" p-2 bg-gray-700 text-white rounded"
+        <select className=" p-2 bg-gray-700 text-white rounded text-center"
         onChange={handleRepsChange}
         value={reps ?? ""}
         >
@@ -95,11 +94,10 @@ function SetDisplay({ index, set, updateSets, removeSet, cascadeWeightChange }: 
           ))}
         </select>
     </div>
-    </div>
-
-        <div className="mt-1 text-xl w-6 h-6">
+        <div className="ml-2  text-xl w-10 h-8 flex flex-row items-center justify-center ">
           <PerformanceWarning priorSet={priorSet} currentSet={set} />
         </div>
+
     </div>
   );
 }

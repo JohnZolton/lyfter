@@ -320,7 +320,7 @@ export const getAllWorkouts = createTRPCRouter({
           sets: {
             create: {
               weight: 0,
-              reps: 5,
+              reps: 0,
               rir: 3,
             },
           },
@@ -386,9 +386,9 @@ export const getAllWorkouts = createTRPCRouter({
       z.object({
         setId: z.string(),
         exerciseId: z.string(),
-        weight: z.number(),
-        reps: z.number(),
-        rir: z.number(),
+        weight: z.number().nullable(),
+        reps: z.number().nullable(),
+        rir: z.number().nullable(),
       })
     )
     .mutation(async ({ ctx, input }) => {

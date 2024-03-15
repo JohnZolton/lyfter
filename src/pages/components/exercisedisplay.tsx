@@ -5,6 +5,8 @@ import { useEffect } from "react";
 import { api } from "~/utils/api";
 import SetDisplay from "./setdisplay";
 import { Menu, Newspaper } from 'lucide-react';
+import { Input } from "../../components/ui/input"
+
 
 
 
@@ -88,7 +90,7 @@ function ExerciseDisplay({
       sets: sets,
       description: description,
     };
-
+    console.log(newData)
     updatePlan(newData, workoutNumber, exerciseNumber);
   }
   const { mutate: recordNewExercise } =
@@ -118,14 +120,13 @@ function ExerciseDisplay({
       exerciseId: exercise.exerciseId,
       setId: createUniqueId(),
       weight: 0,
-      reps: 5,
+      reps: null,
       rir: 3,
       lastSetId: null,
       priorSet: null,
     };
     const lastSet = sets[sets.length - 1];
     if (lastSet !== undefined) {
-      newSet.reps = lastSet.reps;
       newSet.rir = lastSet.rir;
       newSet.weight = lastSet.weight;
     }
@@ -163,10 +164,22 @@ function ExerciseDisplay({
       console.log(newSets)
       setSets(newSets)
   }
+  
+  const [editingName, setEditingName]=useState(false)
+  function handleEditExercise(){
+    setEditingName(true)
+  }
+  const {mutate: updateDescription}=api.getWorkouts.updateExerciseDescription.useMutation({
+    onSuccess(data){console.log(data)}
+  })
+  function handleSaveExercise(){
+    setEditingName(false)
+    updateDescription({exerciseId: exercise.exerciseId, description})
+  }
 
   useEffect(() => {
     handleSaveButton();
-  }, [sets, description]);
+  }, [sets]);
 
   if (!exercise) {
     return <div></div>;
@@ -177,16 +190,27 @@ function ExerciseDisplay({
       className="mx-1 my-1 rounded-xl bg-slate-700 p-2  w-full shadow-md"
     >
       <div className="flex items-center justify-between px-1">
-          {description}
+          {editingName ? 
+            <Input
+            type="text"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            onBlur={handleSaveExercise}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSaveExercise();
+              }
+            }}
+            /> : 
+          description}
         <DropdownMenu>
           <DropdownMenuTrigger><Menu/></DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onClick={()=>handleAddSet()}>Add Set</DropdownMenuItem>
             <DropdownMenuItem onClick={()=>handleRemoveSet()}>Remove Set</DropdownMenuItem>
-            <DropdownMenuItem onClick={()=>console.log("clicked")}>Add Exercise</DropdownMenuItem>
-            <DropdownMenuItem onClick={()=>console.log("clicked")}>Delete Exercise</DropdownMenuItem>
-            <DropdownMenuItem onClick={()=>console.log("clicked")}>Replace Exercise</DropdownMenuItem>
-            <DropdownMenuItem onClick={()=>console.log("clicked")}>Edit Exercise</DropdownMenuItem>
+            <DropdownMenuItem onClick={()=>handleAddExercise()}>Add Exercise</DropdownMenuItem>
+            <DropdownMenuItem onClick={()=>handleRemoveExercise()}>Delete Exercise</DropdownMenuItem>
+            <DropdownMenuItem onClick={()=>handleEditExercise()}>Edit Exercise</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
