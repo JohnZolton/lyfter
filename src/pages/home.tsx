@@ -19,6 +19,8 @@ import SetDisplay from "./components/setdisplay";
 import WorkoutDisplay3 from "./components/workoutdisplay";
 import ExerciseDisplay from "./components/exercisedisplay";
 import { Button } from "../components/ui/button"
+import { useRouter } from 'next/router';
+import { UserRound } from "lucide-react";
 
 
 
@@ -163,6 +165,7 @@ function WorkoutUiHandler({setTitle}:UiHandlerProps) {
   function endWorkout() {
     setTodaysWorkout(undefined);
   }
+  
 
   if (!todaysWorkout) {
     return (

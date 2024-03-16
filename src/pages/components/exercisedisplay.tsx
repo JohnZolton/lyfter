@@ -171,7 +171,9 @@ function ExerciseDisplay({
       newSets[index]!.weight=weight
       //for every set after current set, update the weight IF there is no weight already
       for (let i=index+1; i<newSets.length; i++){
+        if (newSets[i]!.reps === 0 || newSets[i]!.reps===undefined || newSets[i]!.reps ===null){
           newSets[i]!.weight=weight
+        }
         }
       }
       console.log(newSets)
