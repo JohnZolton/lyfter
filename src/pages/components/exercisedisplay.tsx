@@ -135,7 +135,7 @@ function ExerciseDisplay({
     recordNewSet({ ...newSet });
   }
   function handleAddExercise() {
-    recordNewExercise({ workoutId: exercise.workoutId });
+    recordNewExercise({ workoutId: exercise.workoutId, exerciseNumber:exercise.exerciseOrder });
   }
   function handleRemoveExercise() {
     removeExercise(workoutNumber, exercise.exerciseId);

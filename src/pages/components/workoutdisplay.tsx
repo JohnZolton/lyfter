@@ -102,7 +102,9 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
           </div>
           <div className="flex flex-col items-center w-full">
             {workoutPlan.exercises &&
-              workoutPlan.exercises.map((exercise, exerciseNumber) => (
+              workoutPlan.exercises
+              .sort((a,b)=>a.exerciseOrder - b.exerciseOrder)
+              .map((exercise, exerciseNumber) => (
                 <div
                   className="p-1 w-full"
                   key={exercise.exerciseId.toString()}

@@ -37,19 +37,17 @@ function SetDisplay({ index, set, updateSets, removeSet, cascadeWeightChange }: 
     setRir(set?.rir);
   }, [set?.weight, set?.reps, set?.rir]);
   
-  useEffect(()=>{
-    recordSet({
-      setId: set.setId,
-      weight: weight ?? 0,
-      reps: reps ?? 0,
-      rir: rir ?? 3
-    })
-  }, [weight, reps, rir])
 
   const handleWeightChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = parseInt(event.target.value) ?? null;
     if (value!==null && value >= 0) {
       setWeight(value);
+      recordSet({
+        setId: set.setId,
+        weight: value ?? 0,
+        reps: reps ?? 0,
+        rir: rir ?? 3
+      })
       cascadeWeightChange(index, value)
     }
   };
@@ -58,6 +56,12 @@ function SetDisplay({ index, set, updateSets, removeSet, cascadeWeightChange }: 
     const value = parseInt(event.target.value) ?? null;
     if (value!==null && value >= 0) {
       setReps(parseInt(event.target.value));
+      recordSet({
+        setId: set.setId,
+        weight: weight ?? 0,
+        reps: value ?? 0,
+        rir: rir ?? 3
+      })
     }
   };
 

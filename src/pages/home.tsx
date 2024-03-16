@@ -213,7 +213,7 @@ function WorkoutUi({
 }: WorkoutUiProps) {
   const today = new Date();
 
-  const { mutate: saveWorkout } =
+  const { mutate: makeNewWorkout } =
     api.getWorkouts.createNewWorkoutFromPrevious.useMutation({
       onSuccess(data) {
         setTodaysWorkout(data);
@@ -229,23 +229,7 @@ function WorkoutUi({
           isNewWorkoutCreated = true;
           console.log("need new workout");
 
-          const newWorkout = {
-            ...todaysWorkout,
-            date: today,
-
-            priorWorkoutId:
-              todaysWorkout.originalWorkoutId !== null
-                ? todaysWorkout.originalWorkoutId
-                : todaysWorkout.workoutId,
-
-            planId: todaysWorkout.planId ?? "none",
-            workoutNumber: todaysWorkout.workoutNumber ? +1 : 0,
-            exercises: todaysWorkout.exercises.map((exercise) => ({
-              ...exercise,
-              description: exercise.description,
-            })),
-          };
-          saveWorkout(newWorkout);
+          makeNewWorkout({priorWorkoutId: todaysWorkout.workoutId});
         }
       }
     }

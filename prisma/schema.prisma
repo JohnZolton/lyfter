@@ -96,7 +96,7 @@ model Exercise {
   date        DateTime      @default(now())
   description String
   sets        exerciseSet[]
-
+  exerciseOrder Int
   workoutId String
   workout   Workout @relation(fields: [workoutId], references: [workoutId], onDelete: Cascade)
 
