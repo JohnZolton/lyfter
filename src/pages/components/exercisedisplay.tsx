@@ -8,6 +8,15 @@ import { Menu, Newspaper } from 'lucide-react';
 import { Input } from "../../components/ui/input"
 
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose
+} from "../../components/ui/dialog"
 
 
 import {
@@ -18,6 +27,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu"
+import { Button } from "~/components/ui/button";
+import { setMaxIdleHTTPParsers } from "http";
 
 
 function createUniqueId(): string {
@@ -150,6 +161,7 @@ function ExerciseDisplay({
     deleteSet({ setId: sets[sets.length-1]?.setId ?? "" });
     const newSets = sets.slice(0,-1)
     setSets(newSets);
+    setIsMenuOpen(false)
   }
   
   function cascadeWeightChange(index: number, weight:number){
@@ -184,6 +196,7 @@ function ExerciseDisplay({
   if (!exercise) {
     return <div></div>;
   }
+  const [isMenuOpen, setIsMenuOpen]=useState(false)
   return (
     <div
       key={exercise.description}
@@ -203,20 +216,64 @@ function ExerciseDisplay({
             }}
             /> : 
           description}
-        <DropdownMenu>
-          <DropdownMenuTrigger><Menu/></DropdownMenuTrigger>
+        <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+          <DropdownMenuTrigger asChild><Menu/></DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onClick={()=>handleAddSet()}>Add Set</DropdownMenuItem>
-            <DropdownMenuItem onClick={()=>handleRemoveSet()}>Remove Set</DropdownMenuItem>
+
+
+              
+            <Dialog >
+              <DialogTrigger asChild>
+                <DropdownMenuItem onSelect={(e)=>e.preventDefault()}>
+                  Remove Set
+                </DropdownMenuItem>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Are you sure?</DialogTitle>
+                </DialogHeader>
+                  <DialogDescription>
+                      <DialogClose asChild onBlur={()=>setIsMenuOpen(false)}>
+                        <div className="flex flex-row justify-between items-center">
+                          <Button variant={'destructive'} onClick={()=>handleRemoveSet()}>Remove Set</Button>
+                          <Button type="button" variant="secondary">Cancel</Button>
+                        </div>
+                      </DialogClose>
+                  </DialogDescription>
+              </DialogContent>
+            </Dialog>
+
             <DropdownMenuItem onClick={()=>handleAddExercise()}>Add Exercise</DropdownMenuItem>
-            <DropdownMenuItem onClick={()=>handleRemoveExercise()}>Delete Exercise</DropdownMenuItem>
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <DropdownMenuItem onSelect={(e)=>e.preventDefault()}>
+                  Remove Exercise
+                </DropdownMenuItem>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Are you sure?</DialogTitle>
+                </DialogHeader>
+                  <DialogDescription>
+                      <DialogClose asChild onBlur={()=>setIsMenuOpen(false)}>
+                        <div className="flex flex-row justify-between items-center">
+                          <Button variant={'destructive'} onClick={()=>handleRemoveExercise()}>Remove Exercise</Button>
+                          <Button type="button" variant="secondary">Cancel</Button>
+                        </div>
+                      </DialogClose>
+                  </DialogDescription>
+              </DialogContent>
+            </Dialog>
+
             <DropdownMenuItem onClick={()=>handleEditExercise()}>Edit Exercise</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
       <div>
         {sets &&
-          sets.map((set, index) => (
+          sets.sort((a,b)=>a.date.getTime()-b.date.getTime()).map((set, index) => (
             <SetDisplay
               key={index}
               set={set}

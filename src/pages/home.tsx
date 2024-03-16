@@ -2,7 +2,7 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import { api } from "~/utils/api";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, SetStateAction } from "react";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 
 import type {
@@ -21,7 +21,9 @@ import ExerciseDisplay from "./components/exercisedisplay";
 import { Button } from "../components/ui/button"
 
 
+
 const Home: NextPage = () => {
+  const [workoutTitle, setWorkoutTitle]=useState<string|undefined>()
   return (
     <>
       <Head>
@@ -30,10 +32,13 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <PageLayout>
+      <div className="flex flex-row items-center justify-between mx-2 mt-4 text-2xl font-semibold">
+        <div className="ml-6">{workoutTitle ?? "Current Workouts"}</div>
         <NavBar />
+      </div>
         <div className="">
           <SignedIn>
-            <WorkoutUiHandler />
+            <WorkoutUiHandler setTitle={setWorkoutTitle}/>
           </SignedIn>
           <SignedOut>
             {/* Signed out users get sign in button */}
@@ -53,8 +58,10 @@ export default Home;
 
 
 
-
-function WorkoutUiHandler() {
+interface UiHandlerProps{
+  setTitle: React.Dispatch<SetStateAction<string|undefined>>
+}
+function WorkoutUiHandler({setTitle}:UiHandlerProps) {
   const [workoutPlan, setWorkoutPlan] = useState<
     | (Workout & {
         exercises: (Exercise & {
@@ -78,6 +85,10 @@ function WorkoutUiHandler() {
 
   const { data: userWorkouts, isLoading } =
     api.getWorkouts.getUniqueWeekWorkouts.useQuery();
+  
+    useEffect(()=>{
+      setTitle(todaysWorkout ? `${todaysWorkout?.description}: ${todaysWorkout?.nominalDay}` : undefined)
+    }, [todaysWorkout])
 
 
   useEffect(() => {
@@ -105,9 +116,9 @@ function WorkoutUiHandler() {
       const workoutIndex = workoutPlan.findIndex(workout => workout.workoutId === todaysWorkout.workoutId)
       if (workoutIndex !== -1 && workoutPlan){
         const updatedPlan = [
-          ...workoutPlan.splice(0, workoutIndex),
+          ...workoutPlan.slice(0, workoutIndex),
           todaysWorkout,
-          ...workoutPlan.splice(workoutIndex+1),
+          ...workoutPlan.slice(workoutIndex+1),
         ]
         setWorkoutPlan(updatedPlan)
         console.log("plan prop updated")
@@ -159,9 +170,6 @@ function WorkoutUiHandler() {
         style={{ maxWidth: "600px", margin: "0 auto" }}
         className="rounded-lg p-4"
       >
-        <div className="mb-4 text-center text-2xl font-bold">
-          Current Workouts:
-        </div>
         <SelectDay
           userWorkoutPlan={workoutPlan}
           setTodaysWorkout={setTodaysWorkout}
@@ -171,7 +179,7 @@ function WorkoutUiHandler() {
   }
   if (todaysWorkout) {
     return (
-      <div className="rounded-lg  shadow-md">
+      <div className="rounded-lg">
         <WorkoutUi
           endWorkout={endWorkout}
           todaysWorkout={todaysWorkout}
@@ -236,17 +244,19 @@ function WorkoutUi({
   }, [todaysWorkout]);
 
   return (
-    <div className="flex flex-col items-center rounded-lg  ">
+    <div className="flex flex-col items-center  ">
       <WorkoutDisplay3
         workoutPlan={todaysWorkout}
         setWorkoutPlan={setTodaysWorkout}
       />
-      <button
-        className="mb-4 mt-4 rounded bg-red-600 px-2 py-1 font-bold  hover:bg-red-700"
-        onClick={() => endWorkout("")}
-      >
-        End Workout
-      </button>
+      <div>
+        <Button
+          variant={"destructive"}
+          onClick={() => endWorkout("")}
+        >
+          End Workout
+        </Button>
+      </div>
     </div>
   );
 }
@@ -288,13 +298,13 @@ function SelectDay({ userWorkoutPlan, setTodaysWorkout }: SelectDayProps) {
             <div className="text-lg font-semibold text-slate-100">
               {workout.description}: {workout.nominalDay}
             </div>
-            <button
+            <Button
               value={workout.nominalDay}
-              className="m-1 inline-flex items-center rounded bg-green-600 px-2 py-1 font-bold  hover:bg-green-500"
+              variant={"secondary"}
               onClick={() => setTodaysWorkout(workout)}
             >
               Begin
-            </button>
+            </Button>
           </div>
         ))}
     </div>

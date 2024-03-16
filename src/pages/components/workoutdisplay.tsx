@@ -97,9 +97,6 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
     <div className="flex flex-col items-center rounded-lg w-11/12">
       {workoutPlan && (
         <div key={"w" + workoutPlan.workoutId.toString()} className="w-full">
-          <div className="pt-1 text-center text-2xl w-full font-semibold  text-slate-300">
-            {workoutPlan.description}: {workoutPlan.nominalDay}
-          </div>
           <div className="flex flex-col items-center w-full">
             {workoutPlan.exercises &&
               workoutPlan.exercises

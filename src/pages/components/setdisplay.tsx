@@ -72,21 +72,21 @@ function SetDisplay({ index, set, updateSets, removeSet, cascadeWeightChange }: 
 
   return (
     <div className="m-1 rounded-lg bg-slate-800 p-1  shadow-md flex flex-row items-center justify-center">
-    <div className="flex flex-row items-center gap-x-1">
+    <div className="flex flex-row items-center gap-x-1 max-w-full">
     Weight  
-    <select className="p-2 mr-2 bg-gray-700 text-white rounded text-center"
+    <select className="p-2 mr-2 bg-gray-700 text-white rounded text-center text-sm "
     value={weight ?? ""}
     onChange={handleWeightChange}
     >
-          <option value={""}></option>
+          <option  value={""}></option>
           {Array.from({ length: 501 }, (_, i) => (
-            <option key={i} value={i}>
+            <option  key={i} value={i}>
               {i}
             </option>
           ))}
         </select>
       Reps
-        <select className=" p-2 bg-gray-700 text-white rounded text-center"
+        <select className=" p-2 bg-gray-700 text-white rounded text-center text-sm"
         onChange={handleRepsChange}
         value={reps ?? ""}
         >
