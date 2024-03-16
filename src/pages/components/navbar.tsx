@@ -1,4 +1,4 @@
-import { SignedIn, UserButton } from "@clerk/nextjs";
+import { SignOutButton, SignedIn, UserButton } from "@clerk/nextjs";
 
 import Link from "next/link";
 import { useState } from "react";
@@ -19,20 +19,8 @@ export const NavBar = () => {
   }
   return (
     <div>
-      <nav className="flex items-center justify-between">
-        <SignedIn>
-          <div className={`m-2 flex flex-col text-white`}>
-            <UserButton
-              appearance={{
-                elements: { userButtonAvatarBox: { width: 45, height: 45 } },
-              }}
-            />
-          </div>
-        </SignedIn>
+      <nav className="flex items-center justify-end">
         <div className={`flex flex-col items-end space-x-6 pr-4 sm:flex-row`}>
-          <div className="hidden sm:block">
-            <NavMenuItems />
-          </div>
         <DropdownMenu>
           <DropdownMenuTrigger><Menu/></DropdownMenuTrigger>
           <DropdownMenuContent>
@@ -40,6 +28,11 @@ export const NavBar = () => {
             <DropdownMenuItem ><Link href={"/newplan"}>New Plan</Link></DropdownMenuItem>
             <DropdownMenuItem ><Link href={"/makeplan"}>Edit Plan</Link></DropdownMenuItem>
             <DropdownMenuItem ><Link href={"/allworkouts"}>All Workouts</Link></DropdownMenuItem>
+            <DropdownMenuItem >
+        <SignedIn>
+          <SignOutButton></SignOutButton>
+        </SignedIn>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         </div>
