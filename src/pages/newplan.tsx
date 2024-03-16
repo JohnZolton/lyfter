@@ -47,9 +47,9 @@ type ExerciseTemplate = {
 };
 
 type SetTemplate = {
-  weight: number;
-  reps: number;
-  rir: number;
+  weight?: number;
+  reps?: number;
+  rir?: number;
 };
 
 type WorkoutTemplate = {
@@ -1023,7 +1023,7 @@ function SetDisplay({ index, set, updateSets, removeSet }: SetDisplayProps) {
   );
 }
 
-const emptySet = { rir: 3, reps: 5, weight: 0 };
+const emptySet = { rir: 3, weight: 0, reps: 5 };
 const PushFirstTwo = {
   description: "Push #1",
   nominalDay: "Monday",

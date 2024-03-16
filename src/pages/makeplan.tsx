@@ -6,8 +6,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 
 import type {
-  ActualWorkout,
-  ActualExercise,
+  Workout,
+  Exercise,
   exerciseSet,
 } from "@prisma/client";
 import { v4 } from "uuid";
@@ -63,8 +63,8 @@ function NewWorkoutUi() {
   );
 }
 function filterUniqueWorkouts(
-  userWorkouts: (ActualWorkout & {
-    exercises: (ActualExercise & {
+  userWorkouts: (Workout & {
+    exercises: (Exercise & {
       sets: (exerciseSet & {
         priorSet?: exerciseSet | null;
       })[];
@@ -72,8 +72,8 @@ function filterUniqueWorkouts(
   })[]
 ) {
   const uniqueWorkouts = new Set();
-  const workoutsToDisplay: (ActualWorkout & {
-    exercises: (ActualExercise & {
+  const workoutsToDisplay: (Workout & {
+    exercises: (Exercise & {
       sets: (exerciseSet & {
         priorSet?: exerciseSet | null;
       })[];
@@ -90,8 +90,8 @@ function filterUniqueWorkouts(
 
 function EditWorkoutMenu() {
   const [workoutPlan, setWorkoutPlan] = useState<
-    | (ActualWorkout & {
-        exercises: (ActualExercise & {
+    | (Workout & {
+        exercises: (Exercise & {
           sets: (exerciseSet & { priorSet?: exerciseSet | null })[];
         })[];
       })[]
@@ -99,8 +99,8 @@ function EditWorkoutMenu() {
   >();
   const [planId, setPlanId] = useState("");
   function sortWorkoutsByNominalDay(
-    workouts: (ActualWorkout & {
-      exercises: (ActualExercise & {
+    workouts: (Workout & {
+      exercises: (Exercise & {
         sets: (exerciseSet & { priorSet?: exerciseSet | null })[];
       })[];
     })[]
@@ -174,24 +174,24 @@ function EditWorkoutMenu() {
 
 interface WorkoutDisplayHandlerProps {
   fullWorkoutPlan:
-    | (ActualWorkout & {
-        exercises: (ActualExercise & {
+    | (Workout & {
+        exercises: (Exercise & {
           sets: (exerciseSet & { priorSet?: exerciseSet | null })[];
         })[];
       })[]
     | undefined;
 
   workoutPlan:
-    | (ActualWorkout & {
-        exercises: (ActualExercise & {
+    | (Workout & {
+        exercises: (Exercise & {
           sets: (exerciseSet & { priorSet?: exerciseSet | null })[];
         })[];
       })
     | undefined;
   setWorkoutPlan: React.Dispatch<
     React.SetStateAction<
-      | (ActualWorkout & {
-          exercises: (ActualExercise & {
+      | (Workout & {
+          exercises: (Exercise & {
             sets: (exerciseSet & {
               priorSet?: exerciseSet | null;
             })[];
@@ -207,8 +207,8 @@ function WorkoutDisplayHandler({
   fullWorkoutPlan,
 }: WorkoutDisplayHandlerProps) {
   const [workout, setWorkout] = useState<
-    | (ActualWorkout & {
-        exercises: (ActualExercise & {
+    | (Workout & {
+        exercises: (Exercise & {
           sets: (exerciseSet & {
             priorSet?: exerciseSet | null | undefined;
           })[];
@@ -258,16 +258,16 @@ function WorkoutDisplayHandler({
 
 interface WorkoutPlanFormProps {
   workoutPlan:
-    | (ActualWorkout & {
-        exercises: (ActualExercise & {
+    | (Workout & {
+        exercises: (Exercise & {
           sets: (exerciseSet & { priorSet?: exerciseSet | null })[];
         })[];
       })[]
     | undefined;
   setWorkoutPlan: React.Dispatch<
     React.SetStateAction<
-      | (ActualWorkout & {
-          exercises: (ActualExercise & {
+      | (Workout & {
+          exercises: (Exercise & {
             sets: (exerciseSet & {
               priorSet?: exerciseSet | null;
             })[];
@@ -286,8 +286,8 @@ function WorkoutPlanForm({
 
   function addWorkout( 
     workout:
-      | (ActualWorkout & {
-          exercises: (ActualExercise & {
+      | (Workout & {
+          exercises: (Exercise & {
             sets: (exerciseSet & { priorSet?: exerciseSet | null })[];
           })[];
         })
@@ -319,8 +319,8 @@ function WorkoutPlanForm({
 interface WorkoutDayFormProps {
   addWorkout: (
     workout:
-      | (ActualWorkout & {
-          exercises: (ActualExercise & {
+      | (Workout & {
+          exercises: (Exercise & {
             sets: (exerciseSet & { priorSet?: exerciseSet | null })[];
           })[];
         })

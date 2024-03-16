@@ -6,7 +6,7 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 
-import type { ActualWorkout } from "@prisma/client";
+import type { Workout, Exercise, exerciseSet, WorkoutPlan } from "@prisma/client";
 import { v4 } from "uuid";
 
 export const getAllWorkouts = createTRPCRouter({
@@ -24,9 +24,9 @@ export const getAllWorkouts = createTRPCRouter({
                 description: z.string(),
                 sets: z.array(
                   z.object({
-                    weight: z.number(),
-                    reps: z.number(),
-                    rir: z.number(),
+                    weight: z.number().optional(),
+                    reps: z.number().optional(),
+                    rir: z.number().optional(),
                   })
                 ),
               })
@@ -37,9 +37,9 @@ export const getAllWorkouts = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const { workouts } = input;
-      const workoutArray: ActualWorkout[] = [];
+      const workoutArray: Workout[] = [];
 
-      const plan = await ctx.prisma.workoutPlanTwo.create({
+      const plan = await ctx.prisma.workoutPlan.create({
         data: {
           userId: ctx.userId,
           description: input.description,
@@ -51,13 +51,14 @@ export const getAllWorkouts = createTRPCRouter({
               originalWorkoutId: workout.workoutId,
               workoutNumber: 0,
               exercises: {
-                create: workout.exercises.map((exercise) => ({
+                create: workout.exercises.map((exercise, index) => ({
+                  exerciseOrder: index,
                   description: exercise.description,
                   sets: {
                     create: exercise.sets.map((set) => ({
-                      rir: set.rir,
-                      weight: set.weight,
-                      reps: set.reps,
+                      rir:  set.rir
+                      //weight: set.weight,
+                      //reps: set.reps,
                     })),
                   },
                 })),
@@ -87,7 +88,7 @@ export const getAllWorkouts = createTRPCRouter({
     }),
 
   getPlanByUserId: privateProcedure.query(async ({ ctx }) => {
-    const workouts = await ctx.prisma.workoutPlanTwo.findMany({
+    const workouts = await ctx.prisma.workoutPlan.findMany({
       where: {
         userId: ctx.userId,
       },
@@ -134,7 +135,7 @@ export const getAllWorkouts = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const savedWorkout = await ctx.prisma.actualWorkout.create({
+      const savedWorkout = await ctx.prisma.workout.create({
         data: {
           userId: ctx.userId,
           description: input.description,
@@ -142,7 +143,7 @@ export const getAllWorkouts = createTRPCRouter({
           planId: input.planId,
           workoutNumber: 0,
           exercises: {
-            create: input.exercises.map((exercise) => ({
+            create: input.exercises.map((exercise, index) => ({
               description: exercise.description,
               sets: {
                 create: exercise.sets.map((set) => ({
@@ -151,6 +152,7 @@ export const getAllWorkouts = createTRPCRouter({
                   rir: set.rir,
                 })),
               },
+              exerciseOrder: index,
             })),
           },
         },
@@ -172,7 +174,7 @@ export const getAllWorkouts = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const deletedWorkout = await ctx.prisma.actualWorkout.delete({
+      const deletedWorkout = await ctx.prisma.workout.delete({
         where: { workoutId: input.workoutId },
       });
       return deletedWorkout;
@@ -199,15 +201,16 @@ export const getAllWorkouts = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const savedWorkout = await ctx.prisma.actualWorkout.create({
+      const savedWorkout = await ctx.prisma.workout.create({
         data: {
           userId: ctx.userId,
           description: input.description,
           nominalDay: input.nominalDay,
           workoutNumber: 0,
           exercises: {
-            create: input.exercises.map((exercise) => ({
+            create: input.exercises.map((exercise, index) => ({
               description: exercise.description,
+              exerciseOrder: index,
               sets: {
                 create: exercise.sets.map((set) => ({
                   weight: set.weight,
@@ -230,7 +233,7 @@ export const getAllWorkouts = createTRPCRouter({
     }),
 
   getUniqueWeekWorkouts: privateProcedure.query(async ({ ctx }) => {
-    const workoutPlan = await ctx.prisma.workoutPlanTwo.findFirst({
+    const workoutPlan = await ctx.prisma.workoutPlan.findFirst({
       where: { userId: ctx.userId },
       orderBy: [{ date: "desc" }],
       include: {
@@ -250,48 +253,41 @@ export const getAllWorkouts = createTRPCRouter({
   createNewWorkoutFromPrevious: privateProcedure
     .input(
       z.object({
-        description: z.string(),
         priorWorkoutId: z.string(),
-        workoutNumber: z.number(),
-        nominalDay: z.string(),
-        planId: z.string(),
-        exercises: z.array(
-          z.object({
-            description: z.string(),
-            sets: z.array(
-              z.object({
-                setId: z.string(),
-                weight: z.number(),
-                reps: z.number(),
-                rir: z.number(),
-              })
-            ),
-          })
-        ),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const savedWorkout = await ctx.prisma.actualWorkout.create({
+      const priorWorkout = await ctx.prisma.workout.findUnique({
+        where: {workoutId: input.priorWorkoutId},
+        include: {
+          exercises: {
+            include: {
+              sets:true
+            }
+          }
+        }
+      })
+      if (!priorWorkout){throw new Error("Prior workout not found")}
+
+      const newWorkout = await ctx.prisma.workout.create({
         data: {
           userId: ctx.userId,
-          description: input.description,
-          nominalDay: input.nominalDay,
-          workoutNumber: input.workoutNumber + 1,
-          planId: input.planId,
-          originalWorkoutId: input.priorWorkoutId,
+          description: priorWorkout.description,
+          nominalDay: priorWorkout.nominalDay,
+          workoutNumber: (priorWorkout.workoutNumber || 0)+1,
+          originalWorkoutId: priorWorkout.originalWorkoutId || priorWorkout.workoutId,
           exercises: {
-            create: input.exercises.map((exercise) => ({
+            create: priorWorkout.exercises.map((exercise,index)=>({
               description: exercise.description,
+              exerciseOrder: index,
               sets: {
-                create: exercise.sets.map((set) => ({
+                create: exercise.sets.map((set)=>({
                   weight: set.weight,
-                  reps: set.reps,
-                  rir: set.rir,
-                  lastSetId: set.setId,
-                })),
-              },
-            })),
-          },
+                  lastSetId: set.setId
+                }))
+              }
+            }))
+          }
         },
         include: {
           exercises: {
@@ -303,27 +299,42 @@ export const getAllWorkouts = createTRPCRouter({
           },
         },
       });
-      return savedWorkout;
+      return newWorkout;
     }),
 
   addNewExercise: privateProcedure
     .input(
       z.object({
         workoutId: z.string(),
+        exerciseNumber: z.number()
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const createdExercise = await ctx.prisma.actualExercise.create({
+      await ctx.prisma.exercise.updateMany({
+        where: {
+          workoutId: input.workoutId,
+          exerciseOrder:{
+            gte: input.exerciseNumber +1
+          }
+        },
+        data: {
+          exerciseOrder: {
+            increment: 1
+          }
+        }
+      })
+      const createdExercise = await ctx.prisma.exercise.create({
         data: {
           workoutId: input.workoutId,
           description: "New Exercise",
           sets: {
             create: {
               weight: 0,
-              reps: 5,
+              reps: 0,
               rir: 3,
             },
           },
+          exerciseOrder: input.exerciseNumber+1
         },
         include: {
           sets: true
@@ -339,7 +350,7 @@ export const getAllWorkouts = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const deletedExercise = await ctx.prisma.actualExercise.delete({
+      const deletedExercise = await ctx.prisma.exercise.delete({
         where: { exerciseId: input.exerciseId },
       });
       return deletedExercise;
@@ -354,7 +365,7 @@ export const getAllWorkouts = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const updatedWorkout = await ctx.prisma.actualWorkout.update({
+      const updatedWorkout = await ctx.prisma.workout.update({
         where: { workoutId: input.workoutId },
         data: {
           description: input.description,
@@ -372,7 +383,7 @@ export const getAllWorkouts = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const updatedExercise = await ctx.prisma.actualExercise.update({
+      const updatedExercise = await ctx.prisma.exercise.update({
         where: { exerciseId: input.exerciseId },
         data: {
           description: input.description,
@@ -386,9 +397,9 @@ export const getAllWorkouts = createTRPCRouter({
       z.object({
         setId: z.string(),
         exerciseId: z.string(),
-        weight: z.number(),
-        reps: z.number(),
-        rir: z.number(),
+        weight: z.number().nullable(),
+        reps: z.number().nullable(),
+        rir: z.number().nullable(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -438,7 +449,7 @@ export const getAllWorkouts = createTRPCRouter({
     }),
 
   getWeekWorkouts: privateProcedure.query(async ({ ctx }) => {
-    const workouts = await ctx.prisma.actualWorkout.findMany({
+    const workouts = await ctx.prisma.workout.findMany({
       where: {
         userId: ctx.userId,
       },

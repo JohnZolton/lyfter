@@ -4,10 +4,10 @@ import { api } from "~/utils/api";
 import React, { useState } from "react";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import type {
-  ActualWorkout,
-  ActualExercise,
+  Workout,
+  Exercise,
   exerciseSet,
-  WorkoutPlanTwo,
+  WorkoutPlan,
 } from "@prisma/client";
 import { NavBar } from "~/pages/components/navbar";
 import PageLayout from "~/pages/components/pagelayout";
@@ -60,9 +60,9 @@ function Workouts() {
     api.getWorkouts.getPlanByUserId.useQuery();
 
   const [selectedPlan, setSelectedPlan] = useState<
-    WorkoutPlanTwo & {
-      workouts: (ActualWorkout & {
-        exercises: (ActualExercise & {
+    WorkoutPlan & {
+      workouts: (Workout & {
+        exercises: (Exercise & {
           sets: (exerciseSet & { priorSet: exerciseSet | null })[];
         })[];
       })[];
@@ -78,9 +78,9 @@ function Workouts() {
   }
 
   const handleButtonClick = (
-    plan: WorkoutPlanTwo & {
-      workouts: (ActualWorkout & {
-        exercises: (ActualExercise & {
+    plan: WorkoutPlan & {
+      workouts: (Workout & {
+        exercises: (Exercise & {
           sets: (exerciseSet & { priorSet: exerciseSet | null })[];
         })[];
       })[];
@@ -137,9 +137,9 @@ function Workouts() {
 
 interface DisplayPlanProps {
   plan:
-    | (WorkoutPlanTwo & {
-        workouts: (ActualWorkout & {
-          exercises: (ActualExercise & {
+    | (WorkoutPlan & {
+        workouts: (Workout & {
+          exercises: (Exercise & {
             sets: (exerciseSet & { priorSet: exerciseSet | null })[];
           })[];
         })[];
@@ -148,38 +148,38 @@ interface DisplayPlanProps {
 }
 
 interface SortedWorkouts {
-  Sunday: (ActualWorkout & {
-    exercises: (ActualExercise & {
+  Sunday: (Workout & {
+    exercises: (Exercise & {
       sets: (exerciseSet & { priorSet: exerciseSet | null })[];
     })[];
   })[];
-  Monday: (ActualWorkout & {
-    exercises: (ActualExercise & {
+  Monday: (Workout & {
+    exercises: (Exercise & {
       sets: (exerciseSet & { priorSet: exerciseSet | null })[];
     })[];
   })[];
-  Tuesday: (ActualWorkout & {
-    exercises: (ActualExercise & {
+  Tuesday: (Workout & {
+    exercises: (Exercise & {
       sets: (exerciseSet & { priorSet: exerciseSet | null })[];
     })[];
   })[];
-  Wednesday: (ActualWorkout & {
-    exercises: (ActualExercise & {
+  Wednesday: (Workout & {
+    exercises: (Exercise & {
       sets: (exerciseSet & { priorSet: exerciseSet | null })[];
     })[];
   })[];
-  Thursday: (ActualWorkout & {
-    exercises: (ActualExercise & {
+  Thursday: (Workout & {
+    exercises: (Exercise & {
       sets: (exerciseSet & { priorSet: exerciseSet | null })[];
     })[];
   })[];
-  Friday: (ActualWorkout & {
-    exercises: (ActualExercise & {
+  Friday: (Workout & {
+    exercises: (Exercise & {
       sets: (exerciseSet & { priorSet: exerciseSet | null })[];
     })[];
   })[];
-  Saturday: (ActualWorkout & {
-    exercises: (ActualExercise & {
+  Saturday: (Workout & {
+    exercises: (Exercise & {
       sets: (exerciseSet & { priorSet: exerciseSet | null })[];
     })[];
   })[];
@@ -192,8 +192,8 @@ function DisplayPlan({ plan }: DisplayPlanProps) {
   }
 
   function sortWorkoutsByDay(
-    workouts: (ActualWorkout & {
-      exercises: (ActualExercise & {
+    workouts: (Workout & {
+      exercises: (Exercise & {
         sets: (exerciseSet & { priorSet: exerciseSet | null })[];
       })[];
     })[]

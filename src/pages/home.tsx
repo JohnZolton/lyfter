@@ -6,8 +6,9 @@ import React, { useState, useEffect } from "react";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 
 import type {
-  ActualWorkout,
-  ActualExercise,
+  WorkoutPlan,
+  Workout,
+  Exercise,
   exerciseSet,
 } from "@prisma/client";
 import { v4 } from "uuid";
@@ -16,6 +17,9 @@ import PageLayout from "~/pages/components/pagelayout";
 import LoadingSpinner from "./components/loadingspinner";
 import SetDisplay from "./components/setdisplay";
 import WorkoutDisplay3 from "./components/workoutdisplay";
+import ExerciseDisplay from "./components/exercisedisplay";
+import { Button } from "../components/ui/button"
+
 
 const Home: NextPage = () => {
   return (
@@ -52,8 +56,8 @@ export default Home;
 
 function WorkoutUiHandler() {
   const [workoutPlan, setWorkoutPlan] = useState<
-    | (ActualWorkout & {
-        exercises: (ActualExercise & {
+    | (Workout & {
+        exercises: (Exercise & {
           sets: (exerciseSet & {
             priorSet?: exerciseSet | null;
           })[];
@@ -62,8 +66,8 @@ function WorkoutUiHandler() {
     | undefined
   >();
   const [todaysWorkout, setTodaysWorkout] = useState<
-    | (ActualWorkout & {
-        exercises: (ActualExercise & {
+    | (Workout & {
+        exercises: (Exercise & {
           sets: (exerciseSet & {
             priorSet?: exerciseSet | null;
           })[];
@@ -79,8 +83,8 @@ function WorkoutUiHandler() {
   useEffect(() => {
     if (userWorkouts && !todaysWorkout && !workoutPlan && userWorkouts.workoutPlan) {
       const uniqueWorkouts = new Set();
-      const workoutsToDisplay: (ActualWorkout & {
-        exercises: (ActualExercise & {
+      const workoutsToDisplay: (Workout & {
+        exercises: (Exercise & {
           sets: (exerciseSet & {
             priorSet?: exerciseSet | null;
           })[];
@@ -113,8 +117,8 @@ function WorkoutUiHandler() {
   }, [userWorkouts, todaysWorkout]);
 
   function sortWorkoutsByNominalDay(
-    workouts: (ActualWorkout & {
-      exercises: (ActualExercise & {
+    workouts: (Workout & {
+      exercises: (Exercise & {
         sets: (exerciseSet & {
           priorSet?: exerciseSet | null;
         })[];
@@ -180,8 +184,8 @@ function WorkoutUiHandler() {
   }
 }
 interface WorkoutUiProps {
-  todaysWorkout: ActualWorkout & {
-    exercises: (ActualExercise & {
+  todaysWorkout: Workout & {
+    exercises: (Exercise & {
       sets: (exerciseSet & {
         priorSet?: exerciseSet | null;
       })[];
@@ -190,8 +194,8 @@ interface WorkoutUiProps {
   endWorkout: React.Dispatch<React.SetStateAction<string>>;
   setTodaysWorkout: React.Dispatch<
     React.SetStateAction<
-      | (ActualWorkout & {
-          exercises: (ActualExercise & {
+      | (Workout & {
+          exercises: (Exercise & {
             sets: (exerciseSet & {
               priorSet?: exerciseSet | null;
             })[];
@@ -209,7 +213,7 @@ function WorkoutUi({
 }: WorkoutUiProps) {
   const today = new Date();
 
-  const { mutate: saveWorkout } =
+  const { mutate: makeNewWorkout } =
     api.getWorkouts.createNewWorkoutFromPrevious.useMutation({
       onSuccess(data) {
         setTodaysWorkout(data);
@@ -225,23 +229,7 @@ function WorkoutUi({
           isNewWorkoutCreated = true;
           console.log("need new workout");
 
-          const newWorkout = {
-            ...todaysWorkout,
-            date: today,
-
-            priorWorkoutId:
-              todaysWorkout.originalWorkoutId !== null
-                ? todaysWorkout.originalWorkoutId
-                : todaysWorkout.workoutId,
-
-            planId: todaysWorkout.planId ?? "none",
-            workoutNumber: todaysWorkout.workoutNumber ? +1 : 0,
-            exercises: todaysWorkout.exercises.map((exercise) => ({
-              ...exercise,
-              description: exercise.description,
-            })),
-          };
-          saveWorkout(newWorkout);
+          makeNewWorkout({priorWorkoutId: todaysWorkout.workoutId});
         }
       }
     }
@@ -266,8 +254,8 @@ function WorkoutUi({
 interface SelectDayProps {
   setTodaysWorkout: React.Dispatch<
     React.SetStateAction<
-      | (ActualWorkout & {
-          exercises: (ActualExercise & {
+      | (Workout & {
+          exercises: (Exercise & {
             sets: (exerciseSet & {
               priorSet?: exerciseSet | null;
             })[];
@@ -278,8 +266,8 @@ interface SelectDayProps {
   >;
 
   userWorkoutPlan:
-    | (ActualWorkout & {
-        exercises: (ActualExercise & {
+    | (Workout & {
+        exercises: (Exercise & {
           sets: (exerciseSet & {
             priorSet?: exerciseSet | null;
           })[];
@@ -312,10 +300,4 @@ function SelectDay({ userWorkoutPlan, setTodaysWorkout }: SelectDayProps) {
     </div>
   );
 }
-
-function createUniqueId(): string {
-  return v4();
-}
-
-const emptySet = { rir: 3, reps: 5, weight: 0 };
 
