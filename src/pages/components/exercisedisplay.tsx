@@ -73,6 +73,7 @@ function ExerciseDisplay({
   const [description, setDescription] = useState(
     exercise?.description ?? "none"
   );
+  const [isMenuOpen, setIsMenuOpen]=useState(false)
   const [sets, setSets] = useState<
     (exerciseSet & {
       priorSet?: exerciseSet | null;
@@ -196,7 +197,6 @@ function ExerciseDisplay({
   if (!exercise) {
     return <div></div>;
   }
-  const [isMenuOpen, setIsMenuOpen]=useState(false)
   return (
     <div
       key={exercise.description}
