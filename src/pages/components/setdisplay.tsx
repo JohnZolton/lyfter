@@ -2,6 +2,7 @@ import type { exerciseSet } from "@prisma/client";
 import { useState, useEffect } from "react";
 import { api } from "~/utils/api";
 import PerformanceWarning from "./performancewarning";
+import { start } from "repl";
 
 
 interface SetDisplayProps {
@@ -17,13 +18,16 @@ interface SetDisplayProps {
   ) => void;
   removeSet: (index: number) => void;
   cascadeWeightChange: (index: number, weight: number)=>void;
+  startSurvey: ()=>void;
+  feedbackLogged: boolean;
 }
 
-function SetDisplay({ index, set, updateSets, removeSet, cascadeWeightChange }: SetDisplayProps) {
+function SetDisplay({ index, set, updateSets, removeSet, cascadeWeightChange, startSurvey, feedbackLogged}: SetDisplayProps) {
   const [weight, setWeight] = useState(set?.weight || null);
   const [reps, setReps] = useState(set?.reps || null);
   const [rir, setRir] = useState(set?.rir || null);
 
+    
   const { mutate: recordSet } = api.getWorkouts.updateSets.useMutation({
     onSuccess(data) {
       console.log(data);
@@ -36,12 +40,32 @@ function SetDisplay({ index, set, updateSets, removeSet, cascadeWeightChange }: 
     setReps(set?.reps);
     setRir(set?.rir);
   }, [set?.weight, set?.reps, set?.rir]);
+  useEffect(()=>{
+    
+    if (
+      weight !== set.weight ||
+      reps !== set.reps ||
+      rir !== set.rir
+    ){
+      recordSet({
+        setId: set.setId,
+        weight: weight,
+        reps: reps,
+        rir: rir,
+      })
+    }
+  }, [weight, reps, rir])
   
 
   const handleWeightChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = parseInt(event.target.value) ?? null;
+    if (!feedbackLogged){
+      startSurvey()
+    }
     if (value!==null && value >= 0) {
+      const updatedSet = {...set, weight:value}
       setWeight(value);
+      updateSets(updatedSet,index)
       recordSet({
         setId: set.setId,
         weight: value ?? 0,
@@ -54,7 +78,12 @@ function SetDisplay({ index, set, updateSets, removeSet, cascadeWeightChange }: 
 
   const handleRepsChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = parseInt(event.target.value) ?? null;
+    if (!feedbackLogged){
+      startSurvey()
+    }
     if (value!==null && value >= 0) {
+      const updatedSet = {...set, reps:value}
+      updateSets(updatedSet,index)
       setReps(parseInt(event.target.value));
       recordSet({
         setId: set.setId,

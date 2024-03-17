@@ -13,18 +13,17 @@ import {
 } from "~/components/ui/dropdown-menu";
 
 export const NavBar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  function handleMenuToggle() {
-    setIsMenuOpen((prevState) => !prevState);
-  }
   return (
     <div>
       <nav className="flex items-center justify-end">
-        <div className={`flex flex-col items-end space-x-6 pr-4 sm:flex-row`}>
+        <div className="hidden sm:flex flex-col items-end space-x-6 pr-4 sm:flex-row">
+          <NavMenuItems/>
+        </div>
+        <div className={`sm:hidden flex flex-col items-end space-x-6 pr-4 sm:flex-row`}>
         <DropdownMenu>
           <DropdownMenuTrigger><Menu/></DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem ><Link href={"/home"}>Home</Link></DropdownMenuItem>
+            <DropdownMenuItem ><Link href={"/home"} prefetch>Home</Link></DropdownMenuItem>
             <DropdownMenuItem ><Link href={"/newplan"}>New Plan</Link></DropdownMenuItem>
             <DropdownMenuItem ><Link href={"/makeplan"}>Edit Plan</Link></DropdownMenuItem>
             <DropdownMenuItem ><Link href={"/allworkouts"}>All Workouts</Link></DropdownMenuItem>
@@ -51,6 +50,7 @@ function NavMenuItems() {
       <li>
         <Link
           href="home"
+          prefetch
           className="text-slate-300 hover:text-white hover:underline"
         >
           Home

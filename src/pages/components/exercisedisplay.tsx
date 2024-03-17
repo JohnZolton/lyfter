@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { api } from "~/utils/api";
 import SetDisplay from "./setdisplay";
-import { Menu, Newspaper } from 'lucide-react';
+import { Menu, Newspaper, Radio } from 'lucide-react';
 import { Input } from "../../components/ui/input"
 
 
@@ -28,7 +28,8 @@ import {
   DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu"
 import { Button } from "~/components/ui/button";
-import { setMaxIdleHTTPParsers } from "http";
+import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
+import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group"
 
 
 function createUniqueId(): string {
@@ -74,6 +75,8 @@ function ExerciseDisplay({
     exercise?.description ?? "none"
   );
   const [isMenuOpen, setIsMenuOpen]=useState(false)
+  const [exerciseStarted, setExerciseStarted]=useState(false)
+  const [feedbackLogged, setFeedbackLogged]=useState(false)
   const [sets, setSets] = useState<
     (exerciseSet & {
       priorSet?: exerciseSet | null;
@@ -85,6 +88,11 @@ function ExerciseDisplay({
     setSets(exercise.sets);
   }, [exercise?.description, exercise?.sets]);
 
+  useEffect(()=>{
+    if (sets.every((set)=>set.reps && set.reps>0)){
+      setExerciseCompleted(true)
+    }
+  }, [exercise?.sets])
 
   function handleSetChange(
     set: exerciseSet & { priorSet?: exerciseSet | null },
@@ -120,6 +128,12 @@ function ExerciseDisplay({
     }
   );
 
+  const { mutate: updateSet } = api.getWorkouts.updateSets.useMutation({
+    onSuccess(data) {
+      console.log(data);
+    },
+  });
+
   const { mutate: recordNewSet } = api.getWorkouts.createSet.useMutation({
     onSuccess(data) {
       console.log(data);
@@ -136,6 +150,7 @@ function ExerciseDisplay({
       rir: 3,
       lastSetId: null,
       priorSet: null,
+      setNumber: sets.length + 1
     };
     const lastSet = sets[sets.length - 1];
     if (lastSet !== undefined) {
@@ -154,6 +169,11 @@ function ExerciseDisplay({
     deleteExercise({ exerciseId: exercise.exerciseId });
   }
   const { mutate: deleteSet } = api.getWorkouts.removeSet.useMutation({
+    onSuccess(data) {
+      console.log(data);
+    },
+  });
+  const { mutate: recordExerciseSoreness} = api.getWorkouts.recordExerciseSoreness.useMutation({
     onSuccess(data) {
       console.log(data);
     },
@@ -195,9 +215,34 @@ function ExerciseDisplay({
   useEffect(() => {
     handleSaveButton();
   }, [sets]);
+  
+  const [soreness, setSoreness]=useState("")
+  const [pump, setPump]=useState("")
+  const [rpe, setRPE]=useState("")
+  function savePreFeedback(){
+    setFeedbackLogged(true)
+    recordExerciseSoreness({exerciseId: exercise.exerciseId})
+    if (soreness ==="a while ago"){
+      handleAddSet()
+    } 
+    if (soreness ==="still sore"){
+      handleRemoveSet()
+    }
+  }
+  function startSurvey(){
+    if (!exerciseStarted){
+      setExerciseStarted(true)
+    }
+  }
+  
+  const [exerciseCompleted, setExerciseCompleted]=useState(false)
+  const [postExerciseSurveyCompleted, setPostExerciseSurveyCompleted]=useState<boolean>(exercise?.feedbackRecorded ?? false)
+  function savePostFeedback(){
+    setPostExerciseSurveyCompleted(true)
+  }
 
   if (!exercise) {
-    return <div></div>;
+    return <div></div>
   }
   return (
     <div
@@ -272,10 +317,76 @@ function ExerciseDisplay({
             <DropdownMenuItem onClick={()=>handleEditExercise()}>Edit Exercise</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <Dialog open={exerciseCompleted && !postExerciseSurveyCompleted} onOpenChange={setExerciseCompleted}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Exercise Feedback</DialogTitle>
+            </DialogHeader>
+            <DialogDescription>
+            <div className="flex flex-col gap-y-3 items-center">
+
+              <div className="text-center text-lg font font-semibold">How&apos;s your pump?</div>
+              <ToggleGroup value={pump} type="single" size={"lg"} onValueChange={setPump}>
+                <ToggleGroupItem value="what pump">
+                What pump?
+                </ToggleGroupItem>
+                <ToggleGroupItem value="pretty good">
+                Pretty good
+                </ToggleGroupItem>
+                <ToggleGroupItem value="insane">
+                Insane
+                </ToggleGroupItem>
+              </ToggleGroup>
+              <div className="text-center text-lg font-semibold">How hard was that?</div>
+              <ToggleGroup type="single" value={rpe} size={"lg"} onValueChange={setRPE}>
+                <ToggleGroupItem value="easy">
+                Easy
+                </ToggleGroupItem>
+                <ToggleGroupItem value="pretty solid">
+                Pretty solid
+                </ToggleGroupItem>
+                <ToggleGroupItem value="pushed my limits">
+                Pushed my limits
+                </ToggleGroupItem>
+              </ToggleGroup>
+              <div className="flex items-center justify-center">
+                <Button onClick={()=>savePostFeedback()} disabled={!pump||!rpe}>Save</Button>
+              </div>
+            </div>
+            </DialogDescription>
+          </DialogContent>
+        </Dialog>
+        <Dialog open={exerciseStarted && !feedbackLogged && !postExerciseSurveyCompleted} onOpenChange={setExerciseStarted}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Exercise Feedback</DialogTitle>
+            </DialogHeader>
+            <DialogDescription>
+            <div className="flex flex-col gap-y-3">
+
+              <div className="text-center">How sore were you from last time?</div>
+              <ToggleGroup type="single" size={"lg"} onValueChange={setSoreness}>
+                <ToggleGroupItem value="a while ago">
+                  <div className="">Healed a while ago</div>
+                </ToggleGroupItem>
+                <ToggleGroupItem value="on time">
+                  <div className="">Healed just in time</div>
+                </ToggleGroupItem>
+                <ToggleGroupItem value="still sore">
+                  <div className="">Still sore</div>
+                </ToggleGroupItem>
+              </ToggleGroup>
+              <div className="flex items-center justify-center">
+                <Button onClick={()=>savePreFeedback()} disabled={!soreness}>Save</Button>
+              </div>
+            </div>
+            </DialogDescription>
+          </DialogContent>
+        </Dialog>
       </div>
       <div>
         {sets &&
-          sets.sort((a,b)=>a.date.getTime()-b.date.getTime()).map((set, index) => (
+          sets.sort((a,b)=>a.setNumber-b.setNumber).map((set, index) => (
             <SetDisplay
               key={index}
               set={set}
@@ -283,6 +394,8 @@ function ExerciseDisplay({
               removeSet={handleRemoveSet}
               updateSets={handleSetChange}
               cascadeWeightChange={cascadeWeightChange}
+              startSurvey={startSurvey}
+              feedbackLogged={feedbackLogged}
             />
           ))}
       </div>

@@ -21,6 +21,7 @@ import ExerciseDisplay from "./components/exercisedisplay";
 import { Button } from "../components/ui/button"
 import { useRouter } from 'next/router';
 import { UserRound } from "lucide-react";
+import Link from "next/link";
 
 
 
@@ -65,22 +66,11 @@ interface UiHandlerProps{
 }
 function WorkoutUiHandler({setTitle}:UiHandlerProps) {
   const [workoutPlan, setWorkoutPlan] = useState<
-    | (Workout & {
-        exercises: (Exercise & {
-          sets: (exerciseSet & {
-            priorSet?: exerciseSet | null;
-          })[];
-        })[];
-      })[]
-    | undefined
+  (Workout & { exercises: Exercise[]})[] | undefined
   >();
   const [todaysWorkout, setTodaysWorkout] = useState<
     | (Workout & {
-        exercises: (Exercise & {
-          sets: (exerciseSet & {
-            priorSet?: exerciseSet | null;
-          })[];
-        })[];
+        exercises: Exercise[];
       })
     | undefined
   >();
@@ -97,11 +87,7 @@ function WorkoutUiHandler({setTitle}:UiHandlerProps) {
     if (userWorkouts && !todaysWorkout && !workoutPlan && userWorkouts.workoutPlan) {
       const uniqueWorkouts = new Set();
       const workoutsToDisplay: (Workout & {
-        exercises: (Exercise & {
-          sets: (exerciseSet & {
-            priorSet?: exerciseSet | null;
-          })[];
-        })[];
+        exercises: Exercise[];
       })[] = [];
       userWorkouts.workoutPlan.workouts.map((workout) => {
         console.log(workout);
@@ -113,29 +99,12 @@ function WorkoutUiHandler({setTitle}:UiHandlerProps) {
 
       setWorkoutPlan(sortWorkoutsByNominalDay(workoutsToDisplay));
     }
-    if (todaysWorkout && workoutPlan){
-      //on todaysWorkout change, need to update parent prop workoutPlan
-      const workoutIndex = workoutPlan.findIndex(workout => workout.workoutId === todaysWorkout.workoutId)
-      if (workoutIndex !== -1 && workoutPlan){
-        const updatedPlan = [
-          ...workoutPlan.slice(0, workoutIndex),
-          todaysWorkout,
-          ...workoutPlan.slice(workoutIndex+1),
-        ]
-        setWorkoutPlan(updatedPlan)
-        console.log("plan prop updated")
-      }
-    }
 
   }, [userWorkouts, todaysWorkout]);
 
   function sortWorkoutsByNominalDay(
     workouts: (Workout & {
-      exercises: (Exercise & {
-        sets: (exerciseSet & {
-          priorSet?: exerciseSet | null;
-        })[];
-      })[];
+      exercises: Exercise[];
     })[]
   ) {
     const daysOfWeek = [
@@ -173,144 +142,28 @@ function WorkoutUiHandler({setTitle}:UiHandlerProps) {
         style={{ maxWidth: "600px", margin: "0 auto" }}
         className="rounded-lg p-4"
       >
-        <SelectDay
-          userWorkoutPlan={workoutPlan}
-          setTodaysWorkout={setTodaysWorkout}
-        />
-      </div>
-    );
-  }
-  if (todaysWorkout) {
-    return (
-      <div className="rounded-lg">
-        <WorkoutUi
-          endWorkout={endWorkout}
-          todaysWorkout={todaysWorkout}
-          setTodaysWorkout={setTodaysWorkout}
-        />
-      </div>
-    );
-  } else {
-    return <div>Something went wrong</div>;
-  }
-}
-interface WorkoutUiProps {
-  todaysWorkout: Workout & {
-    exercises: (Exercise & {
-      sets: (exerciseSet & {
-        priorSet?: exerciseSet | null;
-      })[];
-    })[];
-  };
-  endWorkout: React.Dispatch<React.SetStateAction<string>>;
-  setTodaysWorkout: React.Dispatch<
-    React.SetStateAction<
-      | (Workout & {
-          exercises: (Exercise & {
-            sets: (exerciseSet & {
-              priorSet?: exerciseSet | null;
-            })[];
-          })[];
-        })
-      | undefined
-    >
-  >;
-}
-
-function WorkoutUi({
-  todaysWorkout,
-  setTodaysWorkout,
-  endWorkout,
-}: WorkoutUiProps) {
-  const today = new Date();
-
-  const { mutate: makeNewWorkout } =
-    api.getWorkouts.createNewWorkoutFromPrevious.useMutation({
-      onSuccess(data) {
-        setTodaysWorkout(data);
-      },
-    });
-
-  let isNewWorkoutCreated = false; //flag variable to avoid firing multiple times
-  useEffect(() => {
-    if (todaysWorkout) {
-      const oneWeek = 7 * 24 * 60 * 60 * 1000;
-      if (today.getTime() - todaysWorkout.date.getTime() > oneWeek) {
-        if (!isNewWorkoutCreated) {
-          isNewWorkoutCreated = true;
-          console.log("need new workout");
-
-          makeNewWorkout({priorWorkoutId: todaysWorkout.workoutId});
-        }
-      }
-    }
-  }, [todaysWorkout]);
-
-  return (
-    <div className="flex flex-col items-center  ">
-      <WorkoutDisplay3
-        workoutPlan={todaysWorkout}
-        setWorkoutPlan={setTodaysWorkout}
-      />
-      <div>
-        <Button
-          variant={"destructive"}
-          onClick={() => endWorkout("")}
-        >
-          End Workout
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-interface SelectDayProps {
-  setTodaysWorkout: React.Dispatch<
-    React.SetStateAction<
-      | (Workout & {
-          exercises: (Exercise & {
-            sets: (exerciseSet & {
-              priorSet?: exerciseSet | null;
-            })[];
-          })[];
-        })
-      | undefined
-    >
-  >;
-
-  userWorkoutPlan:
-    | (Workout & {
-        exercises: (Exercise & {
-          sets: (exerciseSet & {
-            priorSet?: exerciseSet | null;
-          })[];
-        })[];
-      })[]
-    | undefined;
-}
-
-function SelectDay({ userWorkoutPlan, setTodaysWorkout }: SelectDayProps) {
-  return (
-    <div className="rounded-lg bg-slate-800 p-4  shadow-md">
-      {userWorkoutPlan &&
-        userWorkoutPlan.map((workout) => (
-          <div
-            key={workout.workoutId}
-            className="my-2 flex items-center justify-between"
-          >
-            <div className="text-lg font-semibold text-slate-100">
-              {workout.description}: {workout.nominalDay}
-            </div>
-            <Button
-              value={workout.nominalDay}
-              variant={"secondary"}
-              onClick={() => setTodaysWorkout(workout)}
+      <div className="rounded-lg bg-slate-800 p-4  shadow-md">
+        {workoutPlan &&
+          workoutPlan.map((workout) => (
+            <div
+              key={workout.workoutId}
+              className="my-2 flex items-center justify-between"
             >
+              <div className="text-lg font-semibold text-slate-100">
+                {workout.description}: {workout.nominalDay}
+              </div>
+              <Button
+              asChild
+              >
+              <Link href={`/workout/${workout.workoutId}`} prefetch>
               Begin
-            </Button>
-          </div>
-        ))}
-    </div>
-  );
+              </Link>
+              </Button>
+            </div>
+          ))}
+      </div>
+      </div>
+    );
+  }
+  return <div>Something went wrong</div>;
 }
-
