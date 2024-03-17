@@ -55,8 +55,9 @@ export const getAllWorkouts = createTRPCRouter({
                   exerciseOrder: index,
                   description: exercise.description,
                   sets: {
-                    create: exercise.sets.map((set) => ({
-                      rir:  set.rir
+                    create: exercise.sets.map((set, index) => ({
+                      rir:  set.rir,
+                      setNumber: index,
                       //weight: set.weight,
                       //reps: set.reps,
                     })),
@@ -146,7 +147,8 @@ export const getAllWorkouts = createTRPCRouter({
             create: input.exercises.map((exercise, index) => ({
               description: exercise.description,
               sets: {
-                create: exercise.sets.map((set) => ({
+                create: exercise.sets.map((set, index) => ({
+                  setNumber: index,
                   weight: set.weight,
                   reps: set.reps,
                   rir: set.rir,
@@ -212,10 +214,11 @@ export const getAllWorkouts = createTRPCRouter({
               description: exercise.description,
               exerciseOrder: index,
               sets: {
-                create: exercise.sets.map((set) => ({
+                create: exercise.sets.map((set, index) => ({
                   weight: set.weight,
                   reps: set.reps,
                   rir: set.rir,
+                  setNumber: index,
                 })),
               },
             })),
@@ -232,6 +235,22 @@ export const getAllWorkouts = createTRPCRouter({
       return savedWorkout;
     }),
 
+  getUniqueWeekWorkoutsAndExercises: privateProcedure.query(async ({ ctx }) => {
+    const workoutPlan = await ctx.prisma.workoutPlan.findFirst({
+      where: { userId: ctx.userId },
+      orderBy: [{ date: "desc" }],
+      include: {
+        workouts: {
+          orderBy: [{ date: "desc" }],
+          include: {
+            exercises: {include: {sets: {include: {priorSet: true}}}},
+          },
+        },
+      },
+    });
+
+    return { workoutPlan };
+  }),
   getUniqueWeekWorkouts: privateProcedure.query(async ({ ctx }) => {
     const workoutPlan = await ctx.prisma.workoutPlan.findFirst({
       where: { userId: ctx.userId },
@@ -240,13 +259,32 @@ export const getAllWorkouts = createTRPCRouter({
         workouts: {
           orderBy: [{ date: "desc" }],
           include: {
-            exercises: { include: { sets: { include: { priorSet: true } } } },
+            exercises: true,
           },
         },
       },
     });
 
     return { workoutPlan };
+  }),
+
+  getWorkoutById: privateProcedure.input(
+    z.object({
+      workoutId: z.string()
+    })
+  ).mutation(async ({ ctx, input }) => {
+    const workout = await ctx.prisma.workout.findFirst({
+      where: { userId: ctx.userId, workoutId: input.workoutId},
+      include: {
+        exercises: { include: { sets: { include: { priorSet: true } } } },
+      },
+    });
+    
+    if (!workout || !workout){
+      throw new Error("Workout not found")
+    }
+
+    return { workout };
   }),
 
 
@@ -281,9 +319,10 @@ export const getAllWorkouts = createTRPCRouter({
               description: exercise.description,
               exerciseOrder: index,
               sets: {
-                create: exercise.sets.map((set)=>({
+                create: exercise.sets.map((set, index)=>({
                   weight: set.weight,
-                  lastSetId: set.setId
+                  lastSetId: set.setId,
+                  setNumber: index,
                 }))
               }
             }))
@@ -332,6 +371,7 @@ export const getAllWorkouts = createTRPCRouter({
               weight: 0,
               reps: 0,
               rir: 3,
+              setNumber:0
             },
           },
           exerciseOrder: input.exerciseNumber+1
@@ -375,6 +415,22 @@ export const getAllWorkouts = createTRPCRouter({
       return updatedWorkout;
     }),
 
+  recordExerciseSoreness: privateProcedure
+    .input(
+      z.object({
+        exerciseId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const updatedExercise = await ctx.prisma.exercise.update({
+        where: { exerciseId: input.exerciseId },
+        data: {
+          feedbackRecorded: true
+        },
+      });
+      return updatedExercise;
+    }),
+
   updateExerciseDescription: privateProcedure
     .input(
       z.object({
@@ -400,6 +456,7 @@ export const getAllWorkouts = createTRPCRouter({
         weight: z.number().nullable(),
         reps: z.number().nullable(),
         rir: z.number().nullable(),
+        setNumber: z.number(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -410,6 +467,7 @@ export const getAllWorkouts = createTRPCRouter({
           weight: input.weight,
           reps: input.reps,
           rir: input.rir,
+          setNumber: input.setNumber,
         },
       });
       return updatedSet;
@@ -431,9 +489,9 @@ export const getAllWorkouts = createTRPCRouter({
     .input(
       z.object({
         setId: z.string(),
-        weight: z.number(),
-        reps: z.number(),
-        rir: z.number(),
+        weight: z.number().nullable(),
+        reps: z.number().nullable(),
+        rir: z.number().nullable(),
       })
     )
     .mutation(async ({ ctx, input }) => {

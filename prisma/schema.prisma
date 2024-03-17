@@ -98,10 +98,24 @@ model Exercise {
   sets        exerciseSet[]
   exerciseOrder Int
   workoutId String
+  feedbackRecorded Boolean @default(false)
+  pump Pump?
+  RPE RPE?
   workout   Workout @relation(fields: [workoutId], references: [workoutId], onDelete: Cascade)
 
   @@index([workoutId])
 }
+
+enum Pump {
+  low
+  medium
+  high
+}
+ enum RPE {
+  easy
+  medium
+  hard
+ }
 
 model exerciseSet {
   setId      String         @id @default(cuid())
@@ -110,6 +124,7 @@ model exerciseSet {
   weight     Int?
   reps       Int?
   rir        Int?
+  setNumber Int
   exercise   Exercise @relation(fields: [exerciseId], references: [exerciseId], onDelete: Cascade)
   lastSetId  String?        @unique
   priorSet   exerciseSet?   @relation("SetRelation", fields: [lastSetId], references: [setId], onDelete: NoAction, onUpdate: NoAction)

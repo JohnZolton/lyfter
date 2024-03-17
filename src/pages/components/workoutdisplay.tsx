@@ -2,12 +2,6 @@ import { v4 } from "uuid";
 import { Workout, Exercise, exerciseSet } from "@prisma/client";
 import ExerciseDisplay from "./exercisedisplay";
 
-function createUniqueId(): string {
-  return v4();
-}
-
-const emptySet = { rir: 3, reps: 5, weight: 0 };
-
 interface display3Props {
   workoutPlan: Workout & {
     exercises: (Exercise & {
@@ -19,7 +13,7 @@ interface display3Props {
 
   setWorkoutPlan: React.Dispatch<
     React.SetStateAction<
-      | (Workout & {
+      (Workout & {
           exercises: (Exercise & {
             sets: (exerciseSet & {
               priorSet?: exerciseSet | null;

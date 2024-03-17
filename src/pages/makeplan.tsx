@@ -127,7 +127,7 @@ function EditWorkoutMenu() {
   let workoutPlanSet = false;
 
   const { data: userWorkoutData, isLoading: workoutsLoading } =
-    api.getWorkouts.getUniqueWeekWorkouts.useQuery();
+    api.getWorkouts.getUniqueWeekWorkoutsAndExercises.useQuery();
 
   const userWorkouts = userWorkoutData?.workoutPlan?.workouts;
   if (
