@@ -1,5 +1,5 @@
 
-import { type NextPage } from "next";
+import { GetServerSideProps, type NextPage } from "next";
 import Head from "next/head";
 import { api } from "~/utils/api";
 
@@ -24,7 +24,6 @@ import { useRouter } from 'next/router';
 import { UserRound } from "lucide-react";
 import Link from "next/link";
 
-
   
 const Home: NextPage = () => {
 
@@ -46,7 +45,6 @@ const Home: NextPage = () => {
         console.log(gotWorkout)
         setWorkout(gotWorkout.workout)
     },
-
   })
   
   useEffect(()=>{
