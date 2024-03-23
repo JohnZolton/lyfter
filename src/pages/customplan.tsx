@@ -124,6 +124,11 @@ function WorkoutPlanForm() {
   const [planDescription, setPlanDescription] = useState("")
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan>(emptyWorkoutPlan)
   const [isReady, setIsReady]=useState(false)
+  const { mutate: savePlan } = api.getWorkouts.newTestPlanTwo.useMutation({
+    onSuccess: (gotWorkout)=>{
+        console.log(gotWorkout)
+    },
+  })
   
   useEffect(()=>{
     setIsReady(isPlanReady(workoutPlan))
@@ -163,6 +168,7 @@ function WorkoutPlanForm() {
     }
     return true
   }
+  
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   
@@ -309,7 +315,7 @@ function WorkoutPlanForm() {
           )}
           <div className="flex flex-row justify-between px-3 mt-3">
         <Button onClick={addWorkout}>Add Workout</Button>
-        <Button disabled={!isReady} >Save Plan</Button>
+        <Button disabled={!isReady} onClick={()=>savePlan(workoutPlan)} >Save Plan</Button>
         </div>
       </div>
     </div>

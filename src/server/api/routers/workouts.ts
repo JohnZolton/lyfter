@@ -7,13 +7,14 @@ import {
 } from "~/server/api/trpc";
 
 import type { Workout, Exercise, exerciseSet, WorkoutPlan } from "@prisma/client";
+import  { MuscleGroup } from "@prisma/client";
 import { v4 } from "uuid";
 
 export const getAllWorkouts = createTRPCRouter({
   newTestPlanTwo: privateProcedure
     .input(
       z.object({
-        description: z.string(),
+        description: z.string().optional(),
         workouts: z.array(
           z.object({
             description: z.string(),
@@ -22,13 +23,8 @@ export const getAllWorkouts = createTRPCRouter({
             exercises: z.array(
               z.object({
                 description: z.string(),
-                sets: z.array(
-                  z.object({
-                    weight: z.number().optional(),
-                    reps: z.number().optional(),
-                    rir: z.number().optional(),
-                  })
-                ),
+                muscleGroup: z.string(),
+                sets: z.number(),
               })
             ),
           })
@@ -42,7 +38,7 @@ export const getAllWorkouts = createTRPCRouter({
       const plan = await ctx.prisma.workoutPlan.create({
         data: {
           userId: ctx.userId,
-          description: input.description,
+          description: input.description ?? "none",
           workouts: {
             create: workouts.map((workout) => ({
               nominalDay: workout.nominalDay,
@@ -54,12 +50,10 @@ export const getAllWorkouts = createTRPCRouter({
                 create: workout.exercises.map((exercise, index) => ({
                   exerciseOrder: index,
                   description: exercise.description,
+                  muscleGroup: MuscleGroup[exercise.muscleGroup as keyof typeof MuscleGroup],
                   sets: {
-                    create: exercise.sets.map((set, index) => ({
-                      rir:  set.rir,
+                    create: Array.from({length: exercise.sets}).map((_, index) => ({
                       setNumber: index,
-                      //weight: set.weight,
-                      //reps: set.reps,
                     })),
                   },
                 })),
@@ -124,6 +118,7 @@ export const getAllWorkouts = createTRPCRouter({
         exercises: z.array(
           z.object({
             description: z.string(),
+            muscleGroup: z.string(),
             sets: z.array(
               z.object({
                 weight: z.number(),
@@ -146,6 +141,7 @@ export const getAllWorkouts = createTRPCRouter({
           exercises: {
             create: input.exercises.map((exercise, index) => ({
               description: exercise.description,
+              muscleGroup: MuscleGroup[exercise.muscleGroup as keyof typeof MuscleGroup],
               sets: {
                 create: exercise.sets.map((set, index) => ({
                   setNumber: index,
@@ -191,6 +187,7 @@ export const getAllWorkouts = createTRPCRouter({
         exercises: z.array(
           z.object({
             description: z.string(),
+            muscleGroup: z.string(),
             sets: z.array(
               z.object({
                 weight: z.number(),
@@ -212,6 +209,7 @@ export const getAllWorkouts = createTRPCRouter({
           exercises: {
             create: input.exercises.map((exercise, index) => ({
               description: exercise.description,
+              muscleGroup: MuscleGroup[exercise.muscleGroup as keyof typeof MuscleGroup],
               exerciseOrder: index,
               sets: {
                 create: exercise.sets.map((set, index) => ({
@@ -317,6 +315,7 @@ export const getAllWorkouts = createTRPCRouter({
           exercises: {
             create: priorWorkout.exercises.map((exercise,index)=>({
               description: exercise.description,
+              muscleGroup: MuscleGroup[exercise.muscleGroup as keyof typeof MuscleGroup],
               exerciseOrder: index,
               sets: {
                 create: exercise.sets.map((set, index)=>({
@@ -345,7 +344,9 @@ export const getAllWorkouts = createTRPCRouter({
     .input(
       z.object({
         workoutId: z.string(),
-        exerciseNumber: z.number()
+        exerciseNumber: z.number(),
+        muscleGroup: z.string(),
+        description: z.string(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -365,7 +366,8 @@ export const getAllWorkouts = createTRPCRouter({
       const createdExercise = await ctx.prisma.exercise.create({
         data: {
           workoutId: input.workoutId,
-          description: "New Exercise",
+          description: input.description,
+          muscleGroup: MuscleGroup[input.muscleGroup as keyof typeof MuscleGroup],
           sets: {
             create: {
               weight: 0,

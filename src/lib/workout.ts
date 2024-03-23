@@ -13,28 +13,33 @@ const PushFirstTwo = {
     {
       id: createUniqueId(),
       description: "Atlantis Side Raise",
-      sets: Array(3).fill(emptySet),
+      muscleGroup: "Shoulders",
+      sets: 3
     },
     {
       id: createUniqueId(),
       description: "Calf Raise",
+      muscleGroup: "Calves",
       weight: 220,
-      sets: Array(3).fill(emptySet),
+      sets: 3
     },
     {
       id: createUniqueId(),
       description: "Machine Press",
-      sets: Array(3).fill(emptySet),
+      muscleGroup: "Chest",
+      sets: 3
     },
     {
       id: createUniqueId(),
       description: "Incline DB Press",
-      sets: Array(3).fill(emptySet),
+      muscleGroup: "Chest",
+      sets: 3
     },
     {
       id: createUniqueId(),
       description: "Cable Pushdown",
-      sets: Array(3).fill(emptySet),
+      muscleGroup: "Triceps",
+      sets: 3
     },
   ],
 };
@@ -46,28 +51,33 @@ const PushSecondTwo = {
     {
       id: createUniqueId(),
       description: "Machine Press",
-      sets: Array(3).fill(emptySet),
+      muscleGroup: "Chest",
+      sets: 3
     },
     {
       id: createUniqueId(),
       description: "Incline DB Press",
-      sets: Array(3).fill(emptySet),
+      muscleGroup: "Chest",
+      sets: 3
     },
     {
       id: createUniqueId(),
       description: "Cable Upright Row",
-      sets: Array(3).fill(emptySet),
+      muscleGroup: "Triceps",
+      sets: 3
     },
     {
       id: createUniqueId(),
       description: "Cable Pushdown",
-      sets: Array(3).fill(emptySet),
+      muscleGroup: "Triceps",
+      sets: 3
     },
     {
       description: "Leg Raise",
+      muscleGroup: "Abs",
       id: createUniqueId(),
       weight: 0,
-      sets: Array(3).fill(emptySet),
+      sets: 3
     },
   ],
 };
@@ -79,17 +89,20 @@ const LegFirstTwo = {
     {
       id: createUniqueId(),
       description: "DB RDL",
-      sets: Array(3).fill(emptySet),
+      muscleGroup: "Hamstrings",
+      sets: 3
     },
     {
       id: createUniqueId(),
       description: "Belt Squat",
-      sets: Array(3).fill(emptySet),
+      muscleGroup: "Quads",
+      sets: 3
     },
     {
       id: createUniqueId(),
       description: "Candlesticks",
-      sets: Array(3).fill(emptySet),
+      muscleGroup: "Abs",
+      sets: 3
     },
   ],
 };
@@ -101,18 +114,21 @@ const LegSecondTwo = {
   exercises: [
     {
       description: "Belt Squat",
+      muscleGroup: "Quads",
       id: createUniqueId(),
-      sets: Array(3).fill(emptySet),
+      sets: 3
     },
     {
       description: "Ham Curl",
+      muscleGroup: "Hamstrings",
       id: createUniqueId(),
-      sets: Array(3).fill(emptySet),
+      sets: 3
     },
     {
       description: "Calf Raise",
+      muscleGroup: "Calves",
       id: createUniqueId(),
-      sets: Array(3).fill(emptySet),
+      sets: 3
     },
   ],
 };
@@ -124,23 +140,27 @@ const PullFirstTwo = {
   exercises: [
     {
       description: "Calf Raise",
+      muscleGroup: "Calves",
       id: createUniqueId(),
-      sets: Array(3).fill(emptySet),
+      sets: 3
     },
     {
       description: "Lat Pulldown",
+      muscleGroup: "Back",
       id: createUniqueId(),
-      sets: Array(3).fill(emptySet),
+      sets: 3
     },
     {
       description: "Machine Row",
+      muscleGroup: "Back",
       id: createUniqueId(),
-      sets: Array(3).fill(emptySet),
+      sets: 3
     },
     {
       description: "Bicep Curl",
+      muscleGroup: "Biceps",
       id: createUniqueId(),
-      sets: Array(3).fill(emptySet),
+      sets: 3
     },
   ],
 };
@@ -152,28 +172,33 @@ const PullSecondTwo = {
   exercises: [
     {
       description: "Machine Row",
+      muscleGroup: "Back",
       id: createUniqueId(),
-      sets: Array(3).fill(emptySet),
+      sets: 3
     },
     {
       description: "Lat Pulldown",
+      muscleGroup: "Back",
       id: createUniqueId(),
-      sets: Array(3).fill(emptySet),
+      sets: 3
     },
     {
       id: createUniqueId(),
       description: "Atlantis Side Raise",
-      sets: Array(3).fill(emptySet),
+      muscleGroup: "Shoulders",
+      sets: 3
     },
     {
       id: createUniqueId(),
       description: "Bicep Curl",
-      sets: Array(3).fill(emptySet),
+      muscleGroup: "Biceps",
+      sets: 3
     },
     {
       id: createUniqueId(),
       description: "Candlesticks",
-      sets: Array(3).fill(emptySet),
+      muscleGroup: "Abs",
+      sets: 3
     },
   ],
 };
