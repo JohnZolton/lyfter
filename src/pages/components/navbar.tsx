@@ -45,13 +45,13 @@ export default NavBar;
 function NavMenuItems() {
   return (
     <ul
-      className={`flex flex-col items-end space-y-1 sm:flex-row sm:gap-x-3`}
+      className={`flex text-base flex-col items-end space-y-1 sm:flex-row sm:gap-x-3`}
     >
       <li>
         <Link
           href="home"
           prefetch
-          className="text-slate-300 hover:text-white hover:underline"
+          className="hover:text-white hover:underline"
         >
           Home
         </Link>
@@ -59,7 +59,7 @@ function NavMenuItems() {
       <li>
         <Link
           href="newplan"
-          className="text-gray-300 hover:text-white hover:underline"
+          className=" hover:text-white hover:underline"
         >
           New Plan
         </Link>
@@ -67,7 +67,7 @@ function NavMenuItems() {
       <li>
         <Link
           href="makeplan"
-          className="text-slate-300 hover:text-white hover:underline"
+          className=" hover:text-white hover:underline"
         >
           Edit Plan
         </Link>
@@ -75,7 +75,7 @@ function NavMenuItems() {
       <li>
         <Link
           href="allworkouts"
-          className="text-slate-300 hover:text-white hover:underline"
+          className=" hover:text-white hover:underline"
         >
           History
         </Link>

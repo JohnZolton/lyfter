@@ -97,6 +97,7 @@ model Exercise {
   description String
   sets        exerciseSet[]
   exerciseOrder Int
+  muscleGroup MuscleGroup
   workoutId String
   feedbackRecorded Boolean @default(false)
   pump Pump?
@@ -106,6 +107,18 @@ model Exercise {
   @@index([workoutId])
 }
 
+enum MuscleGroup {
+  Chest
+  Triceps
+  Back
+  Biceps
+  Shoulders
+  Abs
+  Quads
+  Glutes
+  Hamstrings
+  Calves
+}
 enum Pump {
   low
   medium
