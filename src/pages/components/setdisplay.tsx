@@ -7,6 +7,7 @@ import { start } from "repl";
 
 interface SetDisplayProps {
   index: number;
+  activeSet: number;
   set: exerciseSet & {
     priorSet?: exerciseSet | null;
   };
@@ -22,7 +23,7 @@ interface SetDisplayProps {
   feedbackLogged: boolean;
 }
 
-function SetDisplay({ index, set, updateSets, removeSet, cascadeWeightChange, startSurvey, feedbackLogged}: SetDisplayProps) {
+function SetDisplay({ index, activeSet, set, updateSets, removeSet, cascadeWeightChange, startSurvey, feedbackLogged}: SetDisplayProps) {
   const [weight, setWeight] = useState(set?.weight || null);
   const [reps, setReps] = useState(set?.reps || null);
   const [rir, setRir] = useState(set?.rir || null);
@@ -32,6 +33,9 @@ function SetDisplay({ index, set, updateSets, removeSet, cascadeWeightChange, st
     onSuccess(data) {
       console.log(data);
     },
+    onError(error){
+      console.log("error updateing sets: ", error)
+    }
   });
 
 
@@ -100,7 +104,9 @@ function SetDisplay({ index, set, updateSets, removeSet, cascadeWeightChange, st
   }
 
   return (
-    <div className="m-1 rounded-lg bg-slate-800 p-1  shadow-md flex flex-row items-center justify-center">
+    <div className={`m-1 rounded-lg bg-slate-800 p-1  shadow-md flex flex-row items-center justify-center
+      ${activeSet===index? 'border-2 border-blue-500':''}
+    `}>
     <div className="flex flex-row items-center gap-x-1 max-w-full">
     Weight  
     <select className="p-2 mr-2 bg-gray-700 text-white rounded text-center text-sm "
@@ -128,7 +134,7 @@ function SetDisplay({ index, set, updateSets, removeSet, cascadeWeightChange, st
         </select>
     </div>
         <div className="ml-2  text-xl w-10 h-8 flex flex-row items-center justify-center ">
-          <PerformanceWarning priorSet={priorSet} currentSet={set} />
+          <PerformanceWarning currentSet={set} />
         </div>
 
     </div>

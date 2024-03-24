@@ -153,18 +153,20 @@ function ExerciseDisplay({
   });
 
   function handleAddSet() {
+    const lastSet = sets[sets.length - 1];
     const newSet: exerciseSet & { priorSet?: null } = {
       date: new Date(),
       exerciseId: exercise.exerciseId,
       setId: createUniqueId(),
       weight: 0,
+      targetReps: lastSet?.targetReps ?? lastSet?.reps ?? 0,
+      targetWeight: lastSet?.targetWeight ?? lastSet?.weight ?? 0,
       reps: null,
       rir: 3,
       lastSetId: null,
       priorSet: null,
       setNumber: sets.length + 1
     };
-    const lastSet = sets[sets.length - 1];
     if (lastSet !== undefined) {
       newSet.rir = lastSet.rir;
       newSet.weight = lastSet.weight;
@@ -223,6 +225,11 @@ function ExerciseDisplay({
 
   useEffect(() => {
     handleSaveButton();
+    
+    if (sets[activeSet]?.reps){
+      setActiveSet(activeSet+1)
+    }
+
   }, [sets]);
   
   const [soreness, setSoreness]=useState("")
@@ -244,10 +251,19 @@ function ExerciseDisplay({
     }
   }
   
+  const {mutate: recordExerciseFeedback }=api.getWorkouts.recordExerciseFeedback.useMutation({
+    onSuccess(data){console.log(data)}
+  })
+  
   const [exerciseCompleted, setExerciseCompleted]=useState(false)
   const [postExerciseSurveyCompleted, setPostExerciseSurveyCompleted]=useState<boolean>(exercise?.feedbackRecorded ?? false)
   function savePostFeedback(){
     setPostExerciseSurveyCompleted(true)
+    recordExerciseFeedback({
+      exerciseId: exercise.exerciseId,
+      pump: pump,
+      RPE: rpe,
+    })
   }
   
   const [newExercise, setNewExercise]=useState<Exercise>(
@@ -270,6 +286,8 @@ function ExerciseDisplay({
       exerciseOrder: exercise.exerciseOrder,
       workoutId: exercise.workoutId
     }))
+    
+
   }, [exercise])
   const [newExUpdated, setNewExUpdated]=useState(false)
   const [newExReady, setNewExReady]=useState(false)
@@ -282,6 +300,8 @@ function ExerciseDisplay({
     }
     return true
   }
+  
+  const [activeSet, setActiveSet]=useState(0)
   
   useEffect(()=>{
     if (isNewExReady(newExercise)){
@@ -449,13 +469,13 @@ function ExerciseDisplay({
 
               <div className="text-center text-lg font font-semibold">How&apos;s your pump?</div>
               <ToggleGroup value={pump} type="single" size={"lg"} onValueChange={setPump}>
-                <ToggleGroupItem value="what pump">
+                <ToggleGroupItem value="low">
                 What pump?
                 </ToggleGroupItem>
-                <ToggleGroupItem value="pretty good">
+                <ToggleGroupItem value="medium">
                 Pretty good
                 </ToggleGroupItem>
-                <ToggleGroupItem value="insane">
+                <ToggleGroupItem value="high">
                 Insane
                 </ToggleGroupItem>
               </ToggleGroup>
@@ -464,10 +484,10 @@ function ExerciseDisplay({
                 <ToggleGroupItem value="easy">
                 Easy
                 </ToggleGroupItem>
-                <ToggleGroupItem value="pretty solid">
+                <ToggleGroupItem value="medium">
                 Pretty solid
                 </ToggleGroupItem>
-                <ToggleGroupItem value="pushed my limits">
+                <ToggleGroupItem value="hard">
                 Pushed my limits
                 </ToggleGroupItem>
               </ToggleGroup>
@@ -512,6 +532,7 @@ function ExerciseDisplay({
             <SetDisplay
               key={index}
               set={set}
+              activeSet={activeSet}
               index={index}
               removeSet={handleRemoveSet}
               updateSets={handleSetChange}
