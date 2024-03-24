@@ -135,9 +135,11 @@ model exerciseSet {
   date       DateTime       @default(now())
   exerciseId String
   weight     Int?
+  targetWeight     Int?
   reps       Int?
+  targetReps Int?
   rir        Int?
-  setNumber Int
+  setNumber  Int
   exercise   Exercise @relation(fields: [exerciseId], references: [exerciseId], onDelete: Cascade)
   lastSetId  String?        @unique
   priorSet   exerciseSet?   @relation("SetRelation", fields: [lastSetId], references: [setId], onDelete: NoAction, onUpdate: NoAction)

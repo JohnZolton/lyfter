@@ -1,40 +1,85 @@
 import type { exerciseSet } from "@prisma/client";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faThumbsDown, faCheck } from "@fortawesome/free-solid-svg-icons";
+import { Target, Equal, Check, ThumbsDown } from 'lucide-react';
 
 interface PerformanceWarningProps {
-  priorSet: exerciseSet | undefined | null;
-  currentSet: exerciseSet | undefined;
+  currentSet: exerciseSet & {
+    priorSet?: exerciseSet | null;
+  } | undefined
 }
 
-function PerformanceWarning({ priorSet, currentSet }: PerformanceWarningProps) {
-  if (!priorSet || !currentSet) {
+function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
+
+  if (currentSet === undefined){
+    return <div></div>
+  }
+  if (!currentSet.reps && currentSet.targetReps){
     return (
-      <div className="w-6 h-6"></div>
+      <div>
+        {currentSet.targetReps} <Target/>
+      </div>
     )
   }
-
-  const priorWeight = priorSet.weight ?? 0;
-  const priorReps = priorSet.reps ?? 0;
-  const currentWeight = currentSet.weight ?? 0;
-  const currentReps = currentSet.reps ?? 0;
-
-  if (priorWeight > currentWeight || priorReps > currentReps) {
+  if (!currentSet.reps){
     return (
-      <div className="text-red-500">
-        <FontAwesomeIcon icon={faThumbsDown} />
+      <div>
       </div>
-    );
+    )
   }
-  if (priorWeight < currentWeight || priorReps < currentReps) {
+  const { weight, reps, targetWeight, targetReps, priorSet } = currentSet;
+
+  if (weight! >= targetWeight! && reps >= targetReps!) {
     return (
       <div className="text-green-500">
-        <FontAwesomeIcon icon={faCheck} />
+        {currentSet.targetReps} <Check />
       </div>
     );
-  } else {
-    return <div className="w-6 h-6"></div>;
   }
-}
 
+  function isImprovement(currentSet: exerciseSet, priorSet: exerciseSet | null | undefined) {
+    if (!priorSet) return false;
+    return (
+      currentSet.weight! > priorSet.weight! ||
+      (currentSet.weight === priorSet.weight && currentSet.reps! > priorSet.reps!)
+    );
+  }
+  
+  function isMaintenance(currentSet: exerciseSet, priorSet: exerciseSet | null | undefined) {
+    if (!priorSet) return false;
+    return currentSet.weight === priorSet.weight && currentSet.reps === priorSet.reps;
+  }
+  
+  function isRegression(currentSet: exerciseSet, priorSet: exerciseSet | null | undefined) {
+    if (!priorSet) return false;
+    return (
+      currentSet.weight! < priorSet.weight! ||
+      (currentSet.weight === priorSet.weight && currentSet.reps! <= priorSet.reps!)
+    );
+  }
+  
+    if (isImprovement(currentSet, currentSet.priorSet)){
+      return (
+        <div className="text-green-500">
+        {currentSet.targetReps} <Check />
+      </div>
+      )
+    }
+    if (isMaintenance(currentSet, currentSet.priorSet)){
+          return (
+            <div className="text-yellow-500">
+        {currentSet.targetReps} <Equal/>
+            </div>
+          )
+    }
+    if (
+          isRegression(currentSet, currentSet.priorSet)
+        ){
+          return (
+            <div className="text-red-500">
+              {currentSet.targetReps} <ThumbsDown />
+            </div>
+          )
+        }
+
+    return <div className="w-6 h-6"></div>;
+}
 export default PerformanceWarning;

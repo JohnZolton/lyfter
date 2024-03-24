@@ -1,4 +1,3 @@
-
 import { type NextPage } from "next";
 import Head from "next/head";
 import { api } from "~/utils/api";
@@ -15,11 +14,11 @@ import type {
 import { v4 } from "uuid";
 import { NavBar } from "~/pages/components/navbar";
 import PageLayout from "~/pages/components/pagelayout";
-import LoadingSpinner from "../components/loadingspinner";
-import SetDisplay from "../components/setdisplay";
-import WorkoutDisplay3 from "../components/workoutdisplay";
-import ExerciseDisplay from "../components/exercisedisplay";
-import { Button } from "../../components/ui/button"
+import LoadingSpinner from "~/pages/components/loadingspinner";
+import SetDisplay from "~/pages/components/setdisplay";
+import WorkoutDisplay3 from "~/pages/components/workoutdisplay";
+import ExerciseDisplay from "~/pages/components/exercisedisplay";
+import { Button } from "../components/ui/button"
 import { useRouter } from 'next/router';
 import { UserRound } from "lucide-react";
 import Link from "next/link";
@@ -45,10 +44,22 @@ const Home: NextPage = () => {
         })[];
     }) | undefined
 >()
-  const router = useRouter()
-  const workoutId = router.query.id as string
-  console.log("reportId: ",workoutId)
+  const [workout2, setWorkout2]=useState<
+    (Workout & {
+        exercises: (Exercise & {
+            sets: (exerciseSet & {
+                priorSet?: exerciseSet | null;
+            })[];
+        })[];
+    }) | undefined
+>()
   
+  const { mutate: makeNewWorkout } = api.getWorkouts.createNewWorkoutFromPrevious.useMutation({
+    onSuccess: (gotWorkout)=>{
+        console.log(gotWorkout)
+        setWorkout2(gotWorkout)
+    },
+  })
   const { mutate: getWorkout } = api.getWorkouts.getWorkoutById.useMutation({
     onSuccess: (gotWorkout)=>{
         console.log(gotWorkout)
@@ -57,8 +68,9 @@ const Home: NextPage = () => {
   })
   
   useEffect(()=>{
-    getWorkout({workoutId: workoutId})
-  }, [workoutId])
+    getWorkout({workoutId: "clu44uuye0027kpe7lgo24kk4"})
+    makeNewWorkout({priorWorkoutId: "clu44uuye0027kpe7lgo24kk4"})
+  }, [])
 
   if (!workout || workout===undefined){
     return(
@@ -93,7 +105,7 @@ const Home: NextPage = () => {
   return (
     <>
       <Head>
-        <title>Lifstr</title>
+        <title>Liftr</title>
         <meta name="description" content=""/>
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -102,7 +114,14 @@ const Home: NextPage = () => {
         <NavBar />
       </div>
           <SignedIn>
+          <div className="flex flex-row justify-between">
+          <div className="max-w-1/3">
             <WorkoutUi todaysWorkout={workout} setTodaysWorkout={setWorkout}/>
+          </div>
+          <div className="max-w-1/3">
+            <WorkoutUi todaysWorkout={workout2} setTodaysWorkout={setWorkout2}/>
+          </div>
+          </div>
           </SignedIn>
           <SignedOut>
             {/* Signed out users get sign in button */}
@@ -122,7 +141,7 @@ interface WorkoutUiProps {
         priorSet?: exerciseSet | null;
       })[];
     })[];
-  };
+  } | undefined;
   setTodaysWorkout:
   React.Dispatch<React.SetStateAction<(Workout & {
     exercises: (Exercise & {
@@ -175,6 +194,9 @@ function WorkoutUi({
     console.log("todo")
   }
 
+  if (!todaysWorkout){
+    return <div>No workout</div>
+  }
   return (
     <div className="flex flex-col items-center pb-8">
       <WorkoutDisplay3

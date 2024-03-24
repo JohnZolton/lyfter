@@ -276,7 +276,6 @@ function DisplayPlan({ plan }: DisplayPlanProps) {
                                       </div>
                                       <div className="pl-2">
                                         <PerformanceWarning
-                                          priorSet={set.priorSet}
                                           currentSet={set}
                                         />
                                       </div>
