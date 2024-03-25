@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { Button } from "~/components/ui/button";
 
 export const NavBar = () => {
   return (
@@ -53,7 +54,7 @@ function NavMenuItems() {
           prefetch
           className="hover:text-white hover:underline"
         >
-          Home
+        <Button variant={"ghost"}>Home</Button>
         </Link>
       </li>
       <li>
@@ -61,7 +62,7 @@ function NavMenuItems() {
           href="/newplan"
           className=" hover:text-white hover:underline"
         >
-          New Plan
+        <Button variant={"ghost"}>New Plan</Button>
         </Link>
       </li>
       <li>
@@ -69,7 +70,7 @@ function NavMenuItems() {
           href="/makeplan"
           className=" hover:text-white hover:underline"
         >
-          Edit Plan
+        <Button variant={"ghost"}>Edit Plan</Button>
         </Link>
       </li>
       <li>
@@ -77,7 +78,7 @@ function NavMenuItems() {
           href="/allworkouts"
           className=" hover:text-white hover:underline"
         >
-          History
+        <Button variant={"ghost"}>History</Button>
         </Link>
       </li>
       <li>

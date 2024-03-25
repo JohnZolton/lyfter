@@ -29,7 +29,7 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <PageLayout>
-      <div className="flex flex-row items-center justify-between mx-2 mt-4 text-2xl font-semibold">
+      <div className="flex flex-row items-center justify-between mt-4 text-2xl font-semibold max-w-6xl mx-auto gap-x-20">
         <div className="ml-6">New Workout Plan</div>
         <NavBar />
       </div>

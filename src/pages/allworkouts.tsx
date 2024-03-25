@@ -14,6 +14,7 @@ import PageLayout from "~/pages/components/pagelayout";
 import LoadingSpinner from "./components/loadingspinner";
 import MenuLayout from "./components/menulayout";
 import PerformanceWarning from "./components/performancewarning";
+import { Button } from "~/components/ui/button";
 
 const Home: NextPage = () => {
   return (
@@ -24,7 +25,10 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <PageLayout>
+      <div className="flex flex-row items-center justify-between mt-4 text-2xl font-semibold max-w-6xl mx-auto gap-x-20">
+        <div className="ml-6">All Workouts</div>
         <NavBar />
+      </div>
 
         <SignedIn>
           <br></br>
@@ -109,12 +113,11 @@ function Workouts() {
                   <div className="text-lg font-semibold text-slate-100">
                     {plan.description}
                   </div>
-                  <button
-                    className="m-1 inline-flex items-center rounded bg-green-600 px-2 py-1 font-bold text-white hover:bg-green-500"
+                  <Button
                     onClick={() => handleButtonClick(plan)}
                   >
                     Select
-                  </button>
+                  </Button>
                 </div>
               ))}
           </MenuLayout>
@@ -122,12 +125,11 @@ function Workouts() {
 
         {selectedPlan && (
           <div className="flex w-full items-center justify-center pb-10">
-            <button
-              className=" flex items-center justify-center rounded bg-green-600 px-2 py-1 font-bold text-white hover:bg-green-500"
-              onClick={() => setSelectedPlan(undefined)}
-            >
-              Back
-            </button>
+                  <Button
+                    onClick={() => setSelectedPlan(undefined)}
+                  >
+                    Back
+                  </Button>
           </div>
         )}
       </div>
