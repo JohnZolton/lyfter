@@ -334,6 +334,8 @@ function ExerciseDisplay({
       className="mx-1 my-1 rounded-xl bg-slate-700 p-2  w-full shadow-md"
     >
       <div className="flex items-center justify-between px-1">
+      <div className="flex flex-row items-end justify-center">
+
           {editingName ? 
             <Input
             type="text"
@@ -346,7 +348,8 @@ function ExerciseDisplay({
               }
             }}
             /> : 
-          description}
+          description}<div className="text-sm ml-1"> - {exercise.muscleGroup}</div>
+      </div>
         <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
           <DropdownMenuTrigger asChild><Menu/></DropdownMenuTrigger>
           <DropdownMenuContent>
