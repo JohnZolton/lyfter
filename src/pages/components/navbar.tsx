@@ -49,7 +49,7 @@ function NavMenuItems() {
     >
       <li>
         <Link
-          href="home"
+          href="/home"
           prefetch
           className="hover:text-white hover:underline"
         >
@@ -58,7 +58,7 @@ function NavMenuItems() {
       </li>
       <li>
         <Link
-          href="newplan"
+          href="/newplan"
           className=" hover:text-white hover:underline"
         >
           New Plan
@@ -66,7 +66,7 @@ function NavMenuItems() {
       </li>
       <li>
         <Link
-          href="makeplan"
+          href="/makeplan"
           className=" hover:text-white hover:underline"
         >
           Edit Plan
@@ -74,7 +74,7 @@ function NavMenuItems() {
       </li>
       <li>
         <Link
-          href="allworkouts"
+          href="/allworkouts"
           className=" hover:text-white hover:underline"
         >
           History

@@ -88,7 +88,7 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
   }
 
   return (
-    <div className="flex flex-col items-center rounded-lg w-11/12">
+    <div className="flex flex-col items-center rounded-lg w-11/12 max-w-sm">
       {workoutPlan && (
         <div key={"w" + workoutPlan.workoutId.toString()} className="w-full">
           <div className="flex flex-col items-center w-full">

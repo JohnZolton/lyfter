@@ -93,7 +93,7 @@ const Home: NextPage = () => {
         <div className="ml-6">New Custom Plan</div>
         <NavBar />
       </div>
-        <div>
+        <div className="w-full">
           <SignedIn>
             <WorkoutPlanForm/>
             <br></br>
@@ -284,7 +284,7 @@ function WorkoutPlanForm() {
 
 
   return (
-    <div className="flex flex-col items-center justify-center w-full">
+    <div className="flex flex-col items-center justify-center w-full ">
         <div className="space-y-5">
           <div className="rounded-lg bg-gray-900 p-5 w-full">
         <div className="flex flex-row justify-between w-full items-center gap-x-2">
@@ -298,7 +298,7 @@ function WorkoutPlanForm() {
           </div>
           </div>
         </div>
-      <div className="w-full">
+      <div className="w-full flex flex-col md:flex-row md: gap-x-4">
           {workoutPlan?.workouts.map((workout, index)=>
             <WorkoutDisplay workout={workout} 
             key={workout.workoutId}
@@ -313,11 +313,11 @@ function WorkoutPlanForm() {
             onAddExercise={()=>addExercise(workout.workoutId)}
             />
           )}
-          <div className="flex flex-row justify-between px-3 mt-3">
+      </div>
+      <div className="flex flex-row max-w-xl justify-between px-3 mt-3 gap-x-4">
         <Button onClick={addWorkout}>Add Workout</Button>
         <Button disabled={!isReady} onClick={()=>savePlan(workoutPlan)} >Save Plan</Button>
         </div>
-      </div>
     </div>
   );
 }
@@ -380,7 +380,7 @@ function WorkoutDisplay({workout, onDescriptionChange, onAddExercise, onExercise
         onExerciseChange={(updatedExercise)=>onExerciseChange(exercise.id,updatedExercise)}
         />
       ))}
-      <div className="flex flex-row justify-between">
+      <div className="flex flex-row justify-between md:gap-x-4">
       <Button onClick={onAddExercise}>Add Exercise</Button>
         <Dialog>
         <DialogTrigger asChild>
