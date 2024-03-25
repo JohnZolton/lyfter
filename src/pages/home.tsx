@@ -30,7 +30,7 @@ const Home: NextPage = () => {
   return (
     <>
       <Head>
-        <title>Lyftr</title>
+        <title>Liftr</title>
         <meta name="description" content="Nostr Workout Tracker" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
