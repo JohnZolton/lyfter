@@ -25,25 +25,15 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <PageLayout>
-      <div className="flex flex-row items-center justify-between mt-4 text-2xl font-semibold max-w-6xl mx-auto gap-x-20">
-        <div className="ml-6">All Workouts</div>
-        <NavBar />
-      </div>
+        <div className="mx-auto mt-4 flex max-w-6xl flex-row items-center justify-between gap-x-20 text-2xl font-semibold">
+          <div className="ml-6">History</div>
+          <NavBar />
+        </div>
 
-        <SignedIn>
-          <br></br>
-          <Content />
-          <br></br>
-          <div></div>
-        </SignedIn>
-        <SignedOut>
-          {/* Signed out users get sign in button */}
-          <SignInButton redirectUrl="home">
-            <button className="rounded-full bg-white p-3 text-xl text-black">
-              Sign In
-            </button>
-          </SignInButton>
-        </SignedOut>
+        <br></br>
+        <Content />
+        <br></br>
+        <div></div>
       </PageLayout>
     </>
   );
@@ -113,9 +103,7 @@ function Workouts() {
                   <div className="text-lg font-semibold text-slate-100">
                     {plan.description}
                   </div>
-                  <Button
-                    onClick={() => handleButtonClick(plan)}
-                  >
+                  <Button onClick={() => handleButtonClick(plan)}>
                     Select
                   </Button>
                 </div>
@@ -125,11 +113,7 @@ function Workouts() {
 
         {selectedPlan && (
           <div className="flex w-full items-center justify-center pb-10">
-                  <Button
-                    onClick={() => setSelectedPlan(undefined)}
-                  >
-                    Back
-                  </Button>
+            <Button onClick={() => setSelectedPlan(undefined)}>Back</Button>
           </div>
         )}
       </div>
@@ -277,9 +261,7 @@ function DisplayPlan({ plan }: DisplayPlanProps) {
                                         {set.reps} @ {set.rir} RIR
                                       </div>
                                       <div className="pl-2">
-                                        <PerformanceWarning
-                                          currentSet={set}
-                                        />
+                                        <PerformanceWarning currentSet={set} />
                                       </div>
                                     </div>
                                   )

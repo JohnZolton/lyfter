@@ -15,7 +15,7 @@
  * These allow you to access things when processing a request, like the database, the session, etc.
  */
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
-
+import { getSession } from "next-auth/react";
 import { prisma } from "~/server/db";
 
 /**
@@ -24,17 +24,18 @@ import { prisma } from "~/server/db";
  *
  * @see https://trpc.io/docs/context
  */
-export const createTRPCContext = (opts: CreateNextContextOptions) => {
+export async function createTRPCContext(opts: CreateNextContextOptions) {
   const { req } = opts;
   const sesh = getAuth(req);
+  const session = await getSession({ req: opts.req });
 
-  const userId = sesh.userId;
+  const userId = session?.user.id;
 
   return {
     prisma,
     userId,
   };
-};
+}
 
 /**
  * 2. INITIALIZATION
