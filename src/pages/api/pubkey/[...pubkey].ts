@@ -50,8 +50,6 @@ const config: NextAuthLightningConfig = {
     error: "/error",
   },
 
-  generateName,
-  generateAvatar,
   theme: {
     colorScheme: "dark",
   },
