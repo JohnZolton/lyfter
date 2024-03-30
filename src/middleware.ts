@@ -1,7 +1,7 @@
 import { withClerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
- 
+
 export default withClerkMiddleware((req: NextRequest) => {
   return NextResponse.next();
 });
@@ -14,6 +14,8 @@ export const config = {
      * - favicon.ico (favicon file)
      */
     "/(.*?trpc.*?|(?!static|.*\\..*|_next|favicon.ico).*)",
-    "/"
+    "/",
+    "/nostr-signin",
+    "/error",
   ],
 };

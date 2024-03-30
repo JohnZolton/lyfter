@@ -26,7 +26,6 @@ import { prisma } from "~/server/db";
  */
 export async function createTRPCContext(opts: CreateNextContextOptions) {
   const { req } = opts;
-  const sesh = getAuth(req);
   const session = await getSession({ req: opts.req });
 
   const userId = session?.user.id;
@@ -44,7 +43,6 @@ export async function createTRPCContext(opts: CreateNextContextOptions) {
  */
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
-import { getAuth } from "@clerk/nextjs/server";
 import { ZodError } from "zod";
 
 const t = initTRPC.context<typeof createTRPCContext>().create({

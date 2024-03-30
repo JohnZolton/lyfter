@@ -20,9 +20,6 @@ export default function Error() {
   // access an error message from the query parameters
   const queryMessage = query.message || ErrorCodes.Default;
 
-  // access an error message from the `ErrorCodes` enum
-  const hardCodedMessage = ErrorCodes[errorCode];
-
   if (!isReady) {
     return (
       <div style={{ textAlign: "center", color: "black" }}>loading...</div>
@@ -34,10 +31,6 @@ export default function Error() {
       <b>Query param message:</b>
       <br />
       {queryMessage}
-      <br />
-      <b>Hard coded message:</b>
-      <br />
-      {hardCodedMessage}
     </div>
   );
 }
