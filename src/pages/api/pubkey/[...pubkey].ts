@@ -1,28 +1,9 @@
-/*import NextAuthLightning, {
-  NextAuthLightningConfig,
-} from "next-auth-lightning-provider";
-import generateQr from "next-auth-lightning-provider/generators/qr";
-import generateName from "next-auth-lightning-provider/generators/name";
-import generateAvatar from "next-auth-lightning-provider/generators/avatar";
-*/
-import storage from "node-persist";
 import NextAuthLightning, { NextAuthLightningConfig } from "next-auth-pubkey";
 import generateQr from "next-auth-pubkey/generators/qr";
-import generateName from "next-auth-pubkey/generators/name";
-import generateAvatar from "next-auth-pubkey/generators/avatar";
-import { Session } from "next-auth";
 import { StorageSession } from "next-auth-pubkey/main/config";
+import { PrismaClient } from "@prisma/client";
 
-const initializeStorage = async () => {
-  try {
-    await storage.init();
-  } catch (error) {
-    console.error("Error initializing storage:", error);
-  }
-};
-initializeStorage().catch((error) => {
-  console.error("Error initializing storage:", error);
-});
+const prisma = new PrismaClient();
 
 const config: NextAuthLightningConfig = {
   // required
@@ -30,18 +11,81 @@ const config: NextAuthLightningConfig = {
   secret: process.env.NEXTAUTH_SECRET!,
   storage: {
     async set({ k1, session }) {
-      await storage.setItem(`k1:${k1}`, session);
+      console.log("set:");
+      console.log(k1);
+      console.log(session);
+      const sesh = await prisma.session.create({
+        data: {
+          k1: k1,
+          sessionToken: session.k1,
+          state: session.state,
+        },
+      });
+      console.log("set sesh:", sesh);
     },
-    async get({ k1 }): Promise<StorageSession | null> {
-      return (await storage.getItem(`k1:${k1}`)) as StorageSession | null;
+    async get({ k1 }) {
+      let dbSession = await prisma.session.findUnique({
+        where: { k1 },
+      });
+      if (!dbSession) {
+        return null;
+      }
+      const seshWithKey: StorageSession = {
+        ...dbSession,
+        k1: dbSession.k1 ?? "no k1",
+        state: dbSession.state ?? "no state",
+        sessionToken: dbSession.sessionToken ?? "no token",
+      };
+      console.log("get sesh:", seshWithKey);
+      return seshWithKey;
     },
     async update({ k1, session }) {
-      const old = (await storage.getItem(`k1:${k1}`)) as StorageSession | null;
-      if (!old) throw new Error(`Could not find k1:${k1}`);
-      await storage.updateItem(`k1:${k1}`, { ...old, ...session });
+      console.log("update");
+      console.log("session:", session);
+
+      const existingSession = await prisma.session.findUnique({
+        where: {
+          k1: k1,
+        },
+        include: {
+          user: true,
+        },
+      });
+      console.log("existing sesh:", existingSession);
+      if (existingSession) {
+        let user = await prisma.user.findUnique({
+          where: { id: session.pubkey },
+        });
+        if (!user) {
+          user = await prisma.user.create({
+            data: {
+              id: session.pubkey,
+              name: session.pubkey,
+              pubkey: session.pubkey,
+            },
+          });
+        }
+        const updatedSession = await prisma.session.update({
+          where: {
+            k1: k1,
+          },
+          data: {
+            pubkey: session.pubkey,
+            sig: session.sig,
+            success: session.success,
+            userId: user.id,
+          },
+          include: { user: true },
+        });
+        console.log("updated session:", updatedSession);
+      } else {
+        throw new Error(`session does not exist`);
+      }
     },
     async delete({ k1 }) {
-      await storage.removeItem(`k1:${k1}`);
+      await prisma.session.delete({
+        where: { k1 },
+      });
     },
   },
   generateQr,
@@ -52,6 +96,10 @@ const config: NextAuthLightningConfig = {
 
   theme: {
     colorScheme: "dark",
+  },
+  flags: {
+    diagnostics: true,
+    logs: true,
   },
 };
 

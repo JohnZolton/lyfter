@@ -6,6 +6,7 @@ import { Button, buttonVariants } from "~/components/ui/button";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
+import { redirect } from "next/dist/server/api-utils";
 
 const Home: NextPage = () => {
   const { data: session, status } = useSession();
