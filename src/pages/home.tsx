@@ -18,30 +18,28 @@ import LoadingSpinner from "./components/loadingspinner";
 import SetDisplay from "./components/setdisplay";
 import WorkoutDisplay3 from "./components/workoutdisplay";
 import ExerciseDisplay from "./components/exercisedisplay";
-import { Button } from "../components/ui/button"
-import { useRouter } from 'next/router';
+import { Button } from "../components/ui/button";
+import { useRouter } from "next/router";
 import { UserRound } from "lucide-react";
 import Link from "next/link";
 
-
-
 const Home: NextPage = () => {
-  const [workoutTitle, setWorkoutTitle]=useState<string|undefined>()
+  const [workoutTitle, setWorkoutTitle] = useState<string | undefined>();
   return (
     <>
       <Head>
         <title>Liftr</title>
-        <meta name="description" content="Nostr Workout Tracker" />
+        <meta name="description" content="Workout Tracker" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <PageLayout>
-      <div className="flex flex-row items-center justify-between mt-4 text-2xl font-semibold max-w-6xl mx-auto gap-x-20">
-        <div className="ml-6">{workoutTitle ?? "Current Workouts"}</div>
-        <NavBar />
-      </div>
+        <div className="mx-auto mt-4 flex max-w-6xl flex-row items-center justify-between gap-x-20 text-2xl font-semibold">
+          <div className="ml-6">{workoutTitle ?? "Current Workouts"}</div>
+          <NavBar />
+        </div>
         <div className="">
           <SignedIn>
-            <WorkoutUiHandler setTitle={setWorkoutTitle}/>
+            <WorkoutUiHandler setTitle={setWorkoutTitle} />
           </SignedIn>
           <SignedOut>
             {/* Signed out users get sign in button */}
@@ -59,14 +57,12 @@ const Home: NextPage = () => {
 
 export default Home;
 
-
-
-interface UiHandlerProps{
-  setTitle: React.Dispatch<SetStateAction<string|undefined>>
+interface UiHandlerProps {
+  setTitle: React.Dispatch<SetStateAction<string | undefined>>;
 }
-function WorkoutUiHandler({setTitle}:UiHandlerProps) {
+function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
   const [workoutPlan, setWorkoutPlan] = useState<
-  (Workout & { exercises: Exercise[]})[] | undefined
+    (Workout & { exercises: Exercise[] })[] | undefined
   >();
   const [todaysWorkout, setTodaysWorkout] = useState<
     | (Workout & {
@@ -77,21 +73,32 @@ function WorkoutUiHandler({setTitle}:UiHandlerProps) {
 
   const { data: userWorkouts, isLoading } =
     api.getWorkouts.getUniqueWeekWorkouts.useQuery();
-  
-    useEffect(()=>{
-      setTitle(todaysWorkout ? `${todaysWorkout?.description}: ${todaysWorkout?.nominalDay}` : undefined)
-    }, [todaysWorkout])
-
 
   useEffect(() => {
-    if (userWorkouts && !todaysWorkout && !workoutPlan && userWorkouts.workoutPlan) {
+    setTitle(
+      todaysWorkout
+        ? `${todaysWorkout?.description}: ${todaysWorkout?.nominalDay}`
+        : undefined
+    );
+  }, [todaysWorkout]);
+
+  useEffect(() => {
+    if (
+      userWorkouts &&
+      !todaysWorkout &&
+      !workoutPlan &&
+      userWorkouts.workoutPlan
+    ) {
       const uniqueWorkouts = new Set();
       const workoutsToDisplay: (Workout & {
         exercises: Exercise[];
       })[] = [];
       userWorkouts.workoutPlan.workouts.map((workout) => {
         console.log(workout);
-        if (!uniqueWorkouts.has(workout.originalWorkoutId) && workout.exercises.length > 0) {
+        if (
+          !uniqueWorkouts.has(workout.originalWorkoutId) &&
+          workout.exercises.length > 0
+        ) {
           uniqueWorkouts.add(workout.originalWorkoutId);
           workoutsToDisplay.push(workout);
         }
@@ -99,7 +106,6 @@ function WorkoutUiHandler({setTitle}:UiHandlerProps) {
 
       setWorkoutPlan(sortWorkoutsByNominalDay(workoutsToDisplay));
     }
-
   }, [userWorkouts, todaysWorkout]);
 
   function sortWorkoutsByNominalDay(
@@ -134,7 +140,6 @@ function WorkoutUiHandler({setTitle}:UiHandlerProps) {
   function endWorkout() {
     setTodaysWorkout(undefined);
   }
-  
 
   if (!todaysWorkout) {
     return (
@@ -142,26 +147,24 @@ function WorkoutUiHandler({setTitle}:UiHandlerProps) {
         style={{ maxWidth: "600px", margin: "0 auto" }}
         className="rounded-lg p-4"
       >
-      <div className="rounded-lg bg-slate-800 p-4  shadow-md">
-        {workoutPlan &&
-          workoutPlan.map((workout) => (
-            <div
-              key={workout.workoutId}
-              className="my-2 flex items-center justify-between"
-            >
-              <div className="text-lg font-semibold text-slate-100">
-                {workout.description}: {workout.nominalDay}
-              </div>
-              <Button
-              asChild
+        <div className="rounded-lg bg-slate-800 p-4  shadow-md">
+          {workoutPlan &&
+            workoutPlan.map((workout) => (
+              <div
+                key={workout.workoutId}
+                className="my-2 flex items-center justify-between"
               >
-              <Link href={`/workout/${workout.workoutId}`} prefetch>
-              Begin
-              </Link>
-              </Button>
-            </div>
-          ))}
-      </div>
+                <div className="text-lg font-semibold text-slate-100">
+                  {workout.description}: {workout.nominalDay}
+                </div>
+                <Button asChild>
+                  <Link href={`/workout/${workout.workoutId}`} prefetch>
+                    Begin
+                  </Link>
+                </Button>
+              </div>
+            ))}
+        </div>
       </div>
     );
   }
