@@ -46,6 +46,8 @@ interface ExerciseDisplayProps {
       priorSet?: exerciseSet | null;
     })[];
   };
+  moveUp: (exIndex: number, exId: string) => void;
+  moveDown: (exIndex: number, exId: string) => void;
   workoutNumber: string;
   exerciseNumber: string;
   exerciseIndex: number;
@@ -75,6 +77,8 @@ function ExerciseDisplay({
   workoutNumber,
   exerciseNumber,
   exerciseIndex,
+  moveUp,
+  moveDown,
   addExercise,
   updatePlan,
 }: ExerciseDisplayProps) {
@@ -297,7 +301,12 @@ function ExerciseDisplay({
     return true;
   }
 
-  const [activeSet, setActiveSet] = useState(0);
+  const activeSetNumber = exercise?.sets?.filter(
+    (set) =>
+      set && set.reps !== undefined && set.reps !== 0 && set.reps !== null
+  ).length;
+  console.log("activesetNumber: ", activeSetNumber);
+  const [activeSet, setActiveSet] = useState(activeSetNumber || 0);
 
   useEffect(() => {
     if (isNewExReady(newExercise)) {
@@ -460,6 +469,22 @@ function ExerciseDisplay({
 
               <DropdownMenuItem onClick={() => handleEditExercise()}>
                 Edit Exercise
+              </DropdownMenuItem>
+              {exercise.exerciseOrder !== 0 && (
+                <DropdownMenuItem
+                  onClick={() =>
+                    moveUp(exercise.exerciseOrder, exercise.exerciseId)
+                  }
+                >
+                  Move up
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem
+                onClick={() =>
+                  moveDown(exercise.exerciseOrder, exercise.exerciseId)
+                }
+              >
+                Move down
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
