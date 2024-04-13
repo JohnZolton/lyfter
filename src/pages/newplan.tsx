@@ -17,7 +17,7 @@ import {
   DialogTrigger,
   DialogClose,
 } from "../components/ui/dialog";
-import { pplPlanArrayTwo } from "../lib/workout";
+import { pplPlanArrayTwo, maintenance } from "../lib/workout";
 import Link from "next/link";
 
 const Home: NextPage = () => {
@@ -29,8 +29,8 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <PageLayout>
-        <div className="mx-auto mt-4 flex max-w-6xl flex-row items-center justify-between gap-x-20 text-2xl font-semibold">
-          <div className="ml-6">New Workout Plan</div>
+        <div className="mx-auto my-2 mt-4 flex max-w-6xl flex-row items-center justify-between gap-x-20 text-2xl font-semibold">
+          <div className="ml-6">New Plan</div>
           <NavBar />
         </div>
         <SignedIn>
@@ -90,7 +90,10 @@ function PreBuiltPlans() {
       },
     });
 
-  function handleClick() {
+  function makeMaintenance() {
+    makePlan({ description: "Maintenance 2x", workouts: maintenance });
+  }
+  function makePPL() {
     makePlan({ description: "Push Pull Legs", workouts: pplPlanArrayTwo });
   }
   if (isLoading) {
@@ -119,10 +122,7 @@ function PreBuiltPlans() {
                   <div className="flex w-full flex-col items-center justify-center gap-y-4">
                     <div>This cannot be undone</div>
                     <div className="flex w-full flex-row items-center justify-between px-10">
-                      <Button
-                        variant={"destructive"}
-                        onClick={() => handleClick()}
-                      >
+                      <Button variant={"destructive"} onClick={() => makePPL()}>
                         Confirm
                       </Button>
                       <Button type="button" variant="secondary">
@@ -137,16 +137,37 @@ function PreBuiltPlans() {
         </div>
       </div>
       <div className="flex  w-full  flex-row items-center justify-between gap-x-4">
-        <div>Upper/Lower even (4x)</div>
-        <Button disabled onClick={handleClick}>
-          Create
-        </Button>
-      </div>
-      <div className="flex  w-full  flex-row items-center justify-between gap-x-4">
-        <div>Upper Emphasis (4x)</div>
-        <Button disabled onClick={handleClick}>
-          Create
-        </Button>
+        <div>Maintenance (2x)</div>
+        <div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>Create</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Reset Plan to Maintenace (2x)</DialogTitle>
+              </DialogHeader>
+              <DialogDescription>
+                <DialogClose asChild>
+                  <div className="flex w-full flex-col items-center justify-center gap-y-4">
+                    <div>This cannot be undone</div>
+                    <div className="flex w-full flex-row items-center justify-between px-10">
+                      <Button
+                        variant={"destructive"}
+                        onClick={() => makeMaintenance()}
+                      >
+                        Confirm
+                      </Button>
+                      <Button type="button" variant="secondary">
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </DialogClose>
+              </DialogDescription>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
     </div>
   );

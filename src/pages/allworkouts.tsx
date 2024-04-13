@@ -15,6 +15,7 @@ import LoadingSpinner from "./components/loadingspinner";
 import MenuLayout from "./components/menulayout";
 import PerformanceWarning from "./components/performancewarning";
 import { Button } from "~/components/ui/button";
+import { ScrollArea } from "~/components/ui/scroll-area";
 
 const Home: NextPage = () => {
   return (
@@ -231,7 +232,7 @@ function DisplayPlan({ plan }: DisplayPlanProps) {
                   <table className="table-fixed whitespace-nowrap">
                     <thead>
                       <tr>
-                        <th className="w-1/4">
+                        <th className="left-0 z-10 w-1/4 bg-slate-900">
                           {
                             workoutList[day as keyof typeof workoutList][0]
                               ?.description
@@ -251,7 +252,7 @@ function DisplayPlan({ plan }: DisplayPlanProps) {
                         day as keyof typeof workoutList
                       ][0]?.exercises.map((exercise, index) => (
                         <tr key={index}>
-                          <td className="border px-4 py-2">
+                          <td className="left-0 z-10 border bg-slate-900 px-4 py-2">
                             {exercise.description}
                           </td>
                           {workoutList[day as keyof typeof workoutList].map(
@@ -260,22 +261,22 @@ function DisplayPlan({ plan }: DisplayPlanProps) {
                                 className="border px-3 py-2"
                                 key={workout.workoutId}
                               >
-                                {workout.exercises[index]?.sets.map(
-                                  (set, setIndex) => (
+                                {workout.exercises[index]?.sets
+                                  .sort((a, b) => a.setNumber - b.setNumber)
+                                  .map((set, setIndex) => (
                                     <div
                                       className="flex items-center justify-between"
                                       key={set.setId}
                                     >
                                       <div>
-                                        Set {setIndex + 1}: {set.weight}lbs x{" "}
-                                        {set.reps} @ {set.rir} RIR
+                                        {set.weight || 0} lbs x {set.reps || 0}{" "}
+                                        @ {set.rir} RIR
                                       </div>
                                       <div className="pl-2">
                                         <PerformanceWarning currentSet={set} />
                                       </div>
                                     </div>
-                                  )
-                                )}
+                                  ))}
                               </td>
                             )
                           )}
