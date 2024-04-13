@@ -15,6 +15,8 @@ import type {
 import { MuscleGroup, Pump, RPE } from "@prisma/client";
 import { v4 } from "uuid";
 import { Newspaper } from "lucide-react";
+import { describe } from "node:test";
+import { setUncaughtExceptionCaptureCallback } from "node:process";
 
 export const getAllWorkouts = createTRPCRouter({
   newTestPlanTwo: privateProcedure
@@ -256,6 +258,73 @@ export const getAllWorkouts = createTRPCRouter({
     });
     const currentPlan = allPlans[0];
     console.log("currentPlan: ", currentPlan);
+    // sort into weeks
+    // get final week exercises
+    // get weight from week 2 if exercises match
+    // set as starting weight
+    const weekNumber = currentPlan?.workouts.reduce(
+      (maxWeekNumber, workout) => {
+        if (workout && workout.workoutNumber) {
+          return workout.workoutNumber > maxWeekNumber
+            ? workout.workoutNumber
+            : maxWeekNumber;
+        } else {
+          return maxWeekNumber;
+        }
+      },
+      0
+    ); //find max workoutNumber
+    console.log(weekNumber);
+    const finalWeek = currentPlan?.workouts.filter(
+      (workout) => workout.workoutNumber === weekNumber
+    );
+    console.log("final week: ", finalWeek);
+
+    if (finalWeek) {
+      const newPlan = await ctx.prisma.workoutPlan.create({
+        data: {
+          userId: ctx.userId,
+          description: currentPlan?.description ?? "No Description",
+          workouts: {
+            create: finalWeek.map((workout) => ({
+              userId: ctx.userId,
+              description: workout.description,
+              nominalDay: workout.nominalDay,
+              originalWorkoutId: v4(),
+              workoutNumber: 0,
+              exercises: {
+                create: workout.exercises.map((exercise) => ({
+                  description: exercise.description,
+                  muscleGroup:
+                    MuscleGroup[
+                      exercise.muscleGroup as keyof typeof MuscleGroup
+                    ],
+                  sets: {
+                    create: exercise.sets.slice(0, 4).map((set, index) => ({
+                      setNumber: index,
+                      weight: set.weight,
+                      targetWeight: set.weight,
+                      reps: 0,
+                      rir: 3,
+                    })),
+                  },
+                  exerciseOrder: exercise.exerciseOrder,
+                })),
+              },
+            })),
+          },
+        },
+        include: {
+          workouts: {
+            include: {
+              exercises: true,
+            },
+          },
+        },
+      });
+      console.log("newplan: ", newPlan);
+      return newPlan;
+    }
   }),
 
   updateWorkoutPlan: privateProcedure
