@@ -16,6 +16,7 @@ const Home: NextPage = () => {
       </Head>
       <PageLayout>
         <div className="mx-auto flex flex-col items-center justify-center gap-12 px-4 py-12 text-center">
+          <img src="/image4.png" alt="Jacked Ostrich" />
           <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
             <span className="">Liftr</span>
           </h1>
