@@ -55,8 +55,9 @@ const Home: NextPage = () => {
 export default Home;
 
 function NewWorkoutMenu() {
+  const { mutate: resetPlan } = api.getWorkouts.resetCurrentPlan.useMutation();
   function handleResetPlan() {
-    console.log("todo");
+    resetPlan();
   }
 
   return (
@@ -67,9 +68,7 @@ function NewWorkoutMenu() {
         </div>
         <div className="my-8 flex w-full flex-row items-center justify-between px-6">
           <div>Reset Current Plan</div>
-          <Button disabled onClick={() => handleResetPlan}>
-            Reset
-          </Button>
+          <Button onClick={() => handleResetPlan()}>Reset</Button>
         </div>
         <div className="my-8 flex w-full flex-row items-center justify-between px-6">
           <div>New Custom Plan</div>

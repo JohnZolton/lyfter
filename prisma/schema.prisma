@@ -82,6 +82,7 @@ model Workout {
   exercises         Exercise[]
   workoutNumber     Int?
   planId            String?
+  isCompleted       Boolean @default(false)
   plan              WorkoutPlan?  @relation(fields: [planId], references: [planId], onDelete: Cascade)
   originalWorkoutId String?
 
@@ -130,6 +131,7 @@ enum Pump {
   hard
  }
 
+
 model exerciseSet {
   setId      String         @id @default(cuid())
   date       DateTime       @default(now())
@@ -141,9 +143,9 @@ model exerciseSet {
   rir        Int?
   setNumber  Int
   exercise   Exercise @relation(fields: [exerciseId], references: [exerciseId], onDelete: Cascade)
-  lastSetId  String?        @unique
-  priorSet   exerciseSet?   @relation("SetRelation", fields: [lastSetId], references: [setId], onDelete: NoAction, onUpdate: NoAction)
-  nextSet    exerciseSet?   @relation("SetRelation")
+  lastSetId  String?        
+  priorSet   exerciseSet?   @relation("SetRelation", fields: [lastSetId], references: [setId], onDelete: NoAction)
+  nextSet    exerciseSet[]   @relation("SetRelation")
 
   @@index([exerciseId, setId])
 }

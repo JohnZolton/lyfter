@@ -1,5 +1,5 @@
 import type { exerciseSet } from "@prisma/client";
-import { Target, Equal, Check, ThumbsDown } from "lucide-react";
+import { Equal, Check, ThumbsDown } from "lucide-react";
 
 interface PerformanceWarningProps {
   currentSet:
@@ -10,27 +10,20 @@ interface PerformanceWarningProps {
 }
 
 function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
+  console.log("Currnet Set: ");
+  console.log(currentSet);
   if (currentSet === undefined) {
     return <div></div>;
   }
   if (!currentSet.reps && currentSet.targetReps) {
     return (
-      <div>
-        {currentSet.targetReps} <Target />
+      <div className="flex w-full flex-row items-center justify-center  px-2">
+        {currentSet.targetReps}
       </div>
     );
   }
   if (!currentSet.reps) {
     return <div></div>;
-  }
-  const { weight, reps, targetWeight, targetReps, priorSet } = currentSet;
-
-  if (weight! >= targetWeight! && reps >= targetReps!) {
-    return (
-      <div className="text-green-500">
-        {currentSet.targetReps} <Check />
-      </div>
-    );
   }
 
   function isImprovement(
@@ -69,22 +62,22 @@ function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
 
   if (isImprovement(currentSet, currentSet.priorSet)) {
     return (
-      <div className="text-green-500">
-        {currentSet.targetReps} <Check />
+      <div className="flex w-full flex-row items-center justify-center px-2  text-green-500">
+        <Check />
       </div>
     );
   }
   if (isMaintenance(currentSet, currentSet.priorSet)) {
     return (
-      <div className="text-yellow-500">
-        {currentSet.targetReps} <Equal />
+      <div className="flex w-full flex-row items-center justify-center  px-2 text-yellow-500">
+        <Equal />
       </div>
     );
   }
   if (isRegression(currentSet, currentSet.priorSet)) {
     return (
-      <div className="text-red-500">
-        {currentSet.targetReps} <ThumbsDown />
+      <div className="flex w-full flex-row items-center justify-center  px-2 text-red-500">
+        <ThumbsDown />
       </div>
     );
   }

@@ -1,14 +1,12 @@
-import { SignOutButton, SignedIn, UserButton } from "@clerk/nextjs";
+import { SignOutButton, SignedIn } from "@clerk/nextjs";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Menu, Newspaper } from "lucide-react";
+import { Menu } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
@@ -38,9 +36,10 @@ import { api } from "~/utils/api";
 
 interface NavBarProps {
   workout?: Workout;
+  updateTitleDay?: (description: string, newDay: string) => void;
 }
 
-export const NavBar = ({ workout }: NavBarProps) => {
+export const NavBar = ({ workout, updateTitleDay }: NavBarProps) => {
   const router = useRouter();
   const [newDay, setNewDay] = useState(workout?.nominalDay);
   const [newTitle, setNewTitle] = useState(workout?.description);
@@ -56,15 +55,24 @@ export const NavBar = ({ workout }: NavBarProps) => {
 
   function handleFormSubmit() {
     console.log("form submit");
-    console.log(workout?.workoutId);
+    console.log(newDay);
+    console.log(newTitle);
+    console.log(workout);
     if (newDay && newTitle && workout) {
-      updateWorkout({
+      const updated = updateWorkout({
         nominalDay: newDay,
         description: newTitle,
         workoutId: workout?.workoutId,
       });
+      console.log(updated);
+      if (updateTitleDay) {
+        updateTitleDay(newTitle, newDay);
+      }
     }
+    setIsMenuOpen(false);
   }
+
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
     <div>
@@ -75,7 +83,7 @@ export const NavBar = ({ workout }: NavBarProps) => {
         <div
           className={`flex flex-col items-end space-x-6 pr-4 sm:hidden sm:flex-row`}
         >
-          <DropdownMenu>
+          <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <DropdownMenuTrigger>
               <Menu />
             </DropdownMenuTrigger>
@@ -92,7 +100,10 @@ export const NavBar = ({ workout }: NavBarProps) => {
               {router.pathname.startsWith("/workout/") && (
                 <Dialog>
                   <DialogTrigger asChild>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onSelect={(e) => e.preventDefault()}
+                    >
                       Edit Workout
                     </DropdownMenuItem>
                   </DialogTrigger>
@@ -111,13 +122,12 @@ export const NavBar = ({ workout }: NavBarProps) => {
                         />
                         <Select
                           required
-                          value={newDay}
                           onValueChange={(value) => {
                             setNewDay(value);
                           }}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder={workout?.nominalDay} />
+                            <SelectValue placeholder={"Select Day"} />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectGroup>
@@ -135,15 +145,20 @@ export const NavBar = ({ workout }: NavBarProps) => {
                           </SelectContent>
                         </Select>
                       </div>
-                      <DialogClose asChild onBlur={() => console.log("close")}>
+                      <DialogClose asChild onBlur={() => setIsMenuOpen(false)}>
                         <div className="flex flex-row items-center justify-between">
                           <Button
+                            disabled={!(newTitle && newDay)}
                             //variant={""}
                             onClick={() => handleFormSubmit()}
                           >
                             Save
                           </Button>
-                          <Button type="button" variant="secondary">
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => setIsMenuOpen(false)}
+                          >
                             Cancel
                           </Button>
                         </div>

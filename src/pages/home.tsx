@@ -137,9 +137,6 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
       </div>
     );
   }
-  function endWorkout() {
-    setTodaysWorkout(undefined);
-  }
 
   if (!todaysWorkout) {
     return (

@@ -35,6 +35,50 @@ const Home: NextPage = () => {
               </Link>
             </SignedIn>
           </div>
+          <div className="mt-12 flex flex-col  gap-y-4 px-4 pb-12 text-left text-xl">
+            <div className="text-center text-2xl font-semibold">
+              What is this?
+            </div>
+            <div>
+              Liftr is a 100% hypertrophy-focused workout &quot;coach&quot;.
+            </div>
+            <div>
+              It uses{" "}
+              <Link
+                className="text-yellow-600 hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+                href={"https://rpstrength.com/"}
+              >
+                Renaissance Periodization&apos;s
+              </Link>{" "}
+              match-or-beat performance monitoring algorithm. Basically, it
+              increases volume and weight as long as you&apos;re recovering on
+              time.
+            </div>
+            <div>
+              It logs soreness, pump, and overall exertion with pre- and
+              post-exercise surveys and adjusts volume accordingly.
+            </div>
+            <div>
+              It warns you when performance isn&apos;t meeting your targets.
+            </div>
+            <div>
+              Premade plans follow current best-practices with starting volume
+              around the typical minumum-effective volume for muscle growth and
+              increasing over time.
+            </div>
+            <div>
+              Can build custom workouts, use premade plans, modify existing
+              workouts, add or remove exercises and sets manually, swap out
+              exercises, rearrange workouts and exercises.
+            </div>
+            <div>
+              &apos;All Workouts&apos; view gives a bird&apos;s eye view of all
+              your workouts over time so you can see your progress.
+            </div>
+            <div>Built for mobile first, who brings a laptop to the gym?</div>
+          </div>
         </div>
       </PageLayout>
     </>

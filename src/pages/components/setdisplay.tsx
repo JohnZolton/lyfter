@@ -33,7 +33,7 @@ function SetDisplay({
   startSurvey,
   feedbackLogged,
 }: SetDisplayProps) {
-  const [weight, setWeight] = useState(set?.weight || null);
+  const [weight, setWeight] = useState(set?.targetWeight || null);
   const [reps, setReps] = useState(set?.reps || null);
   const [rir, setRir] = useState(set?.rir || null);
 
@@ -47,7 +47,9 @@ function SetDisplay({
   });
 
   useEffect(() => {
-    setWeight(set?.weight);
+    if (set.weight) {
+      setWeight(set?.weight);
+    }
     setReps(set?.reps);
     setRir(set?.rir);
     if (weight !== set.weight || reps !== set.reps || rir !== set.rir) {
@@ -102,14 +104,13 @@ function SetDisplay({
 
   return (
     <div
-      className={`m-1 flex flex-row items-center  justify-center rounded-lg bg-slate-800 p-1 shadow-md
-      ${activeSet === index ? "border-2 border-blue-500" : ""}
+      className={`m-1 flex flex-row items-center  justify-between rounded-lg bg-slate-800 p-1 px-2 shadow-md
+      ${activeSet === index ? "border-2 border-slate-600" : ""}
     `}
     >
       <div className="flex max-w-full flex-row items-center gap-x-1">
-        Weight
         <select
-          className="mr-2 rounded bg-gray-700 p-2 text-center text-sm text-white "
+          className="mr-2 rounded bg-gray-700 p-2 px-3 text-center text-sm text-white "
           value={weight ?? ""}
           onChange={handleWeightChange}
         >
@@ -120,9 +121,10 @@ function SetDisplay({
             </option>
           ))}
         </select>
-        Reps
+      </div>
+      <div>
         <select
-          className=" rounded bg-gray-700 p-2 text-center text-sm text-white"
+          className=" rounded bg-gray-700 p-2 px-3 text-center text-sm text-white"
           onChange={handleRepsChange}
           value={reps ?? ""}
         >
@@ -134,7 +136,7 @@ function SetDisplay({
           ))}
         </select>
       </div>
-      <div className="ml-2  flex h-8 w-10 flex-row items-center justify-center text-xl ">
+      <div className="ml-2  flex h-8 w-16 flex-row items-center justify-center text-xl ">
         <PerformanceWarning currentSet={set} />
       </div>
     </div>

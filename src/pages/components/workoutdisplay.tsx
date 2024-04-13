@@ -1,6 +1,7 @@
 import { v4 } from "uuid";
 import { Workout, Exercise, exerciseSet } from "@prisma/client";
 import ExerciseDisplay from "./exercisedisplay";
+import { api } from "~/utils/api";
 
 interface display3Props {
   workoutPlan: Workout & {
@@ -86,6 +87,10 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
       return updatedWorkoutPlan;
     });
   }
+
+  const { mutate: updateExercise } =
+    api.getWorkouts.updateExerciseOrder.useMutation();
+
   function moveExerciseUp(index: number, id: string) {
     const exToUpdate = workoutPlan.exercises.find(
       (exercise) => exercise.exerciseId === id
@@ -100,6 +105,15 @@ function WorkoutDisplay3({ workoutPlan, setWorkoutPlan }: display3Props) {
 
       updateWorkoutPlan(exToUpdate, workoutPlan.workoutId, id);
       updateWorkoutPlan(exBefore, workoutPlan.workoutId, exBefore.exerciseId);
+
+      updateExercise({
+        exerciseId: exToUpdate.exerciseId,
+        order: exToUpdate.exerciseOrder,
+      });
+      updateExercise({
+        exerciseId: exBefore.exerciseId,
+        order: exBefore.exerciseOrder,
+      });
     }
   }
   function moveExerciseDown(index: number, id: string) {

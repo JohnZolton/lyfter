@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { api } from "~/utils/api";
 import SetDisplay from "./setdisplay";
-import { Menu } from "lucide-react";
+import { Menu, EllipsisVertical } from "lucide-react";
 import { Input } from "../../components/ui/input";
 
 import {
@@ -305,7 +305,6 @@ function ExerciseDisplay({
     (set) =>
       set && set.reps !== undefined && set.reps !== 0 && set.reps !== null
   ).length;
-  console.log("activesetNumber: ", activeSetNumber);
   const [activeSet, setActiveSet] = useState(activeSetNumber || 0);
 
   useEffect(() => {
@@ -338,7 +337,7 @@ function ExerciseDisplay({
         <div className="flex items-center justify-center px-1">
           <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <DropdownMenuTrigger asChild>
-              <Menu />
+              <EllipsisVertical />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem onClick={() => handleAddSet()}>
@@ -384,57 +383,61 @@ function ExerciseDisplay({
                     <DialogTitle>New Exercise</DialogTitle>
                   </DialogHeader>
                   <DialogDescription>
-                    <Input
-                      placeholder="Description"
-                      onChange={(value) =>
-                        setNewExercise((prevExercise) => ({
-                          ...prevExercise,
-                          description: value.target.value,
-                        }))
-                      }
-                    ></Input>
-                    <Select
-                      onValueChange={(value) => {
-                        setNewExercise((prevExercise) => ({
-                          ...prevExercise,
-                          muscleGroup:
-                            MuscleGroup[value as keyof typeof MuscleGroup],
-                        }));
-                        setNewExUpdated(true);
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Muscle Group" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>Muscle Group</SelectLabel>
-                          <SelectItem value="Chest">Chest</SelectItem>
-                          <SelectItem value="Triceps">Triceps</SelectItem>
-                          <SelectItem value="Back">Back</SelectItem>
-                          <SelectItem value="Biceps">Biceps</SelectItem>
-                          <SelectItem value="Shoulders">Shoulders</SelectItem>
-                          <SelectItem value="Abs">Abs</SelectItem>
-                          <SelectItem value="Quads">Quads</SelectItem>
-                          <SelectItem value="Glutes">Glutes</SelectItem>
-                          <SelectItem value="Hamstrings">Hamstrings</SelectItem>
-                          <SelectItem value="Calves">Calves</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                    <DialogClose asChild onBlur={() => setIsMenuOpen(false)}>
-                      <div className="flex flex-row items-center justify-between">
-                        <Button
-                          disabled={!newExReady}
-                          onClick={() => handleAddExercise()}
-                        >
-                          Add Exercise
-                        </Button>
-                        <Button type="button" variant="secondary">
-                          Cancel
-                        </Button>
-                      </div>
-                    </DialogClose>
+                    <div className="flex flex-col gap-y-4">
+                      <Input
+                        placeholder="Description"
+                        onChange={(value) =>
+                          setNewExercise((prevExercise) => ({
+                            ...prevExercise,
+                            description: value.target.value,
+                          }))
+                        }
+                      ></Input>
+                      <Select
+                        onValueChange={(value) => {
+                          setNewExercise((prevExercise) => ({
+                            ...prevExercise,
+                            muscleGroup:
+                              MuscleGroup[value as keyof typeof MuscleGroup],
+                          }));
+                          setNewExUpdated(true);
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Muscle Group" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Muscle Group</SelectLabel>
+                            <SelectItem value="Chest">Chest</SelectItem>
+                            <SelectItem value="Triceps">Triceps</SelectItem>
+                            <SelectItem value="Back">Back</SelectItem>
+                            <SelectItem value="Biceps">Biceps</SelectItem>
+                            <SelectItem value="Shoulders">Shoulders</SelectItem>
+                            <SelectItem value="Abs">Abs</SelectItem>
+                            <SelectItem value="Quads">Quads</SelectItem>
+                            <SelectItem value="Glutes">Glutes</SelectItem>
+                            <SelectItem value="Hamstrings">
+                              Hamstrings
+                            </SelectItem>
+                            <SelectItem value="Calves">Calves</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                      <DialogClose asChild onBlur={() => setIsMenuOpen(false)}>
+                        <div className="flex flex-row items-center justify-between">
+                          <Button
+                            disabled={!newExReady}
+                            onClick={() => handleAddExercise()}
+                          >
+                            Add Exercise
+                          </Button>
+                          <Button type="button" variant="secondary">
+                            Cancel
+                          </Button>
+                        </div>
+                      </DialogClose>
+                    </div>
                   </DialogDescription>
                 </DialogContent>
               </Dialog>
@@ -585,7 +588,7 @@ function ExerciseDisplay({
             </DialogContent>
           </Dialog>
         </div>
-        <div className="flex flex-row items-end justify-between font-semibold">
+        <div className="flex flex-row items-end justify-between py-1 font-semibold">
           {editingName ? (
             <Input
               type="text"
@@ -606,7 +609,12 @@ function ExerciseDisplay({
           </div>
         </div>
       </div>
-      <div>
+      <div className="rounded-md bg-slate-800 py-1">
+        <div className="flex flex-row justify-between px-6 text-sm">
+          <div className="">Weight</div>
+          <div>Reps · RIR {exercise.sets[0]?.rir}</div>
+          <div>Target</div>
+        </div>
         {sets &&
           sets
             .sort((a, b) => a.setNumber - b.setNumber)

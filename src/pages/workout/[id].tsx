@@ -58,12 +58,18 @@ const Home: NextPage = () => {
     getWorkout({ workoutId: workoutId });
   }, [workoutId]);
 
+  function updateTitleDay(description: string, newDay: string) {
+    if (workout) {
+      setWorkout({ ...workout, description: description, nominalDay: newDay });
+    }
+  }
+
   if (!workout || workout === undefined) {
     return (
       <>
         <div className="mx-1 ml-5 mt-2  flex flex-row items-center justify-between p-2">
           <div className="text-2xl font-semibold">Workout</div>
-          <NavBar workout={workout} />
+          <NavBar workout={workout} updateTitleDay={updateTitleDay} />
         </div>
         <SignedIn>
           <div className="mt-8 flex flex-row items-center justify-center">
@@ -88,7 +94,7 @@ const Home: NextPage = () => {
         <div className="text-2xl font-semibold">
           {workout.nominalDay}: {workout.description}
         </div>
-        <NavBar workout={workout} />
+        <NavBar workout={workout} updateTitleDay={updateTitleDay} />
       </div>
       <SignedIn>
         <WorkoutUi todaysWorkout={workout} setTodaysWorkout={setWorkout} />
@@ -164,8 +170,10 @@ function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
   }, [todaysWorkout]);
   const [workoutComplete, setWorkoutComplete] = useState(false);
 
+  const router = useRouter();
+
   function handleEndWorkout() {
-    console.log("todo");
+    void router.push("/home");
   }
 
   return (

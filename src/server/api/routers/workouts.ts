@@ -120,6 +120,144 @@ export const getAllWorkouts = createTRPCRouter({
     return workouts;
   }),
 
+  makeNewWeek: privateProcedure.mutation(async ({ ctx }) => {
+    const planWorkouts = await ctx.prisma.workoutPlan.findMany({
+      where: {
+        userId: ctx.userId,
+      },
+      include: {
+        workouts: {
+          include: {
+            exercises: {
+              include: { sets: true },
+            },
+          },
+        },
+      },
+      orderBy: { date: "desc" },
+    });
+    const latestWorkouts = planWorkouts[0];
+
+    const currentWeek = latestWorkouts?.workouts.reduce((maxWeek, workout) => {
+      if (workout.workoutNumber && workout.workoutNumber > maxWeek) {
+        return workout.workoutNumber;
+      }
+      return maxWeek;
+    }, 0);
+
+    const currentWorkouts = latestWorkouts?.workouts.filter(
+      (workout) => workout.workoutNumber === currentWeek
+    );
+    console.log("current workouts: ", currentWorkouts);
+
+    currentWorkouts?.map(async (workout) => {
+      interface newSetTemplate {
+        targetWeight: number;
+        targetReps: number;
+        weight: number;
+        rir: number;
+        setNumber: number | null;
+        priorSet?: { connect: { setId: string } } | null;
+      }
+
+      const newExercises = workout.exercises
+        .sort((a, b) => a.exerciseOrder - b.exerciseOrder)
+        .map((exercise, index) => {
+          const newSets: newSetTemplate[] = exercise.sets
+            .sort((a, b) => a.setNumber - b.setNumber)
+            .map((set, index) => ({
+              targetWeight: set.weight ? set.weight + 1 : 0,
+              targetReps: set.reps ? set.reps + 1 : 0,
+              weight: 0,
+              rir: 3,
+              setNumber: index,
+              priorSet: set.setId ? { connect: { setId: set.setId } } : null,
+            }));
+
+          const newExercise = {
+            description: exercise.description ?? "none",
+            muscleGroup: exercise.muscleGroup,
+            exerciseOrder: index,
+            sets: newSets,
+          };
+
+          if (exercise.pump === Pump.low) {
+            newExercise.sets.push({
+              targetWeight: newSets[newSets.length - 1]!.targetWeight,
+              targetReps: 0,
+              weight: 0,
+              rir: 3,
+              setNumber: newSets.length,
+              priorSet: null,
+            });
+          }
+          return newExercise;
+        });
+
+      const newWorkout = await ctx.prisma.workout.create({
+        data: {
+          userId: ctx.userId,
+          planId: workout.planId,
+          description: workout.description,
+          nominalDay: workout.nominalDay,
+          workoutNumber: (workout.workoutNumber || 0) + 1,
+          originalWorkoutId: workout.originalWorkoutId || workout.workoutId,
+          exercises: {
+            create: newExercises.map((exercise, index) => ({
+              description: exercise?.description ?? "none",
+              muscleGroup:
+                MuscleGroup[exercise?.muscleGroup as keyof typeof MuscleGroup],
+              sets: {
+                create: exercise?.sets.map((set, index) => {
+                  const setData = {
+                    setNumber: index,
+                    targetWeight: set.targetWeight,
+                    weight: 0,
+                    targetReps: set.targetReps,
+                    rir: set.rir,
+                    priorSet: set.priorSet,
+                  };
+                  return setData;
+                }),
+              },
+              exerciseOrder: index,
+            })),
+          },
+        },
+        include: {
+          exercises: {
+            include: {
+              sets: {
+                include: { priorSet: true },
+              },
+            },
+          },
+        },
+      });
+      return newWorkout;
+    });
+  }),
+
+  resetCurrentPlan: privateProcedure.mutation(async ({ ctx }) => {
+    const allPlans = await ctx.prisma.workoutPlan.findMany({
+      where: {
+        userId: ctx.userId,
+      },
+      include: {
+        workouts: {
+          include: {
+            exercises: {
+              include: { sets: true },
+            },
+          },
+        },
+      },
+      orderBy: { date: "desc" },
+    });
+    const currentPlan = allPlans[0];
+    console.log("currentPlan: ", currentPlan);
+  }),
+
   updateWorkoutPlan: privateProcedure
     .input(
       z.object({
@@ -536,6 +674,23 @@ export const getAllWorkouts = createTRPCRouter({
         where: { exerciseId: input.exerciseId },
         data: {
           feedbackRecorded: true,
+        },
+      });
+      return updatedExercise;
+    }),
+
+  updateExerciseOrder: privateProcedure
+    .input(
+      z.object({
+        exerciseId: z.string(),
+        order: z.number(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const updatedExercise = await ctx.prisma.exercise.update({
+        where: { exerciseId: input.exerciseId },
+        data: {
+          exerciseOrder: input.order,
         },
       });
       return updatedExercise;
