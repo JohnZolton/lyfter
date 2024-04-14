@@ -20,8 +20,8 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <PageLayout>
-        <div className="mx-auto mt-4 flex max-w-6xl flex-row items-center justify-between gap-x-20 text-2xl font-semibold">
-          <div className="ml-6">{workoutTitle ?? "Current Workouts"}</div>
+        <div className="mt-4 flex max-w-6xl flex-row items-center justify-between px-8 text-2xl font-semibold">
+          <div className="">{workoutTitle ?? "Current Workouts"}</div>
           <NavBar />
         </div>
         <div className="">

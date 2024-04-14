@@ -48,9 +48,6 @@ export const NavBar = ({ workout, updateTitleDay }: NavBarProps) => {
     api.getWorkouts.updateWorkoutDescription.useMutation();
 
   function handleFormSubmit() {
-    console.log(newDay);
-    console.log(newTitle);
-    console.log(workout);
     if (newDay && newTitle && workout) {
       const updated = updateWorkout({
         nominalDay: newDay,
@@ -69,11 +66,11 @@ export const NavBar = ({ workout, updateTitleDay }: NavBarProps) => {
   return (
     <div>
       <nav className="flex items-center justify-end">
-        <div className="hidden flex-col items-end space-x-6 pr-4 sm:flex sm:flex-row">
+        <div className="hidden flex-col items-end space-x-6 sm:flex sm:flex-row">
           <NavMenuItems />
         </div>
         <div
-          className={`flex flex-col items-end space-x-6 pr-4 sm:hidden sm:flex-row`}
+          className={`flex flex-col items-end space-x-6 sm:hidden sm:flex-row`}
         >
           <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <DropdownMenuTrigger>

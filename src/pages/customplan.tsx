@@ -71,8 +71,8 @@ const Home: NextPage = () => {
   return (
     <>
       <PageLayout>
-        <div className="mx-2 mt-4 flex flex-row items-center justify-between text-2xl font-semibold">
-          <div className="ml-6">New Custom Plan</div>
+        <div className="my-4 flex max-w-6xl flex-row items-center justify-between px-8 text-2xl font-semibold">
+          <div className="">New Custom Plan</div>
           <NavBar />
         </div>
         <div className="w-full">
@@ -284,7 +284,7 @@ function WorkoutPlanForm() {
   }
 
   return (
-    <div className="flex w-full flex-col items-center justify-center ">
+    <div className="mt-5 flex w-full flex-col items-center justify-center">
       <div className="space-y-5">
         <div className="w-full rounded-lg bg-gray-900 p-5">
           <div className="flex w-full flex-row items-center justify-between gap-x-2">

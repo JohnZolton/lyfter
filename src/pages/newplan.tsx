@@ -30,8 +30,8 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <PageLayout>
-        <div className="mx-auto my-2 mt-4 flex max-w-6xl flex-row items-center justify-between gap-x-20 text-2xl font-semibold">
-          <div className="ml-6">New Plan</div>
+        <div className="my-4 flex max-w-6xl flex-row items-center justify-between px-8 text-2xl font-semibold">
+          <div className="">New Plan</div>
           <NavBar />
         </div>
         <SignedIn>
@@ -41,7 +41,6 @@ const Home: NextPage = () => {
           <div></div>
         </SignedIn>
         <SignedOut>
-          {/* Signed out users get sign in button */}
           <SignInButton redirectUrl="home">
             <button className="rounded-full bg-gray-700 p-3 text-xl  hover:bg-gray-600">
               Sign In
