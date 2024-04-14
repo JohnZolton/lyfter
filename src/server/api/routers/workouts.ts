@@ -66,6 +66,7 @@ export const getAllWorkouts = createTRPCRouter({
                     create: Array.from({ length: exercise.sets }).map(
                       (_, index) => ({
                         setNumber: index,
+                        rir: 3,
                       })
                     ),
                   },
@@ -171,7 +172,7 @@ export const getAllWorkouts = createTRPCRouter({
               targetWeight: set.weight ? set.weight + 1 : 0,
               targetReps: set.reps ? set.reps + 1 : 0,
               weight: 0,
-              rir: 3,
+              rir: set.rir ?? (set.rir! > 1 ? set.rir! - 1 : 0),
               setNumber: index,
               priorSet: set.setId ? { connect: { setId: set.setId } } : null,
             }));
@@ -188,7 +189,7 @@ export const getAllWorkouts = createTRPCRouter({
               targetWeight: newSets[newSets.length - 1]!.targetWeight,
               targetReps: 0,
               weight: 0,
-              rir: 3,
+              rir: newSets[newSets.length - 1]!.rir,
               setNumber: newSets.length,
               priorSet: null,
             });
@@ -567,7 +568,7 @@ export const getAllWorkouts = createTRPCRouter({
               targetWeight: set.weight ? set.weight + 5 : 0,
               targetReps: set.reps ? set.reps + 1 : 5,
               weight: 0,
-              rir: 3,
+              rir: set.rir ?? (set.rir! > 1 ? set.rir! - 1 : 0),
               setNumber: index,
               lastSetId: set.setId,
             }));
@@ -645,6 +646,17 @@ export const getAllWorkouts = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const exercise = await ctx.prisma.exercise.findFirst({
+        where: {
+          workoutId: input.workoutId,
+          exerciseOrder: {
+            gte: input.exerciseNumber + 1,
+          },
+        },
+        include: {
+          sets: true,
+        },
+      });
       await ctx.prisma.exercise.updateMany({
         where: {
           workoutId: input.workoutId,
@@ -668,7 +680,7 @@ export const getAllWorkouts = createTRPCRouter({
             create: {
               weight: 0,
               reps: 0,
-              rir: 3,
+              rir: exercise?.sets[0]?.rir || 3,
               setNumber: 0,
             },
           },
