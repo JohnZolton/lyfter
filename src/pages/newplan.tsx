@@ -56,9 +56,41 @@ const Home: NextPage = () => {
 export default Home;
 
 function NewWorkoutMenu() {
-  const { mutate: resetPlan } = api.getWorkouts.resetCurrentPlan.useMutation();
+  const router = useRouter();
+  const utils = api.useContext();
+  const { mutate: resetPlan, isLoading } =
+    api.getWorkouts.resetCurrentPlan.useMutation({
+      onSuccess: async (data) => {
+        await utils.getWorkouts.getUniqueWeekWorkouts.invalidate();
+        void router.push({
+          pathname: "/home",
+          query: { refetch: true },
+        });
+      },
+    });
   function handleResetPlan() {
     resetPlan();
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center rounded-lg ">
+        <MenuLayout>
+          <div className="my-1 w-full px-6">
+            <PreBuiltPlans />
+          </div>
+          <LoadingSpinner />
+          <div className="my-8 flex w-full flex-row items-center justify-between px-6">
+            <div>New Custom Plan</div>
+            <div>
+              <Link href="/customplan">
+                <Button>Create</Button>
+              </Link>
+            </div>
+          </div>
+        </MenuLayout>
+      </div>
+    );
   }
 
   return (
