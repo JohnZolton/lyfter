@@ -87,9 +87,9 @@ function PreBuiltPlans() {
   const router = useRouter();
   const { mutate: makePlan, isLoading } =
     api.getWorkouts.newTestPlanTwo.useMutation({
-      onSuccess(data, variables, context) {
+      onSuccess: async (data, variables, context) => {
         console.log(data);
-        utils.getWorkouts.getUniqueWeekWorkouts.invalidate();
+        await utils.getWorkouts.getUniqueWeekWorkouts.invalidate();
         void router.push({
           pathname: "/home",
           query: { refetch: true },

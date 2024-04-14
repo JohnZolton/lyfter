@@ -108,9 +108,9 @@ function WorkoutPlanForm() {
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan>(emptyWorkoutPlan);
   const [isReady, setIsReady] = useState(false);
   const { mutate: savePlan } = api.getWorkouts.newTestPlanTwo.useMutation({
-    onSuccess: (gotWorkout) => {
+    onSuccess: async (gotWorkout) => {
       console.log(gotWorkout);
-      utils.getWorkouts.getUniqueWeekWorkouts.invalidate();
+      await utils.getWorkouts.getUniqueWeekWorkouts.invalidate();
       void router.push({
         pathname: "/home",
         query: { refetch: true },
