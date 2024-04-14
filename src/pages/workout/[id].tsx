@@ -1,27 +1,15 @@
 import { type NextPage } from "next";
-import Head from "next/head";
 import { api } from "~/utils/api";
 
-import React, { useState, useEffect, SetStateAction } from "react";
+import React, { useState, useEffect } from "react";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 
-import type {
-  WorkoutPlan,
-  Workout,
-  Exercise,
-  exerciseSet,
-} from "@prisma/client";
-import { v4 } from "uuid";
+import type { Workout, Exercise, exerciseSet } from "@prisma/client";
 import { NavBar } from "~/pages/components/navbar";
-import PageLayout from "~/pages/components/pagelayout";
 import LoadingSpinner from "../components/loadingspinner";
-import SetDisplay from "../components/setdisplay";
 import WorkoutDisplay3 from "../components/workoutdisplay";
-import ExerciseDisplay from "../components/exercisedisplay";
 import { Button } from "../../components/ui/button";
 import { useRouter } from "next/router";
-import { UserRound } from "lucide-react";
-import Link from "next/link";
 import {
   Dialog,
   DialogContent,
@@ -45,7 +33,6 @@ const Home: NextPage = () => {
   >();
   const router = useRouter();
   const workoutId = router.query.id as string;
-  console.log("reportId: ", workoutId);
 
   const { mutate: getWorkout } = api.getWorkouts.getWorkoutById.useMutation({
     onSuccess: (gotWorkout) => {
@@ -91,8 +78,9 @@ const Home: NextPage = () => {
   return (
     <>
       <div className="mx-1 ml-5 mt-2  flex flex-row items-center justify-between p-2">
-        <div className="text-2xl font-semibold">
-          {workout.nominalDay}: {workout.description}
+        <div className="flex flex-col">
+          <div className="text-2xl font-semibold">{workout.description}</div>
+          <div className="text-xl">{workout.nominalDay}</div>
         </div>
         <NavBar workout={workout} updateTitleDay={updateTitleDay} />
       </div>
@@ -149,8 +137,6 @@ function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
       if (today.getTime() - todaysWorkout.date.getTime() > oneWeek) {
         if (!isNewWorkoutCreated) {
           isNewWorkoutCreated = true;
-          console.log("need new workout");
-
           makeNewWorkout({ priorWorkoutId: todaysWorkout.workoutId });
         }
       }
@@ -172,7 +158,10 @@ function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
 
   const router = useRouter();
 
+  const { mutate: endWorkout } = api.getWorkouts.endWorkout.useMutation();
+
   function handleEndWorkout() {
+    endWorkout({ workoutId: todaysWorkout.workoutId });
     void router.push("/home");
   }
 

@@ -47,14 +47,7 @@ export const NavBar = ({ workout, updateTitleDay }: NavBarProps) => {
   const { mutate: updateWorkout } =
     api.getWorkouts.updateWorkoutDescription.useMutation();
 
-  useEffect(() => {
-    console.log(newDay);
-    console.log(newTitle);
-    console.log(workout);
-  }, [newDay, newTitle]);
-
   function handleFormSubmit() {
-    console.log("form submit");
     console.log(newDay);
     console.log(newTitle);
     console.log(workout);
@@ -64,7 +57,6 @@ export const NavBar = ({ workout, updateTitleDay }: NavBarProps) => {
         description: newTitle,
         workoutId: workout?.workoutId,
       });
-      console.log(updated);
       if (updateTitleDay) {
         updateTitleDay(newTitle, newDay);
       }

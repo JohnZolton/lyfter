@@ -121,7 +121,6 @@ function ExerciseDisplay({
       sets: sets,
       description: description,
     };
-    console.log(newData);
     updatePlan(newData, workoutNumber, exerciseNumber);
   }
   const { mutate: recordNewExercise } =
@@ -172,17 +171,9 @@ function ExerciseDisplay({
     removeExercise(workoutNumber, exercise.exerciseId);
     deleteExercise({ exerciseId: exercise.exerciseId });
   }
-  const { mutate: deleteSet } = api.getWorkouts.removeSet.useMutation({
-    onSuccess(data) {
-      console.log(data);
-    },
-  });
+  const { mutate: deleteSet } = api.getWorkouts.removeSet.useMutation({});
   const { mutate: recordExerciseSoreness } =
-    api.getWorkouts.recordExerciseSoreness.useMutation({
-      onSuccess(data) {
-        console.log(data);
-      },
-    });
+    api.getWorkouts.recordExerciseSoreness.useMutation({});
   function handleRemoveSet() {
     deleteSet({ setId: sets[sets.length - 1]?.setId ?? "" });
     const newSets = sets.slice(0, -1);
@@ -205,7 +196,6 @@ function ExerciseDisplay({
         }
       }
     }
-    console.log(newSets);
     setSets(newSets);
   }
 
@@ -214,11 +204,7 @@ function ExerciseDisplay({
     setEditingName(true);
   }
   const { mutate: updateDescription } =
-    api.getWorkouts.updateExerciseDescription.useMutation({
-      onSuccess(data) {
-        console.log(data);
-      },
-    });
+    api.getWorkouts.updateExerciseDescription.useMutation({});
   function handleSaveExercise() {
     setEditingName(false);
     updateDescription({ exerciseId: exercise.exerciseId, description });
@@ -252,11 +238,7 @@ function ExerciseDisplay({
   }
 
   const { mutate: recordExerciseFeedback } =
-    api.getWorkouts.recordExerciseFeedback.useMutation({
-      onSuccess(data) {
-        console.log(data);
-      },
-    });
+    api.getWorkouts.recordExerciseFeedback.useMutation({});
 
   const [exerciseCompleted, setExerciseCompleted] = useState(false);
   const [postExerciseSurveyCompleted, setPostExerciseSurveyCompleted] =
@@ -333,7 +315,7 @@ function ExerciseDisplay({
       key={exercise.description}
       className="mx-1 my-1 w-full rounded-xl bg-slate-700  p-2 shadow-md"
     >
-      <div className="flex flex-row items-center">
+      <div className="flex flex-row items-center pb-1">
         <div className="flex items-center justify-center px-1">
           <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <DropdownMenuTrigger asChild>
@@ -588,7 +570,7 @@ function ExerciseDisplay({
             </DialogContent>
           </Dialog>
         </div>
-        <div className="flex flex-row items-end justify-between py-1 font-semibold">
+        <div className="flex flex-row items-end justify-between font-semibold">
           {editingName ? (
             <Input
               type="text"
@@ -624,7 +606,6 @@ function ExerciseDisplay({
                 set={set}
                 activeSet={activeSet}
                 index={index}
-                removeSet={handleRemoveSet}
                 updateSets={handleSetChange}
                 cascadeWeightChange={cascadeWeightChange}
                 startSurvey={startSurvey}

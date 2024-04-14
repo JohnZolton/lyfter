@@ -2,7 +2,6 @@ import type { exerciseSet } from "@prisma/client";
 import { useState, useEffect } from "react";
 import { api } from "~/utils/api";
 import PerformanceWarning from "./performancewarning";
-import { start } from "repl";
 import { setTimeout } from "timers";
 
 interface SetDisplayProps {
@@ -17,7 +16,6 @@ interface SetDisplayProps {
     },
     index: number
   ) => void;
-  removeSet: (index: number) => void;
   cascadeWeightChange: (index: number, weight: number) => void;
   startSurvey: () => void;
   feedbackLogged: boolean;
@@ -28,7 +26,6 @@ function SetDisplay({
   activeSet,
   set,
   updateSets,
-  removeSet,
   cascadeWeightChange,
   startSurvey,
   feedbackLogged,
@@ -37,14 +34,7 @@ function SetDisplay({
   const [reps, setReps] = useState(set?.reps || null);
   const [rir, setRir] = useState(set?.rir || null);
 
-  const { mutate: recordSet } = api.getWorkouts.updateSets.useMutation({
-    onSuccess(data) {
-      console.log(data);
-    },
-    onError(error) {
-      console.log("error updateing sets: ", error);
-    },
-  });
+  const { mutate: recordSet } = api.getWorkouts.updateSets.useMutation();
 
   useEffect(() => {
     if (set.weight) {
@@ -61,8 +51,6 @@ function SetDisplay({
       });
     }
   }, [set?.weight, set?.reps, set?.rir]);
-
-  //useEffect(() => {}, [weight, reps, rir]);
 
   const handleWeightChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = parseInt(event.target.value) ?? null;

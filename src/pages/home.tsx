@@ -1,26 +1,13 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import { api } from "~/utils/api";
-
 import React, { useState, useEffect, SetStateAction } from "react";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
-
-import type {
-  WorkoutPlan,
-  Workout,
-  Exercise,
-  exerciseSet,
-} from "@prisma/client";
-import { v4 } from "uuid";
+import type { Workout, Exercise } from "@prisma/client";
 import { NavBar } from "~/pages/components/navbar";
 import PageLayout from "~/pages/components/pagelayout";
 import LoadingSpinner from "./components/loadingspinner";
-import SetDisplay from "./components/setdisplay";
-import WorkoutDisplay3 from "./components/workoutdisplay";
-import ExerciseDisplay from "./components/exercisedisplay";
 import { Button } from "../components/ui/button";
-import { useRouter } from "next/router";
-import { UserRound } from "lucide-react";
 import Link from "next/link";
 
 const Home: NextPage = () => {
@@ -94,7 +81,6 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
         exercises: Exercise[];
       })[] = [];
       userWorkouts.workoutPlan.workouts.map((workout) => {
-        console.log(workout);
         if (
           !uniqueWorkouts.has(workout.originalWorkoutId) &&
           workout.exercises.length > 0
@@ -138,7 +124,7 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
     );
   }
 
-  if (!todaysWorkout) {
+  if (workoutPlan && workoutPlan.length > 0) {
     return (
       <div
         style={{ maxWidth: "600px", margin: "0 auto" }}

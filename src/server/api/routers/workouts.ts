@@ -869,4 +869,22 @@ export const getAllWorkouts = createTRPCRouter({
     }
     return workouts;
   }),
+
+  endWorkout: privateProcedure
+    .input(
+      z.object({
+        workoutId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const workout = await ctx.prisma.workout.update({
+        where: {
+          workoutId: input.workoutId,
+        },
+        data: {
+          isCompleted: true,
+        },
+      });
+      return workout;
+    }),
 });
