@@ -127,22 +127,12 @@ function ExerciseDisplay({
     api.getWorkouts.addNewExercise.useMutation({
       onSuccess(data) {
         addExercise(exerciseIndex, data);
-        console.log(data);
       },
     });
-  const { mutate: deleteExercise } = api.getWorkouts.deleteExercise.useMutation(
-    {
-      onSuccess(data) {
-        console.log(data);
-      },
-    }
-  );
+  const { mutate: deleteExercise } =
+    api.getWorkouts.deleteExercise.useMutation();
 
-  const { mutate: recordNewSet } = api.getWorkouts.createSet.useMutation({
-    onSuccess(data) {
-      console.log(data);
-    },
-  });
+  const { mutate: recordNewSet } = api.getWorkouts.createSet.useMutation();
 
   function handleAddSet() {
     const lastSet = sets[sets.length - 1];
