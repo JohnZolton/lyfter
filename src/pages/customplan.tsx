@@ -28,6 +28,7 @@ import {
   DialogTrigger,
   DialogClose,
 } from "~/components/ui/dialog";
+import { useRouter } from "next/router";
 
 type ExerciseTemplate = {
   id: string;
@@ -101,12 +102,19 @@ function createUniqueId(): string {
 }
 
 function WorkoutPlanForm() {
+  const utils = api.useContext();
+  const router = useRouter();
   const [planDescription, setPlanDescription] = useState("");
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan>(emptyWorkoutPlan);
   const [isReady, setIsReady] = useState(false);
   const { mutate: savePlan } = api.getWorkouts.newTestPlanTwo.useMutation({
     onSuccess: (gotWorkout) => {
       console.log(gotWorkout);
+      utils.getWorkouts.getUniqueWeekWorkouts.invalidate();
+      void router.push({
+        pathname: "/home",
+        query: { refetch: true },
+      });
     },
   });
 
@@ -368,7 +376,14 @@ function WorkoutDisplay({
             <SelectTrigger>
               <SelectValue placeholder="Select Day" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent
+              ref={(ref) => {
+                if (!ref) return;
+                ref.ontouchstart = (e) => {
+                  e.preventDefault();
+                };
+              }}
+            >
               <SelectGroup>
                 <SelectLabel>Day</SelectLabel>
                 <SelectItem value="Monday">Monday</SelectItem>
@@ -499,7 +514,14 @@ function ExerciseForm({
           <SelectTrigger>
             <SelectValue placeholder="# of sets" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent
+            ref={(ref) => {
+              if (!ref) return;
+              ref.ontouchstart = (e) => {
+                e.preventDefault();
+              };
+            }}
+          >
             <SelectGroup>
               <SelectLabel>Sets</SelectLabel>
               <SelectItem value="1">1 set</SelectItem>
@@ -523,7 +545,14 @@ function ExerciseForm({
           <SelectTrigger>
             <SelectValue placeholder="Muscle Group" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent
+            ref={(ref) => {
+              if (!ref) return;
+              ref.ontouchstart = (e) => {
+                e.preventDefault();
+              };
+            }}
+          >
             <SelectGroup>
               <SelectLabel>Muscle Group</SelectLabel>
               <SelectItem value="Chest">Chest</SelectItem>

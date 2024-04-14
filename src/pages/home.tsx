@@ -58,8 +58,11 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
     | undefined
   >();
 
-  const { data: userWorkouts, isLoading } =
-    api.getWorkouts.getUniqueWeekWorkouts.useQuery();
+  const {
+    data: userWorkouts,
+    isLoading,
+    refetch,
+  } = api.getWorkouts.getUniqueWeekWorkouts.useQuery();
 
   useEffect(() => {
     setTitle(

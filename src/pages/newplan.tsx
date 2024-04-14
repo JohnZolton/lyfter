@@ -19,6 +19,7 @@ import {
 } from "../components/ui/dialog";
 import { pplPlanArrayTwo, maintenance } from "../lib/workout";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 const Home: NextPage = () => {
   return (
@@ -83,12 +84,19 @@ function NewWorkoutMenu() {
   );
 }
 function PreBuiltPlans() {
+  const router = useRouter();
   const { mutate: makePlan, isLoading } =
     api.getWorkouts.newTestPlanTwo.useMutation({
       onSuccess(data, variables, context) {
         console.log(data);
+        utils.getWorkouts.getUniqueWeekWorkouts.invalidate();
+        void router.push({
+          pathname: "/home",
+          query: { refetch: true },
+        });
       },
     });
+  const utils = api.useContext();
 
   function makeMaintenance() {
     makePlan({ description: "Maintenance 2x", workouts: maintenance });
