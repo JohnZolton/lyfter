@@ -137,8 +137,11 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
                 key={workout.workoutId}
                 className="my-2 flex items-center justify-between"
               >
-                <div className="text-lg font-semibold text-slate-100">
-                  {workout.description}: {workout.nominalDay}
+                <div className="text-slate-100">
+                  <div className="text-ls font-semibold">
+                    {workout.description}
+                  </div>
+                  <div>{workout.nominalDay}</div>
                 </div>
                 <Button asChild>
                   <Link href={`/workout/${workout.workoutId}`} prefetch>
