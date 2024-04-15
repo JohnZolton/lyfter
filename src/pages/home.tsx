@@ -8,6 +8,7 @@ import { NavBar } from "~/pages/components/navbar";
 import PageLayout from "~/pages/components/pagelayout";
 import LoadingSpinner from "./components/loadingspinner";
 import { Button } from "../components/ui/button";
+import { Skeleton } from "../components/ui/skeleton";
 import Link from "next/link";
 
 const Home: NextPage = () => {
@@ -121,8 +122,12 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center p-10">
-        <LoadingSpinner />
+      <div className="flex flex-col justify-center gap-y-4 bg-slate-800 p-4 shadow-md">
+        <Skeleton className="h-14 w-full" />
+        <Skeleton className="h-14 w-full" />
+        <Skeleton className="h-14 w-full" />
+        <Skeleton className="h-14 w-full" />
+        <Skeleton className="h-14 w-full" />
       </div>
     );
   }
