@@ -15,7 +15,7 @@ import LoadingSpinner from "./components/loadingspinner";
 import MenuLayout from "./components/menulayout";
 import PerformanceWarning from "./components/performancewarning";
 import { Button } from "~/components/ui/button";
-import { ScrollArea } from "~/components/ui/scroll-area";
+import { Skeleton } from "../components/ui/skeleton";
 
 const Home: NextPage = () => {
   return (
@@ -75,7 +75,15 @@ function Workouts() {
   >();
 
   if (workoutsLoading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="flex w-full flex-col justify-center gap-y-4 bg-slate-800 p-4 shadow-md">
+        <Skeleton className="h-14 w-full" />
+        <Skeleton className="h-14 w-full" />
+        <Skeleton className="h-14 w-full" />
+        <Skeleton className="h-14 w-full" />
+        <Skeleton className="h-14 w-full" />
+      </div>
+    );
   }
 
   if (!workoutPlans || workoutPlans === undefined) {
@@ -98,11 +106,6 @@ function Workouts() {
     <div className="flex w-full flex-wrap pt-5">
       {selectedPlan && <DisplayPlan plan={selectedPlan} />}
       <div className="w-full">
-        {!selectedPlan && (
-          <div className="mb-4 text-center text-2xl font-bold ">
-            Workout Plans:{" "}
-          </div>
-        )}
         {!selectedPlan && (
           <MenuLayout>
             {!selectedPlan &&
