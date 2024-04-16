@@ -37,6 +37,7 @@
     "next": "^13.2.4",
     "next-auth": "4.20.1",
     "nextjs": "^0.0.3",
+    "posthog-js": "^1.125.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "superjson": "1.12.2",
