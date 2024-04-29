@@ -297,6 +297,11 @@ function ExerciseDisplay({
     }
   }
 
+  function handleMissedTarget(index: number) {
+    const newSets = sets.slice(0, index + 1);
+    setSets(newSets);
+  }
+
   if (!exercise) {
     return <div></div>;
   }
@@ -594,6 +599,7 @@ function ExerciseDisplay({
               <SetDisplay
                 key={index}
                 set={set}
+                handleMissedTarget={handleMissedTarget}
                 activeSet={activeSet}
                 index={index}
                 updateSets={handleSetChange}

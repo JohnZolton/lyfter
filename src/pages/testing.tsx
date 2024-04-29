@@ -67,7 +67,7 @@ function NewWorkoutMenu() {
 
   return (
     <div className="mt-4 flex flex-col items-center gap-y-4 rounded-lg ">
-      <Button onClick={() => console.log("todo")}>Make new week</Button>
+      <Button onClick={() => handleDummyData()}>Make new week</Button>
       <Button onClick={() => handleResetPlan}>Reset Plan</Button>
     </div>
   );

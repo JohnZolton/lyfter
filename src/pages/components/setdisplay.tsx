@@ -16,6 +16,7 @@ interface SetDisplayProps {
     },
     index: number
   ) => void;
+  handleMissedTarget: (index: number) => void;
   cascadeWeightChange: (index: number, weight: number) => void;
   startSurvey: () => void;
   feedbackLogged: boolean;
@@ -26,6 +27,7 @@ function SetDisplay({
   activeSet,
   set,
   updateSets,
+  handleMissedTarget,
   cascadeWeightChange,
   startSurvey,
   feedbackLogged,
@@ -58,7 +60,7 @@ function SetDisplay({
       setTimeout(() => 200);
       startSurvey();
     }
-    if (value !== null && value >= 0) {
+    if (value !== null) {
       const updatedSet = { ...set, weight: value };
       setWeight(value);
       updateSets(updatedSet, index);
@@ -81,12 +83,34 @@ function SetDisplay({
       const updatedSet = { ...set, reps: value };
       updateSets(updatedSet, index);
       setReps(parseInt(event.target.value));
+      setWeight(weight);
       recordSet({
         setId: set.setId,
         weight: weight ?? 0,
         reps: value ?? 0,
         rir: rir ?? 3,
       });
+      if (
+        reps !== undefined &&
+        reps !== null &&
+        set.targetReps !== undefined &&
+        set.targetReps !== null &&
+        set.priorSet &&
+        set.priorSet.reps &&
+        reps < set.targetReps &&
+        set.priorSet &&
+        reps < set.priorSet.reps &&
+        weight !== undefined &&
+        weight !== null &&
+        set.targetWeight !== undefined &&
+        set.targetWeight !== null &&
+        set.priorSet &&
+        set.priorSet.weight &&
+        (weight < set.targetWeight ||
+          (set.priorSet && weight < set.priorSet.weight))
+      ) {
+        handleMissedTarget(index);
+      }
     }
   };
 

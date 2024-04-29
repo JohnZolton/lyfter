@@ -171,7 +171,7 @@ export const getAllWorkouts = createTRPCRouter({
             .map((set, index) => ({
               targetWeight: set.weight ? set.weight + 1 : 0,
               targetReps: set.reps ? set.reps + 1 : 0,
-              weight: 0,
+              weight: set.weight ? set.weight + 1 : 0,
               rir: set.rir ?? (set.rir! > 1 ? set.rir! - 1 : 0),
               setNumber: index,
               priorSet: set.setId ? { connect: { setId: set.setId } } : null,
@@ -565,9 +565,9 @@ export const getAllWorkouts = createTRPCRouter({
           const newSets: newSetTemplate[] = exercise.sets
             .sort((a, b) => a.setNumber - b.setNumber)
             .map((set, index) => ({
-              targetWeight: set.weight ? set.weight + 5 : 0,
+              targetWeight: set.weight ? set.weight + 1 : 0,
+              weight: set.weight ? set.weight + 1 : 0,
               targetReps: set.reps ? set.reps + 1 : 5,
-              weight: 0,
               rir: set.rir ?? (set.rir! > 1 ? set.rir! - 1 : 0),
               setNumber: index,
               lastSetId: set.setId,
