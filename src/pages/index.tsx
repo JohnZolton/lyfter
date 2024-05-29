@@ -15,14 +15,14 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <PageLayout>
-        <div className="mx-auto flex flex-col items-center justify-center gap-12 px-4 py-12 text-center">
+        <div className="mx-auto mt-8 flex flex-col items-center justify-center gap-y-4 px-4 text-center">
           <img src="/image4.png" alt="Jacked Ostrich" />
           <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
             <span className="">Liftr</span>
           </h1>
           <h3 className="text-2xl text-white ">Your Workout Tracker</h3>
         </div>
-        <div>
+        <div className="mt-4">
           <div className="flex flex-col items-center">
             <SignedOut>
               {/* Signed out users get sign in button */}
@@ -36,7 +36,7 @@ const Home: NextPage = () => {
               </Link>
             </SignedIn>
           </div>
-          <div className="mt-12 flex flex-col  gap-y-4 px-4 pb-12 text-left text-xl">
+          <div className="mt-4 flex flex-col  gap-y-4 px-4 pb-12 text-left text-xl">
             <div className="text-center text-2xl font-semibold">
               What is this?
             </div>
@@ -70,13 +70,13 @@ const Home: NextPage = () => {
               increasing over time.
             </div>
             <div>
-              Can build custom workouts, use premade plans, modify existing
+              Build custom workouts, use premade plans, modify existing
               workouts, add or remove exercises and sets manually, swap out
               exercises, rearrange workouts and exercises.
             </div>
             <div>
-              &apos;All Workouts&apos; view gives a bird&apos;s eye view of all
-              your workouts over time so you can see your progress.
+              Get a bird&apos;s eye view with &apos;All Workouts&apos; to see
+              see your progress.
             </div>
             <div>Built for mobile first, who brings a laptop to the gym?</div>
           </div>
