@@ -36,6 +36,7 @@ const Home: NextPage = () => {
 
   const { mutate: getWorkout } = api.getWorkouts.getWorkoutById.useMutation({
     onSuccess: (gotWorkout) => {
+      console.log("got workout");
       console.log(gotWorkout);
       setWorkout(gotWorkout.workout);
     },
@@ -126,7 +127,7 @@ function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
   const { mutate: makeNewWorkout } =
     api.getWorkouts.createNewWorkoutFromPrevious.useMutation({
       onSuccess(data) {
-        setTodaysWorkout(data);
+        void router.push(`/workout/${data.workoutId}`);
       },
     });
 

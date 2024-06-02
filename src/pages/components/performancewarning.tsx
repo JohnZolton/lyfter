@@ -32,8 +32,9 @@ function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
   ) {
     if (!priorSet) return false;
     return (
-      currentSet.weight! >= priorSet.weight! &&
-      currentSet.reps! >= priorSet.reps!
+      currentSet.weight! > priorSet.weight! ||
+      (currentSet.weight! >= priorSet.weight! &&
+        currentSet.reps! > priorSet.reps!)
     );
   }
 

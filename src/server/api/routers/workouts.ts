@@ -611,7 +611,7 @@ export const getAllWorkouts = createTRPCRouter({
                   const setData = {
                     setNumber: index,
                     targetWeight: set.targetWeight,
-                    weight: 0,
+                    weight: set.targetWeight,
                     targetReps: set.targetReps,
                     rir: set.rir,
                     lastSetId: set.lastSetId ?? null,
