@@ -68,13 +68,6 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
   const refetchQuery = router.query.refetch;
 
   useEffect(() => {
-    if (refetchQuery) {
-      refetch().then(() => {
-        router.replace("/home", undefined, { shallow: true });
-      });
-    }
-  }, [refetchQuery, refetch, router]);
-  useEffect(() => {
     setTitle(
       todaysWorkout
         ? `${todaysWorkout?.description}: ${todaysWorkout?.nominalDay}`
