@@ -135,6 +135,7 @@ function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
   useEffect(() => {
     if (todaysWorkout) {
       const oneWeek = 7 * 24 * 60 * 60 * 1000;
+      const immediate = 1000;
       if (today.getTime() - todaysWorkout.date.getTime() > oneWeek) {
         if (!isNewWorkoutCreated) {
           isNewWorkoutCreated = true;

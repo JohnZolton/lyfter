@@ -477,14 +477,26 @@ export const getAllWorkouts = createTRPCRouter({
       include: {
         workouts: {
           orderBy: [{ date: "desc" }],
-          include: {
-            exercises: true,
-          },
         },
       },
     });
 
-    return { workoutPlan };
+    const workoutMap = new Map<string, Workout>();
+    workoutPlan?.workouts.forEach((workout) => {
+      if (workout.originalWorkoutId) {
+        const existingWorkout = workoutMap.get(workout.originalWorkoutId);
+        if (
+          !existingWorkout ||
+          (workout.workoutNumber ?? -Infinity) >
+            (existingWorkout.workoutNumber ?? -Infinity)
+        ) {
+          workoutMap.set(workout.originalWorkoutId, workout);
+        }
+      }
+    });
+    const filteredPlan = Array.from(workoutMap.values());
+    console.log(filteredPlan);
+    return { filteredPlan };
   }),
 
   fetchWorkoutById: privateProcedure
@@ -598,6 +610,7 @@ export const getAllWorkouts = createTRPCRouter({
           userId: ctx.userId,
           description: priorWorkout.description,
           nominalDay: priorWorkout.nominalDay,
+          planId: priorWorkout.planId,
           workoutNumber: (priorWorkout.workoutNumber || 0) + 1,
           originalWorkoutId:
             priorWorkout.originalWorkoutId || priorWorkout.workoutId,

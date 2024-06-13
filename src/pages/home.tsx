@@ -1,7 +1,7 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import { api } from "~/utils/api";
-import React, { useState, useEffect, SetStateAction } from "react";
+import React, { useState, useEffect, SetStateAction, useReducer } from "react";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import type { Workout, Exercise } from "@prisma/client";
 import { NavBar } from "~/pages/components/navbar";
@@ -10,6 +10,7 @@ import LoadingSpinner from "./components/loadingspinner";
 import { Button } from "../components/ui/button";
 import { Skeleton } from "../components/ui/skeleton";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 const Home: NextPage = () => {
   const [workoutTitle, setWorkoutTitle] = useState<string | undefined>();
@@ -49,9 +50,7 @@ interface UiHandlerProps {
   setTitle: React.Dispatch<SetStateAction<string | undefined>>;
 }
 function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
-  const [workoutPlan, setWorkoutPlan] = useState<
-    (Workout & { exercises: Exercise[] })[] | undefined
-  >();
+  const [workoutPlan, setWorkoutPlan] = useState<Workout[] | undefined>();
   const [todaysWorkout, setTodaysWorkout] = useState<
     | (Workout & {
         exercises: Exercise[];
@@ -65,6 +64,16 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
     refetch,
   } = api.getWorkouts.getUniqueWeekWorkouts.useQuery();
 
+  const router = useRouter();
+  const refetchQuery = router.query.refetch;
+
+  useEffect(() => {
+    if (refetchQuery) {
+      refetch().then(() => {
+        router.replace("/home", undefined, { shallow: true });
+      });
+    }
+  }, [refetchQuery, refetch, router]);
   useEffect(() => {
     setTitle(
       todaysWorkout
@@ -74,35 +83,12 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
   }, [todaysWorkout]);
 
   useEffect(() => {
-    if (
-      userWorkouts &&
-      !todaysWorkout &&
-      !workoutPlan &&
-      userWorkouts.workoutPlan
-    ) {
-      const uniqueWorkouts = new Set();
-      const workoutsToDisplay: (Workout & {
-        exercises: Exercise[];
-      })[] = [];
-      userWorkouts.workoutPlan.workouts.map((workout) => {
-        if (
-          !uniqueWorkouts.has(workout.originalWorkoutId) &&
-          workout.exercises.length > 0
-        ) {
-          uniqueWorkouts.add(workout.originalWorkoutId);
-          workoutsToDisplay.push(workout);
-        }
-      });
-
-      setWorkoutPlan(sortWorkoutsByNominalDay(workoutsToDisplay));
+    if (userWorkouts && !todaysWorkout && !workoutPlan) {
+      setWorkoutPlan(sortWorkoutsByNominalDay(userWorkouts.filteredPlan));
     }
   }, [userWorkouts, todaysWorkout]);
 
-  function sortWorkoutsByNominalDay(
-    workouts: (Workout & {
-      exercises: Exercise[];
-    })[]
-  ) {
+  function sortWorkoutsByNominalDay(workouts: Workout[]) {
     const daysOfWeek = [
       "Sunday",
       "Monday",
