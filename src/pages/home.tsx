@@ -98,6 +98,12 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
     });
     return workouts;
   }
+  const { mutate: sendToWorkout } =
+    api.getWorkouts.startOrCreateNewWorkoutFromPrevious.useMutation({
+      onSuccess(workoutId) {
+        void router.push(`/workout/${workoutId}`);
+      },
+    });
 
   if (isLoading) {
     return (
@@ -130,10 +136,12 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
                   </div>
                   <div>{workout.nominalDay}</div>
                 </div>
-                <Button asChild>
-                  <Link href={`/workout/${workout.workoutId}`} prefetch>
-                    Begin
-                  </Link>
+                <Button
+                  onClick={() =>
+                    sendToWorkout({ priorWorkoutId: workout.workoutId })
+                  }
+                >
+                  Begin
                 </Button>
               </div>
             ))}

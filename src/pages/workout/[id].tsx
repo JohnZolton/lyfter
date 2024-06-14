@@ -125,9 +125,9 @@ function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
   const today = new Date();
 
   const { mutate: makeNewWorkout } =
-    api.getWorkouts.createNewWorkoutFromPrevious.useMutation({
-      onSuccess(data) {
-        void router.push(`/workout/${data.workoutId}`);
+    api.getWorkouts.startOrCreateNewWorkoutFromPrevious.useMutation({
+      onSuccess(workoutId) {
+        void router.push(`/workout/${workoutId}`);
       },
     });
 

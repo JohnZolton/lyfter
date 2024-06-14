@@ -281,13 +281,32 @@ export const getAllWorkouts = createTRPCRouter({
     );
     console.log("final week: ", finalWeek);
 
-    if (finalWeek) {
+    const workoutMap = new Map<
+      string,
+      Workout & { exercises: (Exercise & { sets: exerciseSet[] })[] }
+    >();
+    currentPlan?.workouts.forEach((workout) => {
+      if (workout.originalWorkoutId) {
+        const existingWorkout = workoutMap.get(workout.originalWorkoutId);
+        if (
+          !existingWorkout ||
+          (workout.workoutNumber ?? -Infinity) >
+            (existingWorkout.workoutNumber ?? -Infinity)
+        ) {
+          workoutMap.set(workout.originalWorkoutId, workout);
+        }
+      }
+    });
+    const finalWorkouts = Array.from(workoutMap.values());
+    console.log(finalWorkouts);
+
+    if (finalWorkouts) {
       const newPlan = await ctx.prisma.workoutPlan.create({
         data: {
           userId: ctx.userId,
           description: currentPlan?.description ?? "No Description",
           workouts: {
-            create: finalWeek.map((workout) => ({
+            create: finalWorkouts.map((workout) => ({
               userId: ctx.userId,
               description: workout.description,
               nominalDay: workout.nominalDay,
@@ -541,7 +560,7 @@ export const getAllWorkouts = createTRPCRouter({
       return { workout };
     }),
 
-  createNewWorkoutFromPrevious: privateProcedure
+  startOrCreateNewWorkoutFromPrevious: privateProcedure
     .input(
       z.object({
         priorWorkoutId: z.string(),
@@ -560,6 +579,15 @@ export const getAllWorkouts = createTRPCRouter({
       });
       if (!priorWorkout) {
         throw new Error("Prior workout not found");
+      }
+      if (priorWorkout) {
+        const workoutDate = new Date(priorWorkout.date);
+        const currentDate = new Date();
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(currentDate.getDate() - 7);
+        if (workoutDate >= oneWeekAgo) {
+          return priorWorkout.workoutId;
+        }
       }
 
       interface newSetTemplate {
@@ -646,7 +674,7 @@ export const getAllWorkouts = createTRPCRouter({
           },
         },
       });
-      return newWorkout;
+      return newWorkout.workoutId;
     }),
 
   addNewExercise: privateProcedure
