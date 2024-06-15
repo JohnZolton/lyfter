@@ -658,11 +658,14 @@ function ExerciseDisplay({
               }}
             />
           ) : (
-            <div>{description} - </div>
+            <div>
+              {description}
+              <span className="text-sm font-light">
+                {" "}
+                - {exercise.muscleGroup}
+              </span>
+            </div>
           )}
-          <div className="justify-end px-1 text-sm font-light">
-            {exercise.muscleGroup}
-          </div>
         </div>
       </div>
       <div className="rounded-md bg-slate-800 py-1">
