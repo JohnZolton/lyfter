@@ -581,15 +581,21 @@ export const getAllWorkouts = createTRPCRouter({
               sets: newSets,
             };
 
-            if (exercise.pump === Pump.low) {
+            if (
+              exercise.pump === Pump.low ||
+              (exercise.pump == Pump.medium && exercise.RPE !== RPE.veryHard)
+            ) {
               newExercise.sets.push({
                 targetWeight: newSets[newSets.length - 1]!.targetWeight,
                 targetReps: 0,
-                weight: 0,
+                weight: newSets[newSets.length - 1]!.weight,
                 rir: 3,
                 setNumber: newSets.length,
                 lastSetId: "",
               });
+            }
+            if (exercise.RPE === RPE.veryHard) {
+              newExercise.sets.pop();
             }
             return newExercise;
           })

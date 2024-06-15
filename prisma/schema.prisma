@@ -245,11 +245,13 @@ enum Pump {
   low
   medium
   high
+  veryHigh
 }
  enum RPE {
   easy
   medium
   hard
+  veryHard
  }
 
 

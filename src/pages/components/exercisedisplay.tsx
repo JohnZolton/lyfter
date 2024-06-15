@@ -1,5 +1,5 @@
 import { v4 } from "uuid";
-import { Exercise, exerciseSet, MuscleGroup } from "@prisma/client";
+import { Exercise, exerciseSet, MuscleGroup, Pump, RPE } from "@prisma/client";
 import { useState } from "react";
 import { useEffect } from "react";
 import { api } from "~/utils/api";
@@ -539,8 +539,8 @@ function ExerciseDisplay({
             open={exerciseCompleted && !postExerciseSurveyCompleted}
             onOpenChange={setExerciseCompleted}
           >
-            <DialogContent>
-              <DialogHeader>
+            <DialogContent className="w-xs items-center justify-center px-4 md:max-w-md">
+              <DialogHeader className="mx-auto text-center">
                 <DialogTitle>Exercise Feedback</DialogTitle>
               </DialogHeader>
               <DialogDescription>
@@ -549,16 +549,22 @@ function ExerciseDisplay({
                     How&apos;s your pump?
                   </div>
                   <ToggleGroup
+                    className=""
                     value={pump}
                     type="single"
-                    size={"lg"}
+                    size={"sm"}
                     onValueChange={setPump}
                   >
-                    <ToggleGroupItem value="low">What pump?</ToggleGroupItem>
-                    <ToggleGroupItem value="medium">
-                      Pretty good
+                    <ToggleGroupItem value={Pump.low}>
+                      What pump?
                     </ToggleGroupItem>
-                    <ToggleGroupItem value="high">Insane</ToggleGroupItem>
+                    <ToggleGroupItem value={Pump.medium}>
+                      Moderate
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value={Pump.high}>Solid</ToggleGroupItem>
+                    <ToggleGroupItem value={Pump.veryHigh}>
+                      Insane
+                    </ToggleGroupItem>
                   </ToggleGroup>
                   <div className="text-center text-lg font-semibold">
                     How hard was that?
@@ -566,15 +572,21 @@ function ExerciseDisplay({
                   <ToggleGroup
                     type="single"
                     value={rpe}
-                    size={"lg"}
+                    size={"sm"}
                     onValueChange={setRPE}
                   >
-                    <ToggleGroupItem value="easy">Easy</ToggleGroupItem>
-                    <ToggleGroupItem value="medium">
-                      Pretty solid
+                    <ToggleGroupItem value={RPE.easy}>Easy</ToggleGroupItem>
+                    <ToggleGroupItem value={RPE.medium}>
+                      Moderate
                     </ToggleGroupItem>
-                    <ToggleGroupItem value="hard">
-                      Pushed my limits
+                    <ToggleGroupItem value={RPE.hard}>
+                      Challenging
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value={RPE.veryHard}>
+                      <div className="flex flex-col text-xs">
+                        <span>Pushed</span>
+                        <span>my limits</span>
+                      </div>
                     </ToggleGroupItem>
                   </ToggleGroup>
                   <div className="flex items-center justify-center">
@@ -606,7 +618,7 @@ function ExerciseDisplay({
                   </div>
                   <ToggleGroup
                     type="single"
-                    size={"lg"}
+                    size={"default"}
                     onValueChange={setSoreness}
                   >
                     <ToggleGroupItem value="a while ago">

@@ -44,15 +44,7 @@ function SetDisplay({
     }
     setReps(set?.reps);
     setRir(set?.rir);
-    if (weight !== set.weight || reps !== set.reps || rir !== set.rir) {
-      recordSet({
-        setId: set.setId,
-        weight: set.weight,
-        reps: set.reps,
-        rir: set.rir,
-      });
-    }
-  }, [set?.weight, set?.reps, set?.rir]);
+  }, [set]);
 
   const handleWeightChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = parseInt(event.target.value) ?? null;
@@ -123,13 +115,13 @@ function SetDisplay({
       <div className="flex max-w-full flex-row items-center gap-x-1">
         <select
           className="mr-2 rounded bg-gray-700 p-2 px-3 text-center text-sm text-white "
-          value={weight ?? ""}
+          value={weight ?? 0}
           onChange={handleWeightChange}
         >
           <option value={""}></option>
-          {Array.from({ length: 501 }, (_, i) => (
-            <option key={i} value={i}>
-              {i}
+          {Array.from({ length: 701 }, (_, i) => (
+            <option key={i - 200} value={i - 200}>
+              {i - 200}
             </option>
           ))}
         </select>
