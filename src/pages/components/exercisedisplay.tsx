@@ -340,50 +340,6 @@ function ExerciseDisplay({
               <EllipsisVertical />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                    Replace Exercise
-                  </DropdownMenuItem>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Replace Exercise</DialogTitle>
-                  </DialogHeader>
-                  <DialogDescription>
-                    <Input
-                      value={newExDescription}
-                      onChange={(event) =>
-                        setNewExDescription(event.target.value)
-                      }
-                      className=""
-                      type="text"
-                      placeholder="Exercise Title"
-                    />
-
-                    <DialogClose asChild onBlur={() => setIsMenuOpen(false)}>
-                      <div className="flex flex-row items-center justify-between">
-                        <Button
-                          onClick={() =>
-                            handleReplaceExercise(newExDescription, true)
-                          }
-                        >
-                          Just once
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          onClick={() =>
-                            handleReplaceExercise(newExDescription, false)
-                          }
-                        >
-                          Permanently
-                        </Button>
-                      </div>
-                    </DialogClose>
-                  </DialogDescription>
-                </DialogContent>
-              </Dialog>
               <DropdownMenuItem onClick={() => handleAddSet()}>
                 Add Set
               </DropdownMenuItem>
@@ -415,7 +371,51 @@ function ExerciseDisplay({
                   </DialogDescription>
                 </DialogContent>
               </Dialog>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                    Replace Exercise
+                  </DropdownMenuItem>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Replace Exercise</DialogTitle>
+                  </DialogHeader>
+                  <DialogDescription>
+                    <div className="flex flex-col items-center gap-y-4">
+                      <Input
+                        value={newExDescription}
+                        onChange={(event) =>
+                          setNewExDescription(event.target.value)
+                        }
+                        className=""
+                        type="text"
+                        placeholder="Exercise Title"
+                      />
 
+                      <DialogClose asChild onBlur={() => setIsMenuOpen(false)}>
+                        <div className="flex flex-row items-center gap-x-4">
+                          <Button
+                            onClick={() =>
+                              handleReplaceExercise(newExDescription, true)
+                            }
+                          >
+                            Just once
+                          </Button>
+                          <Button
+                            type="button"
+                            onClick={() =>
+                              handleReplaceExercise(newExDescription, false)
+                            }
+                          >
+                            Permanently
+                          </Button>
+                        </div>
+                      </DialogClose>
+                    </div>
+                  </DialogDescription>
+                </DialogContent>
+              </Dialog>
               <Dialog>
                 <DialogTrigger asChild>
                   <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
