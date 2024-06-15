@@ -68,14 +68,6 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
   const refetchQuery = router.query.refetch;
 
   useEffect(() => {
-    setTitle(
-      todaysWorkout
-        ? `${todaysWorkout?.description}: ${todaysWorkout?.nominalDay}`
-        : undefined
-    );
-  }, [todaysWorkout]);
-
-  useEffect(() => {
     if (userWorkouts && !todaysWorkout && !workoutPlan) {
       setWorkoutPlan(sortWorkoutsByNominalDay(userWorkouts.filteredPlan));
     }
@@ -98,16 +90,10 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
     });
     return workouts;
   }
-  const { mutate: sendToWorkout } =
-    api.getWorkouts.startOrCreateNewWorkoutFromPrevious.useMutation({
-      onSuccess(workoutId) {
-        void router.push(`/workout/${workoutId}`);
-      },
-    });
 
   if (isLoading) {
     return (
-      <div className="flex flex-col justify-center gap-y-4 bg-slate-800 p-4 shadow-md">
+      <div className="max-w-600 flex flex-col justify-center gap-y-4 bg-slate-800 p-4 shadow-md">
         <Skeleton className="h-14 w-full" />
         <Skeleton className="h-14 w-full" />
         <Skeleton className="h-14 w-full" />
@@ -136,13 +122,7 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
                   </div>
                   <div>{workout.nominalDay}</div>
                 </div>
-                <Button
-                  onClick={() =>
-                    sendToWorkout({ priorWorkoutId: workout.workoutId })
-                  }
-                >
-                  Begin
-                </Button>
+                <WorkoutButton workoutId={workout.workoutId} />
               </div>
             ))}
         </div>
@@ -150,4 +130,30 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
     );
   }
   return <div>Something went wrong</div>;
+}
+
+interface WorkoutButtonProps {
+  workoutId: string;
+}
+function WorkoutButton({ workoutId }: WorkoutButtonProps) {
+  const router = useRouter();
+  const { mutate: sendToWorkout, isLoading: workoutLoading } =
+    api.getWorkouts.startOrCreateNewWorkoutFromPrevious.useMutation({
+      onSuccess(workoutId) {
+        void router.push(`/workout/${workoutId}`);
+      },
+    });
+
+  if (workoutLoading) {
+    return (
+      <div className=" mx-4 flex items-center justify-between">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+  return (
+    <Button onClick={() => sendToWorkout({ priorWorkoutId: workoutId })}>
+      Begin
+    </Button>
+  );
 }

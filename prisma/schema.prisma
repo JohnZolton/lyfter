@@ -7,8 +7,8 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = env("POSTGRES_DB_PRISMA_URL") // uses connection pooling
-  directUrl = env("POSTGRES_DB_URL_NON_POOLING") // uses a direct connection
+  url = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
 }
 
 model Example {
@@ -50,6 +50,10 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  isSubscribed Boolean @default(false)
+  stripeCustomerId String? @unique
+  stripeCurrentPeriodEnd DateTime?
+  stripeSubscriptionId String? @unique
   accounts      Account[]
   sessions      Session[]
 }
@@ -62,6 +66,121 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+
+model OAReport {
+  id       String       @id @default(uuid()) @unique
+  date     DateTime  @default(now())
+  stripeTxId  String? @unique
+  completed Boolean @default(false)
+  paid Boolean @default(false)
+  orderTime DateTime @default(now())
+  userID   String
+  title String
+  specKey String
+  oaKey String?
+  claimKey String?
+  rawFeatures RawFeatureItem[]
+  features FeatureItem[]
+  files Reference[]
+  convoId Int?
+  convo Convo? 
+  @@index([userID, stripeTxId, id])
+}
+model RawFeatureItem {
+  id       Int      @id @default(autoincrement())
+  feature  String @db.Text()
+  reportID String
+  oaReport OAReport @relation(fields: [reportID], references: [id], onDelete: Cascade)
+  @@index([reportID])
+}
+model FeatureItem {
+  id       Int      @id @default(autoincrement())
+  userId String
+  feature  String @db.Text()
+  analyses Analysis[] @relation("FeatureAnalyses")
+  reportID String
+  completed Boolean @default(false)
+  oaReport OAReport @relation(fields: [reportID], references: [id] , onDelete: Cascade)
+
+  @@index([reportID])
+}
+model Analysis{
+  id       Int      @id @default(autoincrement())
+  conclusion  String @db.Text()
+  quote String? @db.Text()
+  source   String? @db.Text()
+  page Int?
+  featureItemId Int?
+  feature FeatureItem? @relation("FeatureAnalyses", fields: [featureItemId], references: [id], onDelete: Cascade)
+  @@index([featureItemId])
+}
+
+model Convo {
+  id       Int      @id @default(autoincrement()) @unique
+  reportId String @unique
+  report OAReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  messages Message[]  
+  @@index([reportId])
+}
+
+model Message {
+  id       Int      @id @default(autoincrement())
+  date     DateTime  @default(now())
+  query String @db.Text()
+  convoId Int
+  convo Convo @relation(fields: [convoId], references: [id], onDelete: Cascade)
+  result Result[]
+  @@index([convoId])
+}
+model Result {
+  id       Int      @id @default(autoincrement())
+  anticipated Boolean
+  messageId Int
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  cites Citation[]  
+  @@index([messageId])
+}
+
+model Citation {
+  id       Int      @id @default(autoincrement())
+  name String
+  page Int
+  resultId Int
+  result Result @relation(fields: [resultId], references: [id], onDelete: Cascade)
+  @@index([resultId])
+}
+
+
+enum UploadStatus {
+  PENDING
+  PROCESSING
+  FAILED
+  SUCCESS
+}
+
+model UploadFile {
+  id        String      @id @default(cuid())
+  title     String
+  userId  String
+  uploadStatus UploadStatus @default(PENDING)
+  url String
+  key String
+  @@index([userId, key])
+}
+model Reference {
+  id        String      @id @default(cuid())
+  reportId  String
+  title String
+  userId  String
+  key String
+  report    OAReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  @@index([reportId, userId])
+}
+
+
+
+
+// Liftr Stuff
 
 model WorkoutPlan {
   planId      String          @id @default(cuid())
@@ -100,6 +219,8 @@ model Exercise {
   exerciseOrder Int
   muscleGroup MuscleGroup
   workoutId String
+  temporary Boolean @default(false)
+  priorExerciseId String?
   feedbackRecorded Boolean @default(false)
   pump Pump?
   RPE RPE?

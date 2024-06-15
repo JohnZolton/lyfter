@@ -124,27 +124,6 @@ interface WorkoutUiProps {
 function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
   const today = new Date();
 
-  const { mutate: makeNewWorkout } =
-    api.getWorkouts.startOrCreateNewWorkoutFromPrevious.useMutation({
-      onSuccess(workoutId) {
-        void router.push(`/workout/${workoutId}`);
-      },
-    });
-
-  let isNewWorkoutCreated = false; //flag variable to avoid firing multiple times
-  useEffect(() => {
-    if (todaysWorkout) {
-      const oneWeek = 7 * 24 * 60 * 60 * 1000;
-      const immediate = 1000;
-      if (today.getTime() - todaysWorkout.date.getTime() > oneWeek) {
-        if (!isNewWorkoutCreated) {
-          isNewWorkoutCreated = true;
-          makeNewWorkout({ priorWorkoutId: todaysWorkout.workoutId });
-        }
-      }
-    }
-  }, [todaysWorkout]);
-
   useEffect(() => {
     if (todaysWorkout) {
       const allSetsCompleted = todaysWorkout.exercises.every((exercise) =>
@@ -153,7 +132,6 @@ function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
         )
       );
       setWorkoutComplete(allSetsCompleted);
-      console.log(todaysWorkout);
     }
   }, [todaysWorkout]);
   const [workoutComplete, setWorkoutComplete] = useState(false);

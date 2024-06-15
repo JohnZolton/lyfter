@@ -10,8 +10,6 @@ interface PerformanceWarningProps {
 }
 
 function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
-  console.log("Currnet Set: ");
-  console.log(currentSet);
   if (currentSet === undefined) {
     return <div></div>;
   }

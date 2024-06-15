@@ -246,8 +246,10 @@ function ExerciseDisplay({
     exerciseId: "fake",
     date: new Date(),
     description: "",
+    priorExerciseId: null,
     exerciseOrder: 0,
     muscleGroup: MuscleGroup.Chest,
+    temporary: false,
     workoutId: "",
     feedbackRecorded: false,
     pump: null,
@@ -302,6 +304,27 @@ function ExerciseDisplay({
     setSets(newSets);
   }
 
+  const [newExDescription, setNewExDescription] = useState("");
+  const { mutate: replaceExercise } =
+    api.getWorkouts.replaceExercise.useMutation({
+      onSuccess: (replacementExercise) => {
+        if (replacementExercise) {
+          console.log(replacementExercise);
+          removeExercise(exercise.workoutId, exercise.exerciseId);
+          addExercise(replacementExercise.exerciseOrder, replacementExercise);
+        }
+      },
+    });
+  function handleReplaceExercise(title: string, temporary: boolean) {
+    if (title) {
+      replaceExercise({
+        exerciseId: exercise.exerciseId,
+        title: title,
+        temporary: temporary,
+      });
+    }
+  }
+
   if (!exercise) {
     return <div></div>;
   }
@@ -317,6 +340,50 @@ function ExerciseDisplay({
               <EllipsisVertical />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                    Replace Exercise
+                  </DropdownMenuItem>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Replace Exercise</DialogTitle>
+                  </DialogHeader>
+                  <DialogDescription>
+                    <Input
+                      value={newExDescription}
+                      onChange={(event) =>
+                        setNewExDescription(event.target.value)
+                      }
+                      className=""
+                      type="text"
+                      placeholder="Exercise Title"
+                    />
+
+                    <DialogClose asChild onBlur={() => setIsMenuOpen(false)}>
+                      <div className="flex flex-row items-center justify-between">
+                        <Button
+                          onClick={() =>
+                            handleReplaceExercise(newExDescription, true)
+                          }
+                        >
+                          Just once
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() =>
+                            handleReplaceExercise(newExDescription, false)
+                          }
+                        >
+                          Permanently
+                        </Button>
+                      </div>
+                    </DialogClose>
+                  </DialogDescription>
+                </DialogContent>
+              </Dialog>
               <DropdownMenuItem onClick={() => handleAddSet()}>
                 Add Set
               </DropdownMenuItem>
