@@ -85,21 +85,14 @@ function SetDisplay({
       if (
         reps !== undefined &&
         reps !== null &&
-        set.targetReps !== undefined &&
-        set.targetReps !== null &&
         set.priorSet &&
         set.priorSet.reps &&
-        reps < set.targetReps &&
-        set.priorSet &&
         reps < set.priorSet.reps &&
         weight !== undefined &&
         weight !== null &&
-        set.targetWeight !== undefined &&
-        set.targetWeight !== null &&
-        set.priorSet &&
         set.priorSet.weight &&
-        (weight < set.targetWeight ||
-          (set.priorSet && weight < set.priorSet.weight))
+        set.priorSet &&
+        weight < set.priorSet.weight
       ) {
         handleMissedTarget(index);
       }

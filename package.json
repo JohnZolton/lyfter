@@ -30,6 +30,7 @@
     "@trpc/react-query": "^10.18.0",
     "@trpc/server": "^10.18.0",
     "@types/uuid": "^9.0.2",
+    "@vercel/kv": "^2.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "electron": "^25.2.0",
