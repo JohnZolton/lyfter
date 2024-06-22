@@ -18,7 +18,7 @@ import {
   DialogTrigger,
   DialogClose,
 } from "~/components/ui/dialog";
-import SignedIn, { SignedOut } from "../components/auth";
+import SignedIn, { SignInButton, SignedOut } from "../components/auth";
 
 const Home: NextPage = () => {
   const [workout, setWorkout] = useState<
@@ -66,7 +66,7 @@ const Home: NextPage = () => {
         </SignedIn>
         <SignedOut>
           <div className="mt-10 flex flex-row items-center justify-center">
-            <Button>Sign in</Button>
+            <SignInButton />
           </div>
         </SignedOut>
       </>

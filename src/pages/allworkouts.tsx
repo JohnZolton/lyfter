@@ -15,7 +15,7 @@ import MenuLayout from "./components/menulayout";
 import PerformanceWarning from "./components/performancewarning";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "../components/ui/skeleton";
-import SignedIn, { SignedOut } from "./components/auth";
+import SignedIn, { SignInButton, SignedOut } from "./components/auth";
 
 const Home: NextPage = () => {
   return (
@@ -35,9 +35,7 @@ const Home: NextPage = () => {
           <Content />
         </SignedIn>
         <SignedOut>
-          <button className="rounded-full bg-white p-3 text-xl text-black">
-            Sign In
-          </button>
+          <SignInButton />
         </SignedOut>
       </PageLayout>
     </>

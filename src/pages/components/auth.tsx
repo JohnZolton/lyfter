@@ -24,15 +24,16 @@ export function SignedOut({ children }: AuthComponentProps) {
 }
 
 export function SignOutButton() {
+  const router = useRouter();
   function handleSignOut() {
     try {
-      sessionStorage.removeItem("authToken");
-      sessionStorage.removeItem("userNpub");
+      sessionStorage.clear();
+      void router.push("/");
     } catch (error) {
       console.error("logout failed: ", error);
     }
   }
-  return <Button onClick={() => handleSignOut()}>Sign out</Button>;
+  return <button onClick={() => handleSignOut()}>Sign out</button>;
 }
 
 export function SignInButton() {

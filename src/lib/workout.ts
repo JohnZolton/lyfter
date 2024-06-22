@@ -1,3 +1,4 @@
+import { MuscleGroup } from "@prisma/client";
 import { v4 } from "uuid";
 
 function createUniqueId(): string {
@@ -276,3 +277,166 @@ const maintenanceTwo = {
 };
 
 export const maintenance = [maintenanceOne, maintenanceTwo];
+
+const PushFirst = {
+  description: "Push #1",
+  nominalDay: "Monday",
+  workoutId: createUniqueId(),
+  exercises: [
+    {
+      id: createUniqueId(),
+      description: "Machine Press",
+      muscleGroup: "Chest",
+      sets: 3,
+    },
+    {
+      id: createUniqueId(),
+      description: "Cable Overhead Extension",
+      muscleGroup: "Triceps",
+      sets: 3,
+    },
+    {
+      id: createUniqueId(),
+      description: "Machine Lateral Raise",
+      muscleGroup: MuscleGroup.Shoulders,
+      sets: 3,
+    },
+  ],
+};
+const PushSecond = {
+  description: "Push #2",
+  workoutId: createUniqueId(),
+  nominalDay: "Thursday",
+  exercises: [
+    {
+      id: createUniqueId(),
+      description: "Machine Press",
+      muscleGroup: MuscleGroup.Chest,
+      sets: 3,
+    },
+    {
+      id: createUniqueId(),
+      description: "Cable Overhead Extension",
+      muscleGroup: MuscleGroup.Triceps,
+      sets: 3,
+    },
+    {
+      id: createUniqueId(),
+      description: "Machine Lateral Raise",
+      muscleGroup: MuscleGroup.Shoulders,
+      sets: 3,
+    },
+  ],
+};
+const LegFirst = {
+  description: "Legs #1",
+  workoutId: createUniqueId(),
+  nominalDay: "Tuesday",
+  exercises: [
+    {
+      id: createUniqueId(),
+      description: "DB RDL",
+      muscleGroup: MuscleGroup.Hamstrings,
+      sets: 2,
+    },
+    {
+      id: createUniqueId(),
+      description: "Hack Squat",
+      muscleGroup: MuscleGroup.Quads,
+      sets: 3,
+    },
+    {
+      id: createUniqueId(),
+      description: "Candlesticks",
+      muscleGroup: MuscleGroup.Abs,
+      sets: 3,
+    },
+  ],
+};
+
+const LegSecond = {
+  description: "Legs #2",
+  nominalDay: "Friday",
+  workoutId: createUniqueId(),
+  exercises: [
+    {
+      description: "Hack Squat",
+      muscleGroup: MuscleGroup.Quads,
+      id: createUniqueId(),
+      sets: 3,
+    },
+    {
+      description: "Ham Curl",
+      muscleGroup: MuscleGroup.Hamstrings,
+      id: createUniqueId(),
+      sets: 3,
+    },
+    {
+      description: "Candlestick",
+      muscleGroup: MuscleGroup.Abs,
+      id: createUniqueId(),
+      sets: 2,
+    },
+  ],
+};
+
+const PullFirst = {
+  description: "Pull #1",
+  nominalDay: "Wednesday",
+  workoutId: createUniqueId(),
+  exercises: [
+    {
+      description: "Pullup",
+      muscleGroup: MuscleGroup.Back,
+      id: createUniqueId(),
+      sets: 4,
+    },
+    {
+      description: "Machine Row",
+      muscleGroup: MuscleGroup.Back,
+      id: createUniqueId(),
+      sets: 3,
+    },
+    {
+      description: "Lying Bicep Curl",
+      muscleGroup: MuscleGroup.Biceps,
+      id: createUniqueId(),
+      sets: 4,
+    },
+  ],
+};
+
+const PullSecond = {
+  description: "Pull #2",
+  nominalDay: "Saturday",
+  workoutId: createUniqueId(),
+  exercises: [
+    {
+      description: "Machine Row",
+      muscleGroup: MuscleGroup.Back,
+      id: createUniqueId(),
+      sets: 4,
+    },
+    {
+      description: "Assisted Pullup",
+      muscleGroup: MuscleGroup.Back,
+      id: createUniqueId(),
+      sets: 3,
+    },
+    {
+      id: createUniqueId(),
+      description: "Lying Bicep Curl",
+      muscleGroup: MuscleGroup.Biceps,
+      sets: 4,
+    },
+  ],
+};
+
+export const pplPlanArrayCut = [
+  PushFirst,
+  PushSecond,
+  LegFirst,
+  LegSecond,
+  PullFirst,
+  PullSecond,
+];

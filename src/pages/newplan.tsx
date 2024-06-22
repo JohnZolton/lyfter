@@ -16,10 +16,10 @@ import {
   DialogTrigger,
   DialogClose,
 } from "../components/ui/dialog";
-import { pplPlanArrayTwo, maintenance } from "../lib/workout";
+import { pplPlanArrayTwo, maintenance, pplPlanArrayCut } from "../lib/workout";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import SignedIn, { SignedOut } from "./components/auth";
+import SignedIn, { SignInButton, SignedOut } from "./components/auth";
 
 const Home: NextPage = () => {
   return (
@@ -41,9 +41,7 @@ const Home: NextPage = () => {
         <br></br>
         <div></div>
         <SignedOut>
-          <button className="rounded-full bg-gray-700 p-3 text-xl  hover:bg-gray-600">
-            Sign In
-          </button>
+          <SignInButton />
         </SignedOut>
       </PageLayout>
     </>
@@ -132,6 +130,9 @@ function PreBuiltPlans() {
   function makePPL() {
     makePlan({ description: "Push Pull Legs", workouts: pplPlanArrayTwo });
   }
+  function makeEasyPPL() {
+    makePlan({ description: "Push Pull Legs", workouts: pplPlanArrayCut });
+  }
   if (isLoading) {
     return (
       <>
@@ -159,6 +160,39 @@ function PreBuiltPlans() {
                     <div>This cannot be undone</div>
                     <div className="flex w-full flex-row items-center justify-between px-10">
                       <Button variant={"destructive"} onClick={() => makePPL()}>
+                        Confirm
+                      </Button>
+                      <Button type="button" variant="secondary">
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </DialogClose>
+              </DialogDescription>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+      <div className="flex  w-full  flex-row items-center justify-between gap-x-4">
+        <div>PPL 2 (6x)</div>
+        <div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>Create</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Push Pull Legs 2 (6x)</DialogTitle>
+              </DialogHeader>
+              <DialogDescription>
+                <DialogClose asChild>
+                  <div className="flex w-full flex-col items-center justify-center gap-y-4">
+                    <div>This cannot be undone</div>
+                    <div className="flex w-full flex-row items-center justify-between px-10">
+                      <Button
+                        variant={"destructive"}
+                        onClick={() => makeEasyPPL()}
+                      >
                         Confirm
                       </Button>
                       <Button type="button" variant="secondary">
