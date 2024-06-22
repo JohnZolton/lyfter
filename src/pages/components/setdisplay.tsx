@@ -108,7 +108,7 @@ function SetDisplay({
       <div className="flex max-w-full flex-row items-center gap-x-1">
         <select
           className="mr-2 rounded bg-gray-700 p-2 px-3 text-center text-sm text-white "
-          value={weight ?? 0}
+          value={set?.weight ?? undefined}
           onChange={handleWeightChange}
         >
           <option value={""}></option>
