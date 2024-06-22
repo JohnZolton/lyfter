@@ -1,8 +1,7 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import { api } from "~/utils/api";
-import React, { useState, useRef, useEffect } from "react";
-import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
+import React from "react";
 import { NavBar } from "~/pages/components/navbar";
 import PageLayout from "~/pages/components/pagelayout";
 import MenuLayout from "./components/menulayout";
@@ -20,6 +19,7 @@ import {
 import { pplPlanArrayTwo, maintenance } from "../lib/workout";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import SignedIn, { SignedOut } from "./components/auth";
 
 const Home: NextPage = () => {
   return (
@@ -34,18 +34,16 @@ const Home: NextPage = () => {
           <div className="">New Plan</div>
           <NavBar />
         </div>
+        <br></br>
         <SignedIn>
-          <br></br>
           <NewWorkoutMenu />
-          <br></br>
-          <div></div>
         </SignedIn>
+        <br></br>
+        <div></div>
         <SignedOut>
-          <SignInButton redirectUrl="home">
-            <button className="rounded-full bg-gray-700 p-3 text-xl  hover:bg-gray-600">
-              Sign In
-            </button>
-          </SignInButton>
+          <button className="rounded-full bg-gray-700 p-3 text-xl  hover:bg-gray-600">
+            Sign In
+          </button>
         </SignedOut>
       </PageLayout>
     </>
@@ -59,7 +57,7 @@ function NewWorkoutMenu() {
   const utils = api.useContext();
   const { mutate: resetPlan, isLoading } =
     api.getWorkouts.resetCurrentPlan.useMutation({
-      onSuccess: async (data) => {
+      onSuccess: async () => {
         await utils.getWorkouts.getUniqueWeekWorkouts.invalidate();
         void router.push({
           pathname: "/home",
@@ -118,8 +116,7 @@ function PreBuiltPlans() {
   const router = useRouter();
   const { mutate: makePlan, isLoading } =
     api.getWorkouts.newTestPlanTwo.useMutation({
-      onSuccess: async (data, variables, context) => {
-        console.log(data);
+      onSuccess: async () => {
         await utils.getWorkouts.getUniqueWeekWorkouts.invalidate();
         void router.push({
           pathname: "/home",

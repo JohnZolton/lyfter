@@ -1,22 +1,10 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import {
-  createTRPCRouter,
-  privateProcedure,
-  publicProcedure,
-} from "~/server/api/trpc";
+import { createTRPCRouter, privateProcedure } from "~/server/api/trpc";
 
-import type {
-  Workout,
-  Exercise,
-  exerciseSet,
-  WorkoutPlan,
-} from "@prisma/client";
+import type { Workout, Exercise, exerciseSet } from "@prisma/client";
 import { MuscleGroup, Pump, RPE } from "@prisma/client";
 import { v4 } from "uuid";
-import { Newspaper } from "lucide-react";
-import { describe } from "node:test";
-import { setUncaughtExceptionCaptureCallback } from "node:process";
 
 export const getAllWorkouts = createTRPCRouter({
   newTestPlanTwo: privateProcedure

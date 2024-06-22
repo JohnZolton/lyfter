@@ -2,7 +2,6 @@ import { type NextPage } from "next";
 import { api } from "~/utils/api";
 
 import React, { useState, useEffect } from "react";
-import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 
 import type { Workout, Exercise, exerciseSet } from "@prisma/client";
 import { NavBar } from "~/pages/components/navbar";
@@ -19,6 +18,7 @@ import {
   DialogTrigger,
   DialogClose,
 } from "~/components/ui/dialog";
+import SignedIn, { SignedOut } from "../components/auth";
 
 const Home: NextPage = () => {
   const [workout, setWorkout] = useState<
@@ -44,7 +44,7 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     getWorkout({ workoutId: workoutId });
-  }, [workoutId]);
+  }, [workoutId, getWorkout]);
 
   function updateTitleDay(description: string, newDay: string) {
     if (workout) {
@@ -65,11 +65,8 @@ const Home: NextPage = () => {
           </div>
         </SignedIn>
         <SignedOut>
-          {/* Signed out users get sign in button */}
           <div className="mt-10 flex flex-row items-center justify-center">
-            <SignInButton redirectUrl="home">
-              <Button>Sign in</Button>
-            </SignInButton>
+            <Button>Sign in</Button>
           </div>
         </SignedOut>
       </>
@@ -88,14 +85,11 @@ const Home: NextPage = () => {
       <SignedIn>
         <WorkoutUi todaysWorkout={workout} setTodaysWorkout={setWorkout} />
       </SignedIn>
-      <SignedOut>
-        {/* Signed out users get sign in button */}
-        <div className="mt-10 flex flex-row items-center justify-center">
-          <SignInButton redirectUrl="home">
-            <Button>Sign in</Button>
-          </SignInButton>
-        </div>
-      </SignedOut>
+      <div className="mt-10 flex flex-row items-center justify-center">
+        <SignedOut>
+          <Button>Sign in</Button>
+        </SignedOut>
+      </div>
     </>
   );
 };
@@ -122,8 +116,6 @@ interface WorkoutUiProps {
 }
 
 function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
-  const today = new Date();
-
   useEffect(() => {
     if (todaysWorkout) {
       const allSetsCompleted = todaysWorkout.exercises.every((exercise) =>
