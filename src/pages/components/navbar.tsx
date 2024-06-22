@@ -201,7 +201,16 @@ function NavMenuItems() {
         </Link>
       </li>
       <li>
-        <Avatar />
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <Avatar />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem>
+              <SignOutButton />
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </li>
     </ul>
   );
@@ -210,6 +219,7 @@ function NavMenuItems() {
 function Avatar() {
   const [url, setUrl] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [retry, setRetry] = useState(false);
   useEffect(() => {
     if (typeof window !== "undefined") {
       const userNpub = sessionStorage.getItem("userNpub");
@@ -217,8 +227,40 @@ function Avatar() {
       const displayName = sessionStorage.getItem("displayName");
       setUrl(imgUrl ?? "");
       setDisplayName(displayName ?? "");
+      void getProfile(userNpub);
     }
   }, []);
+
+  useEffect(() => {
+    const userNpub = sessionStorage.getItem("userNpub");
+    if ((!url || !displayName) && userNpub) {
+      const timeout = setTimeout(() => {
+        void getProfile(userNpub);
+        setRetry((prev) => !prev);
+      }, 500);
+      return () => clearTimeout(timeout);
+    }
+  }, [url, displayName, retry]);
+
+  async function getProfile(npub: string | null) {
+    const ndk = new NDK({
+      explicitRelayUrls: [
+        "wss://nos.lol",
+        "wss://relay.nostr.band",
+        "wss://relay.damus.io",
+        "wss://relay.plebstr.com",
+      ],
+    });
+    await ndk.connect();
+    if (npub) {
+      const user = ndk.getUser({ pubkey: npub });
+      console.log(user);
+      await user.fetchProfile();
+      console.log(user.profile);
+      sessionStorage.setItem("profileImage", user.profile?.image ?? "");
+      sessionStorage.setItem("displayName", user.profile?.displayName ?? "");
+    }
+  }
 
   if (url) {
     return (
