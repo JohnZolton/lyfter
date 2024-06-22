@@ -2,7 +2,6 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import { api } from "~/utils/api";
 import React, { useState } from "react";
-import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import type {
   Workout,
   Exercise,
@@ -16,6 +15,7 @@ import MenuLayout from "./components/menulayout";
 import PerformanceWarning from "./components/performancewarning";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "../components/ui/skeleton";
+import { SignedIn, SignedOut } from "./components/auth";
 
 const Home: NextPage = () => {
   return (
@@ -32,18 +32,12 @@ const Home: NextPage = () => {
         </div>
 
         <SignedIn>
-          <br></br>
           <Content />
-          <br></br>
-          <div></div>
         </SignedIn>
         <SignedOut>
-          {/* Signed out users get sign in button */}
-          <SignInButton redirectUrl="home">
-            <button className="rounded-full bg-white p-3 text-xl text-black">
-              Sign In
-            </button>
-          </SignInButton>
+          <button className="rounded-full bg-white p-3 text-xl text-black">
+            Sign In
+          </button>
         </SignedOut>
       </PageLayout>
     </>

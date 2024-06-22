@@ -14,9 +14,6 @@ import type {
 } from "@prisma/client";
 import { MuscleGroup, Pump, RPE } from "@prisma/client";
 import { v4 } from "uuid";
-import { Newspaper } from "lucide-react";
-import { describe } from "node:test";
-import { setUncaughtExceptionCaptureCallback } from "node:process";
 
 export const getAllWorkouts = createTRPCRouter({
   newTestPlanTwo: privateProcedure

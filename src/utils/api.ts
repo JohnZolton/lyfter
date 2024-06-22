@@ -7,7 +7,10 @@
 import { httpBatchLink, loggerLink } from "@trpc/client";
 import { createTRPCNext } from "@trpc/next";
 import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
+import { session } from "electron";
+import { useContext } from "react";
 import superjson from "superjson";
+import { AuthContext, useAuth } from "~/pages/_app";
 
 import { type AppRouter } from "~/server/api/root";
 
@@ -21,18 +24,7 @@ const getBaseUrl = () => {
 export const api = createTRPCNext<AppRouter>({
   config() {
     return {
-      /**
-       * Transformer used for data de-serialization from the server.
-       *
-       * @see https://trpc.io/docs/data-transformers
-       */
       transformer: superjson,
-
-      /**
-       * Links used to determine request flow from client to server.
-       *
-       * @see https://trpc.io/docs/links
-       */
       links: [
         loggerLink({
           enabled: (opts) =>
@@ -41,6 +33,14 @@ export const api = createTRPCNext<AppRouter>({
         }),
         httpBatchLink({
           url: `${getBaseUrl()}/api/trpc`,
+          headers() {
+            const token =
+              typeof window !== "undefined"
+                ? sessionStorage.getItem("authHeader")
+                : "";
+            console.log("TOWOWOKEN: ", token);
+            return { Authorization: token ?? "" };
+          },
         }),
       ],
     };

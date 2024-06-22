@@ -2,7 +2,6 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import { api } from "~/utils/api";
 import React, { useState, useEffect, SetStateAction, useReducer } from "react";
-import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import type { Workout, Exercise } from "@prisma/client";
 import { NavBar } from "~/pages/components/navbar";
 import PageLayout from "~/pages/components/pagelayout";
@@ -11,15 +10,27 @@ import { Button } from "../components/ui/button";
 import { Skeleton } from "../components/ui/skeleton";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
 
 const Home: NextPage = () => {
   const [workoutTitle, setWorkoutTitle] = useState<string | undefined>();
+  const [token, setToken] = useState<string | null>(null);
+  useEffect(() => {
+    const storedToken = sessionStorage.getItem("authHeader");
+    console.log("TOOOKEN: ", storedToken);
+    setToken(storedToken);
+  });
+
   return (
     <>
       <Head>
         <title>Liftr</title>
         <meta name="description" content="Workout Tracker" />
         <link rel="icon" href="/favicon.ico" />
+        <meta
+          http-equiv="Content-Security-Policy"
+          content="script-src 'self' 'unsafe-inline' 'unsafe-eval' chrome-extension:;"
+        />
       </Head>
       <PageLayout>
         <div className="mt-4 flex max-w-6xl flex-row items-center justify-between px-8 text-2xl font-semibold">
@@ -27,17 +38,7 @@ const Home: NextPage = () => {
           <NavBar />
         </div>
         <div className="">
-          <SignedIn>
-            <WorkoutUiHandler setTitle={setWorkoutTitle} />
-          </SignedIn>
-          <SignedOut>
-            {/* Signed out users get sign in button */}
-            <SignInButton redirectUrl="home">
-              <button className="rounded-full bg-slate-700 p-3 text-xl  hover:bg-gray-600">
-                Sign In
-              </button>
-            </SignInButton>
-          </SignedOut>
+          <WorkoutUiHandler setTitle={setWorkoutTitle} />
         </div>
       </PageLayout>
     </>
@@ -58,11 +59,8 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
     | undefined
   >();
 
-  const {
-    data: userWorkouts,
-    isLoading,
-    refetch,
-  } = api.getWorkouts.getUniqueWeekWorkouts.useQuery();
+  const { data: userWorkouts, isLoading } =
+    api.getWorkouts.getUniqueWeekWorkouts.useQuery();
 
   const router = useRouter();
   const refetchQuery = router.query.refetch;
@@ -129,7 +127,7 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
       </div>
     );
   }
-  return <div>Something went wrong</div>;
+  return <div className="flex items-center justify-center">No Workouts</div>;
 }
 
 interface WorkoutButtonProps {

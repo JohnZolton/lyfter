@@ -1,39 +1,32 @@
-/**
- * YOU PROBABLY DON'T NEED TO EDIT THIS FILE, UNLESS:
- * 1. You want to modify request context (see Part 1).
- * 2. You want to create a new middleware or type of procedure (see Part 3).
- *
- * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
- * need to use are documented accordingly near the end.
- */
-
-/**
- * 1. CONTEXT
- *
- * This section defines the "contexts" that are available in the backend API.
- *
- * These allow you to access things when processing a request, like the database, the session, etc.
- */
+//src/pages/server/trpc.ts
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
-
 import { prisma } from "~/server/db";
+import jwt from "jsonwebtoken";
 
-/**
- * This is the actual context you will use in your router. It will be used to process every request
- * that goes through your tRPC endpoint.
- *
- * @see https://trpc.io/docs/context
- */
+const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
+
 export const createTRPCContext = (opts: CreateNextContextOptions) => {
   const { req } = opts;
-  const sesh = getAuth(req);
+  console.log("headers: ", req.headers);
 
-  const userId = sesh.userId;
+  const authorization = req.headers["authorization"];
 
-  return {
-    prisma,
-    userId,
-  };
+  if (!authorization || !authorization.startsWith("Bearer ")) {
+    throw new Error("Missing or invalid auth header");
+  }
+  const token = authorization.slice(7);
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as { pubkey: string };
+    console.log(decoded);
+    console.log(decoded.pubkey);
+
+    return {
+      prisma,
+      userId: decoded.pubkey,
+    };
+  } catch (error) {
+    throw new Error("invalid token");
+  }
 };
 
 /**
@@ -43,8 +36,9 @@ export const createTRPCContext = (opts: CreateNextContextOptions) => {
  */
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
-import { getAuth } from "@clerk/nextjs/server";
 import { ZodError } from "zod";
+import { NostrEvent } from "@nostr-dev-kit/ndk";
+import { url } from "inspector";
 
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,

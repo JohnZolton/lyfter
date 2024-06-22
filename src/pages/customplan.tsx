@@ -3,7 +3,6 @@ import Head from "next/head";
 import { api } from "~/utils/api";
 
 import React, { useState, useRef, useEffect } from "react";
-import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 
 import { v4 } from "uuid";
 import { NavBar } from "~/pages/components/navbar";
@@ -29,6 +28,7 @@ import {
   DialogClose,
 } from "~/components/ui/dialog";
 import { useRouter } from "next/router";
+import { SignedIn, SignedOut } from "./components/auth";
 
 type ExerciseTemplate = {
   id: string;
@@ -78,16 +78,13 @@ const Home: NextPage = () => {
         <div className="w-full">
           <SignedIn>
             <WorkoutPlanForm />
-            <br></br>
-            <div></div>
           </SignedIn>
+          <br></br>
+          <div></div>
           <SignedOut>
-            {/* Signed out users get sign in button */}
-            <SignInButton redirectUrl="home">
-              <button className="rounded-full bg-gray-700 p-3 text-xl text-white hover:bg-gray-600">
-                Sign In
-              </button>
-            </SignInButton>
+            <button className="rounded-full bg-gray-700 p-3 text-xl text-white hover:bg-gray-600">
+              Sign In
+            </button>
           </SignedOut>
         </div>
       </PageLayout>

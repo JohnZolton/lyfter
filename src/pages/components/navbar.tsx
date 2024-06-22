@@ -1,5 +1,3 @@
-import { SignOutButton, SignedIn } from "@clerk/nextjs";
-
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Menu } from "lucide-react";
@@ -31,7 +29,7 @@ import {
 import { Input } from "~/components/ui/input";
 import { useRouter } from "next/router";
 import { Workout } from "@prisma/client";
-
+import { SignedIn, SignedOut } from "./auth";
 import { api } from "~/utils/api";
 
 interface NavBarProps {
@@ -85,7 +83,6 @@ export const NavBar = ({ workout, updateTitleDay }: NavBarProps) => {
               <DropdownMenuItem>
                 <Link href={"/newplan"}>New Plan</Link>
               </DropdownMenuItem>
-              {/* IF on /workout/[id] i want to display this option */}
               {router.pathname.startsWith("/workout/") && (
                 <Dialog>
                   <DialogTrigger asChild>
@@ -156,14 +153,12 @@ export const NavBar = ({ workout, updateTitleDay }: NavBarProps) => {
                   </DialogContent>
                 </Dialog>
               )}
-              <DropdownMenuItem>
-                <Link href={"/allworkouts"}>All Workouts</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <SignedIn>
-                  <SignOutButton></SignOutButton>
-                </SignedIn>
-              </DropdownMenuItem>
+              <SignedIn>
+                <DropdownMenuItem>
+                  <Link href={"/allworkouts"}>All Workouts</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>Sign out</DropdownMenuItem>
+              </SignedIn>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
