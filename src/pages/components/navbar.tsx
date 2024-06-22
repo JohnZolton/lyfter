@@ -29,7 +29,7 @@ import {
 import { Input } from "~/components/ui/input";
 import { useRouter } from "next/router";
 import { Workout } from "@prisma/client";
-import SignedIn, { SignedOut } from "./auth";
+import SignedIn, { SignOutButton, SignedOut } from "./auth";
 import { api } from "~/utils/api";
 import NDK, {
   NDKSubscriptionCacheUsage,
@@ -162,7 +162,9 @@ export const NavBar = ({ workout, updateTitleDay }: NavBarProps) => {
                 <DropdownMenuItem>
                   <Link href={"/allworkouts"}>All Workouts</Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>Sign out</DropdownMenuItem>
+                <DropdownMenuItem>
+                  <SignOutButton />
+                </DropdownMenuItem>
               </SignedIn>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -206,51 +208,22 @@ function NavMenuItems() {
 }
 
 function Avatar() {
-  const [pubkey, setPubkey] = useState<string | null>(null);
   const [url, setUrl] = useState("");
   const [displayName, setDisplayName] = useState("");
   useEffect(() => {
     if (typeof window !== "undefined") {
       const userNpub = sessionStorage.getItem("userNpub");
-      setPubkey(userNpub);
+      const imgUrl = sessionStorage.getItem("profileImage");
+      const displayName = sessionStorage.getItem("displayName");
+      setUrl(imgUrl ?? "");
+      setDisplayName(displayName ?? "");
     }
   }, []);
-  useEffect(() => {
-    async function fetchProfile(pubkey: string | null) {
-      console.log("pubkey: ", pubkey);
-      if (pubkey) {
-        try {
-          const ndk = new NDK({
-            explicitRelayUrls: [
-              "wss://nos.lol",
-              "wss://relay.nostr.band",
-              "wss://relay.damus.io",
-              "wss://relay.plebstr.com",
-            ],
-          });
-          await ndk.connect();
-          const user = ndk.getUser({ pubkey: pubkey });
-          console.log(user);
-          await user.fetchProfile();
-          console.log(user.profile);
-          setUrl(user.profile?.image ?? "");
-          setDisplayName(user.profile?.displayName ?? "");
-        } catch (error) {
-          console.error("Error fetching profile: ", error);
-        }
-      }
-    }
-    void fetchProfile(pubkey);
-  }, [pubkey]);
 
-  if (pubkey) {
+  if (url) {
     return (
       <div className="flex items-center justify-center">
-        <img
-          src={url}
-          alt="User Avatar"
-          className="h-14 w-14 rounded-full object-cover"
-        />
+        <img src={url} className="h-14 w-14 rounded-full object-cover" />
       </div>
     );
   }

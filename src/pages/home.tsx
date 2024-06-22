@@ -11,6 +11,7 @@ import { Skeleton } from "../components/ui/skeleton";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
+import SignedIn, { SignInButton, SignedOut } from "./components/auth";
 
 const Home: NextPage = () => {
   const [workoutTitle, setWorkoutTitle] = useState<string | undefined>();
@@ -38,7 +39,12 @@ const Home: NextPage = () => {
           <NavBar />
         </div>
         <div className="">
-          <WorkoutUiHandler setTitle={setWorkoutTitle} />
+          <SignedIn>
+            <WorkoutUiHandler setTitle={setWorkoutTitle} />
+          </SignedIn>
+          <SignedOut>
+            <SignInButton />
+          </SignedOut>
         </div>
       </PageLayout>
     </>

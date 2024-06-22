@@ -28,7 +28,7 @@ import {
   DialogClose,
 } from "~/components/ui/dialog";
 import { useRouter } from "next/router";
-import SignedIn, { SignedOut } from "./components/auth";
+import SignedIn, { SignInButton, SignedOut } from "./components/auth";
 
 type ExerciseTemplate = {
   id: string;
@@ -82,9 +82,7 @@ const Home: NextPage = () => {
           <br></br>
           <div></div>
           <SignedOut>
-            <button className="rounded-full bg-gray-700 p-3 text-xl text-white hover:bg-gray-600">
-              Sign In
-            </button>
+            <SignInButton />
           </SignedOut>
         </div>
       </PageLayout>

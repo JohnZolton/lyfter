@@ -80,6 +80,21 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     sessionStorage.setItem("authHeader", `Bearer ${token}`);
     sessionStorage.setItem("userNpub", event.pubkey);
     setUser(event.pubkey);
+    const ndk = new NDK({
+      explicitRelayUrls: [
+        "wss://nos.lol",
+        "wss://relay.nostr.band",
+        "wss://relay.damus.io",
+        "wss://relay.plebstr.com",
+      ],
+    });
+    await ndk.connect();
+    const user = ndk.getUser({ pubkey: event.pubkey });
+    console.log(user);
+    await user.fetchProfile();
+    console.log(user.profile);
+    sessionStorage.setItem("profileImage", user.profile?.image ?? "");
+    sessionStorage.setItem("displayName", user.profile?.displayName ?? "");
     return token;
   };
 
