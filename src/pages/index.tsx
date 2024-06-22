@@ -2,16 +2,11 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 
-import { Button, buttonVariants } from "~/components/ui/button";
+import { buttonVariants } from "~/components/ui/button";
 import PageLayout from "./components/pagelayout";
-import { useRouter } from "next/router";
-import { useAuth } from "./_app";
 import { SignInButton, SignedIn, SignedOut } from "./components/auth";
 
 const Home: NextPage = () => {
-  const { authWithNostr } = useAuth();
-  const router = useRouter();
-
   return (
     <>
       <Head>

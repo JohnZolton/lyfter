@@ -1,7 +1,7 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import { api } from "~/utils/api";
-import React, { useState, useRef, useEffect } from "react";
+import React from "react";
 import { NavBar } from "~/pages/components/navbar";
 import PageLayout from "~/pages/components/pagelayout";
 import MenuLayout from "./components/menulayout";
@@ -57,7 +57,7 @@ function NewWorkoutMenu() {
   const utils = api.useContext();
   const { mutate: resetPlan, isLoading } =
     api.getWorkouts.resetCurrentPlan.useMutation({
-      onSuccess: async (data) => {
+      onSuccess: async () => {
         await utils.getWorkouts.getUniqueWeekWorkouts.invalidate();
         void router.push({
           pathname: "/home",
@@ -116,8 +116,7 @@ function PreBuiltPlans() {
   const router = useRouter();
   const { mutate: makePlan, isLoading } =
     api.getWorkouts.newTestPlanTwo.useMutation({
-      onSuccess: async (data, variables, context) => {
-        console.log(data);
+      onSuccess: async () => {
         await utils.getWorkouts.getUniqueWeekWorkouts.invalidate();
         void router.push({
           pathname: "/home",

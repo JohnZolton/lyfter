@@ -44,7 +44,7 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     getWorkout({ workoutId: workoutId });
-  }, [workoutId]);
+  }, [workoutId, getWorkout]);
 
   function updateTitleDay(description: string, newDay: string) {
     if (workout) {
@@ -116,8 +116,6 @@ interface WorkoutUiProps {
 }
 
 function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
-  const today = new Date();
-
   useEffect(() => {
     if (todaysWorkout) {
       const allSetsCompleted = todaysWorkout.exercises.every((exercise) =>

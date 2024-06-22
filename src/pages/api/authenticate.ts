@@ -11,8 +11,11 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
+  interface reqBody {
+    signedEvent: string;
+  }
   try {
-    const { signedEvent } = req.body;
+    const { signedEvent } = req.body as reqBody;
     const rawEvent = JSON.parse(
       Buffer.from(signedEvent, "base64").toString("utf-8")
     ) as NDKEvent;
@@ -21,7 +24,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ error: "failed to parse event" });
     }
 
-    // Verify the event (example verification, customize as per your needs)
     if (rawEvent.kind !== 27235) {
       return res.status(400).json({ error: "Invalid event kind" });
     }

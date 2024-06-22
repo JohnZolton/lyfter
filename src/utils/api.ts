@@ -7,10 +7,7 @@
 import { httpBatchLink, loggerLink } from "@trpc/client";
 import { createTRPCNext } from "@trpc/next";
 import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
-import { session } from "electron";
-import { useContext } from "react";
 import superjson from "superjson";
-import { AuthContext, useAuth } from "~/pages/_app";
 
 import { type AppRouter } from "~/server/api/root";
 
@@ -38,7 +35,6 @@ export const api = createTRPCNext<AppRouter>({
               typeof window !== "undefined"
                 ? sessionStorage.getItem("authHeader")
                 : "";
-            console.log("TOWOWOKEN: ", token);
             return { Authorization: token ?? "" };
           },
         }),

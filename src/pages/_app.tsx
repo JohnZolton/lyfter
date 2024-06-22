@@ -9,16 +9,14 @@ import {
   ReactNode,
   useContext,
 } from "react";
-import { SessionProvider } from "next-auth/react";
-import { Session } from "next-auth";
-import { finalizeEvent } from "nostr-tools";
+import { EventTemplate } from "nostr-tools";
+import { WindowNostr } from "nostr-tools/lib/types/nip07";
+import { Buffer } from "buffer";
 
 function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   return (
     <AuthProvider>
-      <SessionProvider session={session}>
-        <Component {...pageProps} />
-      </SessionProvider>
+      <Component {...pageProps} />
     </AuthProvider>
   );
 }
@@ -33,9 +31,8 @@ interface AuthContextProps {
 export const AuthContext = createContext<AuthContextProps>({
   authHeader: null,
   user: null,
-  authWithNostr: async () => "",
+  authWithNostr: async () => Promise.resolve(""),
 });
-
 const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authHeader, setAuthHeader] = useState<string | null>(null);
   const [user, setUser] = useState<string | null>(null);
@@ -51,44 +48,39 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const authWithNostr = async () => {
-    try {
-      if (!(window as any).nostr) {
-        return;
-      }
-      let event = await (window as any).nostr.signEvent({
-        kind: 27235,
-        created_at: Math.floor(Date.now() / 1000),
-        tags: [
-          ["u", "https://localhost:3000/api"],
-          ["method", "GET"],
-        ],
-        content: "",
-      });
-      console.log(event.pubkey);
-      const base64Event = Buffer.from(JSON.stringify(event)).toString("base64");
-      const response = await fetch("/api/authenticate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ signedEvent: base64Event }),
-      });
-      if (!response.ok) {
-        throw new Error("failed to authenticate");
-      }
-      const { token } = await response.json();
-      console.log("NEW TOOKEN: ", token);
-      sessionStorage.setItem("authHeader", `Bearer ${token}`);
-      sessionStorage.setItem("userNpub", event.pubkey);
-      setUser(event.pubkey);
-      return token;
-    } catch (error) {
-      console.error(error);
+    const nostr = window.nostr as WindowNostr;
+    if (!nostr) {
+      return "";
     }
+    const event = await nostr.signEvent({
+      kind: 27235,
+      created_at: Math.floor(Date.now() / 1000),
+      tags: [
+        ["u", "https://localhost:3000/api"],
+        ["method", "GET"],
+      ],
+      content: "",
+    });
+    const base64Event = Buffer.from(JSON.stringify(event)).toString("base64");
+    const response = await fetch("/api/authenticate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ signedEvent: base64Event }),
+    });
+    if (!response.ok) {
+      throw new Error("failed to authenticate");
+    }
+    interface AuthResponse {
+      token: string;
+    }
+    const { token } = (await response.json()) as AuthResponse;
+    sessionStorage.setItem("authHeader", `Bearer ${token}`);
+    sessionStorage.setItem("userNpub", event.pubkey);
+    setUser(event.pubkey);
+    return token;
   };
-  useEffect(() => {
-    console.log("new auth header: ", authHeader);
-  }, [authHeader]);
 
   return (
     <AuthContext.Provider value={{ authHeader, user, authWithNostr }}>

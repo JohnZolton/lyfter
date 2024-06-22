@@ -23,7 +23,17 @@ export function SignedOut({ children }: AuthComponentProps) {
   return <>{children}</>;
 }
 
-export function SignOutButton() {}
+export function SignOutButton() {
+  function handleSignOut() {
+    try {
+      sessionStorage.removeItem("authToken");
+      sessionStorage.removeItem("userNpub");
+    } catch (error) {
+      console.error("logout failed: ", error);
+    }
+  }
+  return <Button onClick={() => handleSignOut()}>Sign out</Button>;
+}
 
 export function SignInButton() {
   const { authWithNostr } = useAuth();
@@ -35,5 +45,8 @@ export function SignInButton() {
       console.error("Auth failed: ", error);
     }
   }
-  return <Button onClick={() => handleSignIn()}>Sign in with Nostr</Button>;
+  function handleButtonClick() {
+    handleSignIn().catch((error) => console.error("error: ", error));
+  }
+  return <Button onClick={handleButtonClick}>Sign in with Nostr</Button>;
 }
