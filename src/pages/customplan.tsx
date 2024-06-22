@@ -28,7 +28,7 @@ import {
   DialogClose,
 } from "~/components/ui/dialog";
 import { useRouter } from "next/router";
-import { SignedIn, SignedOut } from "./components/auth";
+import SignedIn, { SignedOut } from "./components/auth";
 
 type ExerciseTemplate = {
   id: string;

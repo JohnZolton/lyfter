@@ -18,7 +18,7 @@ import {
   DialogTrigger,
   DialogClose,
 } from "~/components/ui/dialog";
-import { SignedIn, SignedOut } from "../components/auth";
+import SignedIn, { SignedOut } from "../components/auth";
 
 const Home: NextPage = () => {
   const [workout, setWorkout] = useState<

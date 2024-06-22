@@ -7,7 +7,7 @@ interface AuthComponentProps {
   children: ReactNode;
 }
 
-export function SignedIn({ children }: AuthComponentProps) {
+export default function SignedIn({ children }: AuthComponentProps) {
   const { user } = useAuth();
   if (!user) {
     return null;

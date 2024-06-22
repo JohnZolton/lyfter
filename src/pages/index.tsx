@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { buttonVariants } from "~/components/ui/button";
 import PageLayout from "./components/pagelayout";
-import { SignInButton, SignedIn, SignedOut } from "./components/auth";
+import SignedIn, { SignInButton, SignedOut } from "./components/auth";
 
 const Home: NextPage = () => {
   return (

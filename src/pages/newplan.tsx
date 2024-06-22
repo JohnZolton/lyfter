@@ -19,7 +19,7 @@ import {
 import { pplPlanArrayTwo, maintenance } from "../lib/workout";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { SignedIn, SignedOut } from "./components/auth";
+import SignedIn, { SignedOut } from "./components/auth";
 
 const Home: NextPage = () => {
   return (

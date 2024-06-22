@@ -61,6 +61,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
       ],
       content: "",
     });
+
     const base64Event = Buffer.from(JSON.stringify(event)).toString("base64");
     const response = await fetch("/api/authenticate", {
       method: "POST",

@@ -15,7 +15,7 @@ import MenuLayout from "./components/menulayout";
 import PerformanceWarning from "./components/performancewarning";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "../components/ui/skeleton";
-import { SignedIn, SignedOut } from "./components/auth";
+import SignedIn, { SignedOut } from "./components/auth";
 
 const Home: NextPage = () => {
   return (
