@@ -40,13 +40,20 @@ import NDK, {
 interface NavBarProps {
   workout?: Workout;
   updateTitleDay?: (description: string, newDay: string) => void;
+  title: string;
+  subtitle?: string;
 }
 
-export const NavBar = ({ workout, updateTitleDay }: NavBarProps) => {
+export const NavBar = ({
+  workout,
+  updateTitleDay,
+  title,
+  subtitle,
+}: NavBarProps) => {
   const router = useRouter();
   const [newDay, setNewDay] = useState(workout?.nominalDay);
   const [newTitle, setNewTitle] = useState(workout?.description);
-
+  const [displayName, setDisplayName] = useState("");
   const { mutate: updateWorkout } =
     api.getWorkouts.updateWorkoutDescription.useMutation();
 
@@ -67,26 +74,41 @@ export const NavBar = ({ workout, updateTitleDay }: NavBarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <div>
+    <div className="flex max-w-2xl flex-row items-center justify-between px-4 pb-2 pt-4">
+      {subtitle && (
+        <div className="text-2xl">
+          <span className="font-semibold sm:text-3xl">{title}</span> -{" "}
+          {subtitle}
+        </div>
+      )}
+      {!subtitle && (
+        <div className="text-2xl font-semibold sm:text-3xl">{title}</div>
+      )}
+
       <nav className="flex items-center justify-end">
         <div className="hidden flex-col items-end space-x-6 sm:flex sm:flex-row">
-          <NavMenuItems />
+          <NavMenuItems setDisplayName={setDisplayName} />
         </div>
         <div
           className={`flex flex-col items-end space-x-6 sm:hidden sm:flex-row`}
         >
           <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <DropdownMenuTrigger>
-              <Avatar />
+              <Avatar setDisplayName={setDisplayName} />
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuContent className="flex flex-col gap-y-1">
               <DropdownMenuItem>
-                <Link href={"/home"} prefetch>
+                <div className="font-semibold">{displayName}</div>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Link href={"/home"} className="">
                   Home
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Link href={"/newplan"}>New Plan</Link>
+                <Link href={"/newplan"} className="">
+                  New Plan
+                </Link>
               </DropdownMenuItem>
               {router.pathname.startsWith("/workout/") && (
                 <Dialog>
@@ -160,10 +182,12 @@ export const NavBar = ({ workout, updateTitleDay }: NavBarProps) => {
               )}
               <SignedIn>
                 <DropdownMenuItem>
-                  <Link href={"/allworkouts"}>All Workouts</Link>
+                  <Link href={"/allworkouts"} className="">
+                    All Workouts
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <SignOutButton />
+                  <SignOutButton className="" />
                 </DropdownMenuItem>
               </SignedIn>
             </DropdownMenuContent>
@@ -176,10 +200,10 @@ export const NavBar = ({ workout, updateTitleDay }: NavBarProps) => {
 
 export default NavBar;
 
-function NavMenuItems() {
+function NavMenuItems({ setDisplayName }: AvatarProps) {
   return (
     <ul
-      className={`flex flex-col items-end space-y-1 text-base sm:flex-row sm:gap-x-3`}
+      className={`flex flex-col items-center justify-center  sm:flex-row sm:gap-x-3`}
     >
       <li>
         <Link
@@ -203,7 +227,7 @@ function NavMenuItems() {
       <li>
         <DropdownMenu>
           <DropdownMenuTrigger>
-            <Avatar />
+            <Avatar setDisplayName={setDisplayName} />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem>
@@ -216,33 +240,46 @@ function NavMenuItems() {
   );
 }
 
-function Avatar() {
+interface AvatarProps {
+  setDisplayName?: (name: string) => void;
+}
+function Avatar({ setDisplayName }: AvatarProps) {
   const [url, setUrl] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [retry, setRetry] = useState(false);
+  const [userName, setUserName] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 5;
   useEffect(() => {
     if (typeof window !== "undefined") {
       const userNpub = sessionStorage.getItem("userNpub");
       const imgUrl = sessionStorage.getItem("profileImage");
       const displayName = sessionStorage.getItem("displayName");
       setUrl(imgUrl ?? "");
-      setDisplayName(displayName ?? "");
-      void getProfile(userNpub);
+      if (setDisplayName) {
+        setDisplayName(displayName ?? "");
+        setUserName(displayName ?? "");
+      }
+      if (!imgUrl || !displayName) {
+        void getProfile(userNpub);
+      }
     }
-  }, []);
+  }, [setDisplayName]);
 
   useEffect(() => {
     const userNpub = sessionStorage.getItem("userNpub");
-    if ((!url || !displayName) && userNpub) {
+    if ((!url || !userName) && userNpub) {
       const timeout = setTimeout(() => {
         void getProfile(userNpub);
-        setRetry((prev) => !prev);
+        setRetryCount((prev) => prev + 1);
       }, 500);
       return () => clearTimeout(timeout);
     }
-  }, [url, displayName, retry]);
+  }, [url, userName, retryCount]);
 
   async function getProfile(npub: string | null) {
+    console.log("fetching profile");
+    if (!npub) {
+      return;
+    }
     const ndk = new NDK({
       explicitRelayUrls: [
         "wss://nos.lol",
@@ -258,7 +295,7 @@ function Avatar() {
       await user.fetchProfile();
       console.log(user.profile);
       sessionStorage.setItem("profileImage", user.profile?.image ?? "");
-      sessionStorage.setItem("displayName", user.profile?.displayName ?? "");
+      sessionStorage.setItem("displayName", user.profile?.name ?? "");
     }
   }
 

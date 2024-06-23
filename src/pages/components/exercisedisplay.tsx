@@ -171,9 +171,8 @@ function ExerciseDisplay({
     setIsMenuOpen(false);
   }
 
+  const { mutate: recordSet } = api.getWorkouts.updateSets.useMutation();
   function cascadeWeightChange(index: number, weight: number) {
-    console.log("casecade change");
-    console.log(sets);
     const newSets = [...sets];
     if (index < newSets.length && index >= 0 && newSets[index]) {
       newSets[index]!.weight = weight;
@@ -189,6 +188,16 @@ function ExerciseDisplay({
       }
     }
     setSets(newSets);
+    newSets.forEach((set, i) => {
+      if (i >= index) {
+        recordSet({
+          setId: set.setId,
+          weight: set.weight,
+          reps: set.reps ?? 0,
+          rir: set.rir ?? 3,
+        });
+      }
+    });
   }
 
   const [editingName, setEditingName] = useState(false);
@@ -333,7 +342,7 @@ function ExerciseDisplay({
   return (
     <div
       key={exercise.description}
-      className="mx-1 my-1 w-full rounded-xl bg-slate-700  p-2 shadow-md"
+      className="rounded-xl bg-slate-700  p-2 shadow-md"
     >
       <div className="flex flex-row items-center pb-1">
         <div className="flex items-center justify-center px-1">
@@ -341,7 +350,7 @@ function ExerciseDisplay({
             <DropdownMenuTrigger asChild>
               <EllipsisVertical />
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuContent className="flex flex-col gap-y-1 text-lg">
               <DropdownMenuItem onClick={() => handleAddSet()}>
                 Add Set
               </DropdownMenuItem>

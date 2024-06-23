@@ -30,16 +30,10 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <PageLayout>
-        <div className="my-4 flex max-w-6xl flex-row items-center justify-between px-8 text-2xl font-semibold">
-          <div className="">New Plan</div>
-          <NavBar />
-        </div>
-        <br></br>
+        <NavBar title="New Plan" />
         <SignedIn>
           <NewWorkoutMenu />
         </SignedIn>
-        <br></br>
-        <div></div>
         <SignedOut>
           <SignInButton />
         </SignedOut>

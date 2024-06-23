@@ -55,10 +55,11 @@ const Home: NextPage = () => {
   if (!workout || workout === undefined) {
     return (
       <>
-        <div className="mx-1 ml-5 mt-2  flex flex-row items-center justify-between p-2">
-          <div className="text-2xl font-semibold">Workout</div>
-          <NavBar workout={workout} updateTitleDay={updateTitleDay} />
-        </div>
+        <NavBar
+          workout={workout}
+          title="Workout"
+          updateTitleDay={updateTitleDay}
+        />
         <SignedIn>
           <div className="mt-8 flex flex-row items-center justify-center">
             <LoadingSpinner />
@@ -75,13 +76,12 @@ const Home: NextPage = () => {
 
   return (
     <>
-      <div className="mx-1 ml-5 mt-2  flex flex-row items-center justify-between p-2">
-        <div className="flex flex-col">
-          <div className="text-2xl font-semibold">{workout.description}</div>
-          <div className="text-xl">{workout.nominalDay}</div>
-        </div>
-        <NavBar workout={workout} updateTitleDay={updateTitleDay} />
-      </div>
+      <NavBar
+        workout={workout}
+        title={workout.description}
+        subtitle={workout.nominalDay}
+        updateTitleDay={updateTitleDay}
+      />
       <SignedIn>
         <WorkoutUi todaysWorkout={workout} setTodaysWorkout={setWorkout} />
       </SignedIn>

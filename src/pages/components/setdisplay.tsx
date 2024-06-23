@@ -32,7 +32,7 @@ function SetDisplay({
   startSurvey,
   feedbackLogged,
 }: SetDisplayProps) {
-  const [weight, setWeight] = useState(set?.targetWeight || null);
+  const [weight, setWeight] = useState(set?.weight || null);
   const [reps, setReps] = useState(set?.reps || null);
   const [rir, setRir] = useState(set?.rir || null);
 
@@ -76,12 +76,6 @@ function SetDisplay({
       updateSets(updatedSet, index);
       setReps(parseInt(event.target.value));
       setWeight(weight);
-      recordSet({
-        setId: set.setId,
-        weight: weight ?? 0,
-        reps: value ?? 0,
-        rir: rir ?? 3,
-      });
       if (
         reps !== undefined &&
         reps !== null &&
@@ -108,10 +102,9 @@ function SetDisplay({
       <div className="flex max-w-full flex-row items-center gap-x-1">
         <select
           className="mr-2 rounded bg-gray-700 p-2 px-3 text-center text-sm text-white "
-          value={set?.weight ?? undefined}
+          value={set?.weight ?? 0}
           onChange={handleWeightChange}
         >
-          <option value={""}></option>
           {Array.from({ length: 701 }, (_, i) => (
             <option key={i - 200} value={i - 200}>
               {i - 200}
@@ -123,9 +116,9 @@ function SetDisplay({
         <select
           className=" rounded bg-gray-700 p-2 px-3 text-center text-sm text-white"
           onChange={handleRepsChange}
-          value={reps ?? ""}
+          value={reps ?? 0}
         >
-          <option value={""}></option>
+          <option value={0}>0</option>
           {Array.from({ length: 35 }, (_, i) => (
             <option key={i} value={i}>
               {i}

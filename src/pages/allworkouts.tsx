@@ -26,10 +26,7 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <PageLayout>
-        <div className="mx-auto mt-4 flex max-w-6xl flex-row items-center justify-between gap-x-20 text-2xl font-semibold">
-          <div className="ml-6">All Workouts</div>
-          <NavBar />
-        </div>
+        <NavBar title="All Workouts" />
 
         <SignedIn>
           <Content />
