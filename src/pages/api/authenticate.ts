@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import NDK, { NDKEvent, NDKNip07Signer } from "@nostr-dev-kit/ndk";
 import { validateEvent } from "nostr-tools";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret"; // Use an environment variable for the secret
+const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -26,6 +26,19 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
     if (rawEvent.kind !== 27235) {
       return res.status(400).json({ error: "Invalid event kind" });
+    }
+    const ourUrl = `https://${process.env.AUTH_URL ?? "localhost:3000"}/api`;
+    const goodTags = [
+      ["u", ourUrl],
+      ["method", "GET"],
+    ];
+    const tagsMatch = goodTags.every((tag) =>
+      rawEvent.tags.some(
+        (rawTag) => rawTag[0] === tag[0] && rawTag[1] === tag[1]
+      )
+    );
+    if (!tagsMatch) {
+      return res.status(400).json({ error: "Invalid event tags" });
     }
 
     const now = Math.floor(Date.now() / 1000);

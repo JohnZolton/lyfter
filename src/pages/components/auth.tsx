@@ -23,7 +23,10 @@ export function SignedOut({ children }: AuthComponentProps) {
   return <>{children}</>;
 }
 
-export function SignOutButton() {
+interface SignOutButtonProps {
+  className?: string;
+}
+export function SignOutButton({ className }: SignOutButtonProps) {
   const router = useRouter();
   function handleSignOut() {
     try {
@@ -33,7 +36,11 @@ export function SignOutButton() {
       console.error("logout failed: ", error);
     }
   }
-  return <button onClick={() => handleSignOut()}>Sign out</button>;
+  return (
+    <button onClick={() => handleSignOut()} className={className ?? ""}>
+      Sign out
+    </button>
+  );
 }
 
 export function SignInButton() {

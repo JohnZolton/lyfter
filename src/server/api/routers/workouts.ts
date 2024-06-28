@@ -511,9 +511,9 @@ export const getAllWorkouts = createTRPCRouter({
       if (priorWorkout) {
         const workoutDate = new Date(priorWorkout.date);
         const currentDate = new Date();
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(currentDate.getDate() - 7);
-        if (workoutDate >= oneWeekAgo) {
+        const sixDaysAgo = new Date();
+        sixDaysAgo.setDate(currentDate.getDate() - 6);
+        if (workoutDate >= sixDaysAgo) {
           return priorWorkout.workoutId;
         }
       }
@@ -579,7 +579,7 @@ export const getAllWorkouts = createTRPCRouter({
                 weight: newSets[newSets.length - 1]!.weight,
                 rir: 3,
                 setNumber: newSets.length,
-                lastSetId: "",
+                lastSetId: null,
               });
             }
             if (exercise.RPE === RPE.veryHard) {

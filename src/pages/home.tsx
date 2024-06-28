@@ -24,28 +24,14 @@ const Home: NextPage = () => {
 
   return (
     <>
-      <Head>
-        <title>Liftr</title>
-        <meta name="description" content="Workout Tracker" />
-        <link rel="icon" href="/favicon.ico" />
-        <meta
-          http-equiv="Content-Security-Policy"
-          content="script-src 'self' 'unsafe-inline' 'unsafe-eval' chrome-extension:;"
-        />
-      </Head>
       <PageLayout>
-        <div className="mt-4 flex max-w-6xl flex-row items-center justify-between px-8 text-2xl font-semibold">
-          <div className="">{workoutTitle ?? "Current Workouts"}</div>
-          <NavBar />
-        </div>
-        <div className="">
-          <SignedIn>
-            <WorkoutUiHandler setTitle={setWorkoutTitle} />
-          </SignedIn>
-          <SignedOut>
-            <SignInButton />
-          </SignedOut>
-        </div>
+        <NavBar title="Current Workouts" />
+        <SignedIn>
+          <WorkoutUiHandler setTitle={setWorkoutTitle} />
+        </SignedIn>
+        <SignedOut>
+          <SignInButton />
+        </SignedOut>
       </PageLayout>
     </>
   );
@@ -111,9 +97,9 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
     return (
       <div
         style={{ maxWidth: "600px", margin: "0 auto" }}
-        className="rounded-lg p-4"
+        className="w-full rounded-lg px-4 py-2"
       >
-        <div className="rounded-lg bg-slate-800 p-4  shadow-md">
+        <div className="rounded-lg bg-slate-800 px-4 py-2  shadow-md">
           {workoutPlan &&
             workoutPlan.map((workout) => (
               <div

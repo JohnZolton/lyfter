@@ -71,16 +71,11 @@ const Home: NextPage = () => {
   return (
     <>
       <PageLayout>
-        <div className="my-4 flex max-w-6xl flex-row items-center justify-between px-8 text-2xl font-semibold">
-          <div className="">New Custom Plan</div>
-          <NavBar />
-        </div>
+        <NavBar title="New Custom Plan" />
         <div className="w-full">
           <SignedIn>
             <WorkoutPlanForm />
           </SignedIn>
-          <br></br>
-          <div></div>
           <SignedOut>
             <SignInButton />
           </SignedOut>
