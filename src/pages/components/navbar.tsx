@@ -36,6 +36,7 @@ import NDK, {
   NDKSubscriptionOptions,
   NDKUser,
 } from "@nostr-dev-kit/ndk";
+import { Skeleton } from "~/components/ui/skeleton";
 
 interface NavBarProps {
   workout?: Workout;
@@ -306,5 +307,10 @@ function Avatar({ setDisplayName }: AvatarProps) {
       </div>
     );
   }
-  return null;
+
+  return (
+    <div className="flex items-center justify-center">
+      <Skeleton className="h-14 w-14 rounded-full object-cover" />
+    </div>
+  );
 }
