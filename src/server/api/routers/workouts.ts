@@ -579,7 +579,7 @@ export const getAllWorkouts = createTRPCRouter({
                 weight: newSets[newSets.length - 1]!.weight,
                 rir: 3,
                 setNumber: newSets.length,
-                lastSetId: "",
+                lastSetId: null,
               });
             }
             if (exercise.RPE === RPE.veryHard) {

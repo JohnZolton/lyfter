@@ -105,9 +105,9 @@ function SetDisplay({
           value={set?.weight ?? 0}
           onChange={handleWeightChange}
         >
-          {Array.from({ length: 701 }, (_, i) => (
-            <option key={i - 200} value={i - 200}>
-              {i - 200}
+          {Array.from({ length: 701 }, (_, i) => i - 200).map((value) => (
+            <option key={value} value={value}>
+              {value}
             </option>
           ))}
         </select>
