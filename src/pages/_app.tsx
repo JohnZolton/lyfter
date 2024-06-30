@@ -52,11 +52,16 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!nostr) {
       return "";
     }
+    const isLiveMode = process.env.NODE_ENV === "production";
+
+    const authUrl = `https://${
+      isLiveMode ? process.env.AUTH_URL : "localhost:3000"
+    }/api/authenticate`;
     const event = await nostr.signEvent({
       kind: 27235,
       created_at: Math.floor(Date.now() / 1000),
       tags: [
-        ["u", "https://localhost:3000/api"],
+        ["u", authUrl],
         ["method", "GET"],
       ],
       content: "",
