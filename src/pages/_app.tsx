@@ -55,7 +55,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     const isLiveMode = process.env.NODE_ENV === "production";
 
     const authUrl = `https://${
-      isLiveMode ? process.env.AUTH_URL : "localhost:3000"
+      isLiveMode ? process.env.AUTH_URL ?? "liftr.club" : "localhost:3000"
     }/api/authenticate`;
     const event = await nostr.signEvent({
       kind: 27235,
