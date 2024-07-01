@@ -184,6 +184,33 @@ function ExerciseDisplay({
       setIsMenuOpen(false);
     }
   }
+  function handleRemoveSet() {
+    removeSet(exercise.exerciseId);
+    const removedSet = exercise.sets[exercise.sets.length - 1];
+    if (removedSet?.setId) {
+      deleteSet({ setId: removedSet.setId });
+    }
+    setIsMenuOpen(false);
+  }
+  const { mutate: recordNewSet } = api.getWorkouts.createSet.useMutation();
+  function handleAddSet() {
+    const lastSet = exercise.sets[exercise.sets.length - 1];
+    const newSet: exerciseSet & { priorSet?: null } = {
+      date: new Date(),
+      exerciseId: exercise.exerciseId,
+      setId: createUniqueId(),
+      weight: lastSet?.weight ?? 0,
+      targetReps: null,
+      targetWeight: lastSet?.targetWeight ?? lastSet?.weight ?? null,
+      reps: null,
+      rir: lastSet?.rir ?? 3,
+      lastSetId: null,
+      priorSet: null,
+      setNumber: exercise.sets.length + 1,
+    };
+    recordNewSet({ ...newSet });
+    addSet(exercise.exerciseId);
+  }
 
   return (
     <div
@@ -197,7 +224,7 @@ function ExerciseDisplay({
               <EllipsisVertical />
             </DropdownMenuTrigger>
             <DropdownMenuContent className="flex flex-col gap-y-1 text-lg">
-              <DropdownMenuItem onClick={() => addSet(exercise.exerciseId)}>
+              <DropdownMenuItem onClick={() => handleAddSet()}>
                 Add Set
               </DropdownMenuItem>
 
@@ -216,7 +243,7 @@ function ExerciseDisplay({
                       <div className="flex flex-row items-center justify-between">
                         <Button
                           variant={"destructive"}
-                          onClick={() => removeSet(exercise.exerciseId)}
+                          onClick={() => handleRemoveSet()}
                         >
                           Remove Set
                         </Button>

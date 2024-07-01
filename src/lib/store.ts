@@ -108,10 +108,10 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
   addSet: (exerciseId) => {
     set((state) => {
       if (!state.workout) return {};
+
       const updatedExercise = state.workout.workout.exercises.map(
         (exercise) => {
           if (exercise.exerciseId === exerciseId) {
-            console.log("updating exID: ", exerciseId);
             const lastSet = exercise.sets[exercise.sets.length - 1];
             if (!lastSet) return {};
             const newSet: exerciseSet = {
@@ -150,8 +150,8 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
       const updatedExercise = state.workout.workout.exercises.map(
         (exercise) => {
           if (exercise.exerciseId === exerciseId) {
+            const removedSet = exercise.sets[exercise.sets.length - 1];
             const newSets = exercise.sets.slice(0, exercise.sets.length - 1);
-            console.log("REMOVED SET: ", newSets);
             return { ...exercise, sets: newSets };
           }
           return exercise;
@@ -166,20 +166,17 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
           },
         },
       };
-      console.log("new state: ", newState);
       return newState;
     });
   },
   updateSet: (exerciseId, updatedSet) => {
     set((state) => {
-      console.log("new set: ", updatedSet);
       if (!state.workout) return {};
       const updatedExercise = state.workout.workout.exercises.map(
         (exercise) => {
           if (exercise.exerciseId === exerciseId) {
             const newSets = exercise.sets.map((oldSet) => {
               if (oldSet.setId === updatedSet.setId) {
-                console.log("updating set");
                 return { ...updatedSet };
               }
               return oldSet;
@@ -198,7 +195,6 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
           },
         },
       };
-      console.log("new state: ", newState);
       return newState;
     });
   },
