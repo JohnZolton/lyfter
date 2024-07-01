@@ -35,6 +35,7 @@ import {
 } from "../../components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
+import useWorkoutStore from "~/lib/store";
 
 function createUniqueId(): string {
   return v4();
@@ -46,41 +47,16 @@ interface ExerciseDisplayProps {
       priorSet?: exerciseSet | null;
     })[];
   };
-  moveUp: (exIndex: number, exId: string) => void;
-  moveDown: (exIndex: number, exId: string) => void;
   workoutNumber: string;
   exerciseNumber: string;
   exerciseIndex: number;
-  addExercise: (
-    exerciseIndex: number,
-    exercise: Exercise & {
-      sets: exerciseSet[];
-    }
-  ) => void;
-
-  updatePlan: (
-    exercise: Exercise & {
-      sets: (exerciseSet & {
-        priorSet?: exerciseSet | null;
-      })[];
-    },
-    workoutId: string,
-    exerciseId: string
-  ) => void;
-
-  removeExercise: (workoutNumber: string, exerciseNumber: string) => void;
 }
 
 function ExerciseDisplay({
-  removeExercise,
   exercise,
   workoutNumber,
   exerciseNumber,
   exerciseIndex,
-  moveUp,
-  moveDown,
-  addExercise,
-  updatePlan,
 }: ExerciseDisplayProps) {
   const [description, setDescription] = useState(
     exercise?.description ?? "none"
@@ -88,117 +64,44 @@ function ExerciseDisplay({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [exerciseStarted, setExerciseStarted] = useState(false);
   const [feedbackLogged, setFeedbackLogged] = useState(false);
-  const [sets, setSets] = useState<
-    (exerciseSet & {
-      priorSet?: exerciseSet | null;
-    })[]
-  >(exercise?.sets);
 
-  useEffect(() => {
-    setDescription(exercise.description);
-    setSets(exercise.sets);
-  }, [exercise?.description, exercise?.sets]);
+  const {
+    addExercise,
+    addSet,
+    removeExercise,
+    replaceExercise,
+    removeSet,
+    moveExerciseDown,
+    moveExerciseUp,
+    updateWorkout,
+    updateExercise,
+    workout,
+  } = useWorkoutStore();
 
-  useEffect(() => {
-    if (sets.every((set) => set.reps && set.reps > 0)) {
-      setExerciseCompleted(true);
-    }
-  }, [exercise?.sets]);
+  const currentExercise = useWorkoutStore((state) =>
+    state.workout?.workout?.exercises.find(
+      (coreExercise) => coreExercise.exerciseId === exercise.exerciseId
+    )
+  );
 
-  function handleSetChange(
-    set: exerciseSet & { priorSet?: exerciseSet | null },
-    index: number
-  ) {
-    const newSets = [...sets];
-    newSets[index] = set;
-    setSets(newSets);
-  }
   function handleSaveButton() {
-    const newData: Exercise & {
-      sets: (exerciseSet & { priorSet?: exerciseSet | null })[];
-    } = {
-      ...exercise,
-      sets: sets,
-      description: description,
-    };
-    updatePlan(newData, workoutNumber, exerciseNumber);
+    console.log("todo");
   }
   const { mutate: recordNewExercise } =
     api.getWorkouts.addNewExercise.useMutation({
       onSuccess(data) {
-        addExercise(exerciseIndex, data);
+        addExercise(data);
       },
     });
-  const { mutate: deleteExercise } =
-    api.getWorkouts.deleteExercise.useMutation();
 
-  const { mutate: recordNewSet } = api.getWorkouts.createSet.useMutation();
-
-  function handleAddSet() {
-    const lastSet = sets[sets.length - 1];
-    const newSet: exerciseSet & { priorSet?: null } = {
-      date: new Date(),
-      exerciseId: exercise.exerciseId,
-      setId: createUniqueId(),
-      weight: 0,
-      targetReps: null,
-      targetWeight: lastSet?.targetWeight ?? lastSet?.weight ?? null,
-      reps: null,
-      rir: 3,
-      lastSetId: null,
-      priorSet: null,
-      setNumber: sets.length + 1,
-    };
-    if (lastSet !== undefined) {
-      newSet.rir = lastSet.rir;
-      newSet.weight = lastSet.weight;
-    }
-    const newSets = [...sets, newSet];
-    setSets(newSets);
-    recordNewSet({ ...newSet });
-  }
   function handleRemoveExercise() {
-    removeExercise(workoutNumber, exercise.exerciseId);
-    deleteExercise({ exerciseId: exercise.exerciseId });
+    removeExercise(exercise);
   }
   const { mutate: deleteSet } = api.getWorkouts.removeSet.useMutation({});
   const { mutate: recordExerciseSoreness } =
     api.getWorkouts.recordExerciseSoreness.useMutation({});
-  function handleRemoveSet() {
-    deleteSet({ setId: sets[sets.length - 1]?.setId ?? "" });
-    const newSets = sets.slice(0, -1);
-    setSets(newSets);
-    setIsMenuOpen(false);
-  }
 
   const { mutate: recordSet } = api.getWorkouts.updateSets.useMutation();
-  function cascadeWeightChange(index: number, weight: number) {
-    const newSets = [...sets];
-    if (index < newSets.length && index >= 0 && newSets[index]) {
-      newSets[index]!.weight = weight;
-      //for every set after current set, update the weight IF set not complete
-      for (let i = index + 1; i < newSets.length; i++) {
-        if (
-          newSets[i]!.reps === undefined ||
-          newSets[i]!.reps === null ||
-          newSets[i]!.reps === 0
-        ) {
-          newSets[i]!.weight = weight;
-        }
-      }
-    }
-    setSets(newSets);
-    newSets.forEach((set, i) => {
-      if (i >= index) {
-        recordSet({
-          setId: set.setId,
-          weight: set.weight,
-          reps: set.reps ?? 0,
-          rir: set.rir ?? 3,
-        });
-      }
-    });
-  }
 
   const [editingName, setEditingName] = useState(false);
   function handleEditExercise() {
@@ -211,14 +114,6 @@ function ExerciseDisplay({
     updateDescription({ exerciseId: exercise.exerciseId, description });
   }
 
-  useEffect(() => {
-    handleSaveButton();
-
-    if (sets[activeSet]?.reps) {
-      setActiveSet(activeSet + 1);
-    }
-  }, [sets]);
-
   const [soreness, setSoreness] = useState("");
   const [pump, setPump] = useState("");
   const [rpe, setRPE] = useState("");
@@ -226,10 +121,9 @@ function ExerciseDisplay({
     setFeedbackLogged(true);
     recordExerciseSoreness({ exerciseId: exercise.exerciseId });
     if (soreness === "a while ago") {
-      handleAddSet();
+      addSet(exercise.exerciseId);
     }
     if (soreness === "still sore") {
-      handleRemoveSet();
     }
   }
   function startSurvey() {
@@ -267,13 +161,6 @@ function ExerciseDisplay({
     RPE: null,
   });
 
-  useEffect(() => {
-    setNewExercise((prevExercise) => ({
-      ...prevExercise,
-      exerciseOrder: exercise.exerciseOrder,
-      workoutId: exercise.workoutId,
-    }));
-  }, [exercise]);
   const [newExUpdated, setNewExUpdated] = useState(false);
   const [newExReady, setNewExReady] = useState(false);
   function isNewExReady(exercise: Exercise) {
@@ -285,18 +172,6 @@ function ExerciseDisplay({
     }
     return true;
   }
-
-  const activeSetNumber = exercise?.sets?.filter(
-    (set) =>
-      set && set.reps !== undefined && set.reps !== 0 && set.reps !== null
-  ).length;
-  const [activeSet, setActiveSet] = useState(activeSetNumber || 0);
-
-  useEffect(() => {
-    if (isNewExReady(newExercise)) {
-      setNewExReady(true);
-    }
-  }, [newExercise]);
 
   function handleAddExercise() {
     if (newExercise && newExercise.description && newExUpdated) {
@@ -310,35 +185,6 @@ function ExerciseDisplay({
     }
   }
 
-  function handleMissedTarget(index: number) {
-    const newSets = sets.slice(0, index + 1);
-    setSets(newSets);
-  }
-
-  const [newExDescription, setNewExDescription] = useState("");
-  const { mutate: replaceExercise } =
-    api.getWorkouts.replaceExercise.useMutation({
-      onSuccess: (replacementExercise) => {
-        if (replacementExercise) {
-          console.log(replacementExercise);
-          removeExercise(exercise.workoutId, exercise.exerciseId);
-          addExercise(replacementExercise.exerciseOrder, replacementExercise);
-        }
-      },
-    });
-  function handleReplaceExercise(title: string, temporary: boolean) {
-    if (title) {
-      replaceExercise({
-        exerciseId: exercise.exerciseId,
-        title: title,
-        temporary: temporary,
-      });
-    }
-  }
-
-  if (!exercise) {
-    return <div></div>;
-  }
   return (
     <div
       key={exercise.description}
@@ -351,7 +197,7 @@ function ExerciseDisplay({
               <EllipsisVertical />
             </DropdownMenuTrigger>
             <DropdownMenuContent className="flex flex-col gap-y-1 text-lg">
-              <DropdownMenuItem onClick={() => handleAddSet()}>
+              <DropdownMenuItem onClick={() => addSet(exercise.exerciseId)}>
                 Add Set
               </DropdownMenuItem>
 
@@ -370,7 +216,7 @@ function ExerciseDisplay({
                       <div className="flex flex-row items-center justify-between">
                         <Button
                           variant={"destructive"}
-                          onClick={() => handleRemoveSet()}
+                          onClick={() => removeSet(exercise.exerciseId)}
                         >
                           Remove Set
                         </Button>
@@ -395,10 +241,7 @@ function ExerciseDisplay({
                   <DialogDescription>
                     <div className="flex flex-col items-center gap-y-4">
                       <Input
-                        value={newExDescription}
-                        onChange={(event) =>
-                          setNewExDescription(event.target.value)
-                        }
+                        onChange={(event) => console.log(event.target.value)}
                         className=""
                         type="text"
                         placeholder="Exercise Title"
@@ -406,18 +249,12 @@ function ExerciseDisplay({
 
                       <DialogClose asChild onBlur={() => setIsMenuOpen(false)}>
                         <div className="flex flex-row items-center gap-x-4">
-                          <Button
-                            onClick={() =>
-                              handleReplaceExercise(newExDescription, true)
-                            }
-                          >
+                          <Button onClick={() => console.log("todo")}>
                             Just once
                           </Button>
                           <Button
                             type="button"
-                            onClick={() =>
-                              handleReplaceExercise(newExDescription, false)
-                            }
+                            onClick={() => console.log("todo")}
                           >
                             Permanently
                           </Button>
@@ -529,19 +366,11 @@ function ExerciseDisplay({
                 Edit Exercise
               </DropdownMenuItem>
               {exercise.exerciseOrder !== 0 && (
-                <DropdownMenuItem
-                  onClick={() =>
-                    moveUp(exercise.exerciseOrder, exercise.exerciseId)
-                  }
-                >
+                <DropdownMenuItem onClick={() => moveExerciseUp(exercise)}>
                   Move up
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem
-                onClick={() =>
-                  moveDown(exercise.exerciseOrder, exercise.exerciseId)
-                }
-              >
+              <DropdownMenuItem onClick={() => moveExerciseDown(exercise)}>
                 Move down
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -685,18 +514,15 @@ function ExerciseDisplay({
           <div>Reps · RIR {exercise.sets[0]?.rir}</div>
           <div>Target</div>
         </div>
-        {sets &&
-          sets
+        {currentExercise &&
+          currentExercise.sets &&
+          currentExercise?.sets
             .sort((a, b) => a.setNumber - b.setNumber)
             .map((set, index) => (
               <SetDisplay
                 key={index}
                 set={set}
-                handleMissedTarget={handleMissedTarget}
-                activeSet={activeSet}
                 index={index}
-                updateSets={handleSetChange}
-                cascadeWeightChange={cascadeWeightChange}
                 startSurvey={startSurvey}
                 feedbackLogged={feedbackLogged}
               />
