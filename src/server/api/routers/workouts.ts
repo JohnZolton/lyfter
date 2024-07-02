@@ -687,6 +687,17 @@ export const getAllWorkouts = createTRPCRouter({
           sets: true,
         },
       });
+      const allExercises = await ctx.prisma.exercise.findMany({
+        where: { workoutId: input.workoutId },
+        orderBy: { exerciseOrder: "asc" },
+      });
+      const updatePromises = allExercises.map((exercise, index) =>
+        ctx.prisma.exercise.update({
+          where: { exerciseId: exercise.exerciseId },
+          data: { exerciseOrder: index + 1 },
+        })
+      );
+      await Promise.all(updatePromises);
       return createdExercise;
     }),
 
@@ -700,6 +711,17 @@ export const getAllWorkouts = createTRPCRouter({
       const deletedExercise = await ctx.prisma.exercise.delete({
         where: { exerciseId: input.exerciseId },
       });
+      const allExercises = await ctx.prisma.exercise.findMany({
+        where: { workoutId: deletedExercise.workoutId },
+        orderBy: { exerciseOrder: "asc" },
+      });
+      const updatePromises = allExercises.map((exercise, index) =>
+        ctx.prisma.exercise.update({
+          where: { exerciseId: exercise.exerciseId },
+          data: { exerciseOrder: index + 1 },
+        })
+      );
+      await Promise.all(updatePromises);
       return deletedExercise;
     }),
 

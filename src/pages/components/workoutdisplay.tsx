@@ -27,7 +27,14 @@ function WorkoutDisplay3({ workoutPlan }: display3Props) {
           <div className="flex w-full flex-col items-center">
             {workout.workout.exercises &&
               workout.workout.exercises
-                .sort((a, b) => a.exerciseOrder - b.exerciseOrder)
+                .sort((a, b) => {
+                  if (a.exerciseOrder === b.exerciseOrder) {
+                    return (
+                      new Date(b.date).getTime() - new Date(a.date).getTime()
+                    );
+                  }
+                  return a.exerciseOrder - b.exerciseOrder;
+                })
                 .map((exercise, exerciseNumber) => (
                   <div
                     className="w-full p-1"

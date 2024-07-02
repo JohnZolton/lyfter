@@ -94,8 +94,13 @@ function ExerciseDisplay({
       },
     });
 
+  const { mutate: deleteExercise } = api.getWorkouts.deleteExercise.useMutation(
+    {}
+  );
   function handleRemoveExercise() {
     removeExercise(exercise);
+    deleteExercise({ exerciseId: exercise.exerciseId });
+    setIsMenuOpen(false);
   }
   const { mutate: deleteSet } = api.getWorkouts.removeSet.useMutation({});
   const { mutate: recordExerciseSoreness } =
@@ -147,41 +152,22 @@ function ExerciseDisplay({
     });
   }
 
-  const [newExercise, setNewExercise] = useState<Exercise>({
-    exerciseId: "fake",
-    date: new Date(),
-    description: "",
-    priorExerciseId: null,
-    exerciseOrder: 0,
-    muscleGroup: MuscleGroup.Chest,
-    temporary: false,
-    workoutId: "",
-    feedbackRecorded: false,
-    pump: null,
-    RPE: null,
-  });
-
-  const [newExUpdated, setNewExUpdated] = useState(false);
-  const [newExReady, setNewExReady] = useState(false);
-  function isNewExReady(exercise: Exercise) {
-    if (!exercise.description || exercise.description.trim() === "") {
-      return false;
-    }
-    if (!newExUpdated) {
-      return false;
-    }
-    return true;
-  }
+  const [newExDescription, setNewExDescription] = useState("");
+  const [newExMuscleGroup, setNewExMuscleGroup] = useState<MuscleGroup | null>(
+    null
+  );
 
   function handleAddExercise() {
-    if (newExercise && newExercise.description && newExUpdated) {
+    if (newExDescription && newExMuscleGroup) {
       recordNewExercise({
         workoutId: exercise.workoutId,
         exerciseNumber: exercise.exerciseOrder,
-        muscleGroup: newExercise.muscleGroup,
-        description: newExercise.description,
+        muscleGroup: newExMuscleGroup,
+        description: newExDescription,
       });
       setIsMenuOpen(false);
+      setNewExDescription("");
+      setNewExMuscleGroup(null);
     }
   }
   function handleRemoveSet() {
@@ -210,6 +196,40 @@ function ExerciseDisplay({
     };
     recordNewSet({ ...newSet });
     addSet(exercise.exerciseId);
+    setIsMenuOpen(false);
+  }
+
+  const [replacementExDescription, setReplacementExDescripion] = useState("");
+  const { mutate: saveReplacementEx } =
+    api.getWorkouts.replaceExercise.useMutation();
+  function handleReplaceExercise(temporary: boolean) {
+    setIsMenuOpen(false);
+    const newEx = {
+      ...exercise,
+      description: replacementExDescription,
+      temporary: temporary,
+      exerciseId: createUniqueId(),
+    };
+    const newSets = newEx.sets.map((curSet, index) => ({
+      date: new Date(),
+      exerciseId: exercise.exerciseId,
+      setId: createUniqueId(),
+      weight: 0,
+      targetReps: 5,
+      targetWeight: null,
+      reps: null,
+      rir: curSet.rir ?? 3,
+      lastSetId: null,
+      priorSet: null,
+      setNumber: index + 1,
+    }));
+    newEx.sets = newSets;
+    replaceExercise(newEx, exercise);
+    saveReplacementEx({
+      exerciseId: exercise.exerciseId,
+      temporary: temporary,
+      title: replacementExDescription,
+    });
   }
 
   return (
@@ -268,7 +288,10 @@ function ExerciseDisplay({
                   <DialogDescription>
                     <div className="flex flex-col items-center gap-y-4">
                       <Input
-                        onChange={(event) => console.log(event.target.value)}
+                        onChange={(event) =>
+                          setReplacementExDescripion(event.target.value)
+                        }
+                        value={replacementExDescription}
                         className=""
                         type="text"
                         placeholder="Exercise Title"
@@ -276,12 +299,16 @@ function ExerciseDisplay({
 
                       <DialogClose asChild onBlur={() => setIsMenuOpen(false)}>
                         <div className="flex flex-row items-center gap-x-4">
-                          <Button onClick={() => console.log("todo")}>
+                          <Button
+                            disabled={replacementExDescription.length === 0}
+                            onClick={() => handleReplaceExercise(true)}
+                          >
                             Just once
                           </Button>
                           <Button
                             type="button"
-                            onClick={() => console.log("todo")}
+                            disabled={replacementExDescription.length === 0}
+                            onClick={() => handleReplaceExercise(false)}
                           >
                             Permanently
                           </Button>
@@ -305,21 +332,13 @@ function ExerciseDisplay({
                     <div className="flex flex-col gap-y-4">
                       <Input
                         placeholder="Description"
-                        onChange={(value) =>
-                          setNewExercise((prevExercise) => ({
-                            ...prevExercise,
-                            description: value.target.value,
-                          }))
+                        onChange={(event) =>
+                          setNewExDescription(event.target.value)
                         }
                       ></Input>
                       <Select
                         onValueChange={(value) => {
-                          setNewExercise((prevExercise) => ({
-                            ...prevExercise,
-                            muscleGroup:
-                              MuscleGroup[value as keyof typeof MuscleGroup],
-                          }));
-                          setNewExUpdated(true);
+                          setNewExMuscleGroup(value as MuscleGroup);
                         }}
                       >
                         <SelectTrigger>
@@ -328,25 +347,41 @@ function ExerciseDisplay({
                         <SelectContent>
                           <SelectGroup>
                             <SelectLabel>Muscle Group</SelectLabel>
-                            <SelectItem value="Chest">Chest</SelectItem>
-                            <SelectItem value="Triceps">Triceps</SelectItem>
-                            <SelectItem value="Back">Back</SelectItem>
-                            <SelectItem value="Biceps">Biceps</SelectItem>
-                            <SelectItem value="Shoulders">Shoulders</SelectItem>
-                            <SelectItem value="Abs">Abs</SelectItem>
-                            <SelectItem value="Quads">Quads</SelectItem>
-                            <SelectItem value="Glutes">Glutes</SelectItem>
-                            <SelectItem value="Hamstrings">
+                            <SelectItem value={MuscleGroup.Chest}>
+                              Chest
+                            </SelectItem>
+                            <SelectItem value={MuscleGroup.Triceps}>
+                              Triceps
+                            </SelectItem>
+                            <SelectItem value={MuscleGroup.Back}>
+                              Back
+                            </SelectItem>
+                            <SelectItem value={MuscleGroup.Biceps}>
+                              Biceps
+                            </SelectItem>
+                            <SelectItem value={MuscleGroup.Shoulders}>
+                              Shoulders
+                            </SelectItem>
+                            <SelectItem value={MuscleGroup.Abs}>Abs</SelectItem>
+                            <SelectItem value={MuscleGroup.Quads}>
+                              Quads
+                            </SelectItem>
+                            <SelectItem value={MuscleGroup.Glutes}>
+                              Glutes
+                            </SelectItem>
+                            <SelectItem value={MuscleGroup.Hamstrings}>
                               Hamstrings
                             </SelectItem>
-                            <SelectItem value="Calves">Calves</SelectItem>
+                            <SelectItem value={MuscleGroup.Calves}>
+                              Calves
+                            </SelectItem>
                           </SelectGroup>
                         </SelectContent>
                       </Select>
                       <DialogClose asChild onBlur={() => setIsMenuOpen(false)}>
                         <div className="flex flex-row items-center justify-between">
                           <Button
-                            disabled={!newExReady}
+                            disabled={!(newExDescription && newExMuscleGroup)}
                             onClick={() => handleAddExercise()}
                           >
                             Add Exercise

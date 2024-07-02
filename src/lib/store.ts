@@ -29,11 +29,7 @@ interface WorkoutState {
   addExercise: (exercise: Exercise) => void;
   removeExercise: (exercise: Exercise) => void;
   updateExercise: (exercise: Exercise) => void;
-  replaceExercise: (
-    oldExercise: Exercise,
-    newExercise: Exercise,
-    temporary: boolean
-  ) => void;
+  replaceExercise: (oldExercise: Exercise, newExercise: Exercise) => void;
   addSet: (exerciseId: string) => void;
   removeSet: (exerciseId: string) => void;
   updateSet: (exerciseId: string, set: exerciseSet) => void;
@@ -56,27 +52,41 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
     }));
   },
   addExercise: (newExercise) =>
-    set((state) => ({
-      workout: state?.workout
-        ? {
-            ...state.workout,
-            exercises: [...state.workout.workout.exercises, newExercise],
-          }
-        : undefined,
-    })),
+    set((state) => {
+      if (!state.workout) return {};
+      const newExercises = [...state.workout.workout.exercises, newExercise];
+      const newState = {
+        workout: {
+          ...state.workout,
+          workout: {
+            ...state.workout.workout,
+            exercises: newExercises,
+          },
+        },
+      };
+      console.log("new state: ", newState);
+      return newState;
+    }),
   removeExercise: (removedExercise) =>
-    set((state) => ({
-      workout: state?.workout
-        ? {
-            ...state.workout,
-            exercises: [
-              ...state.workout.workout.exercises.filter(
-                (exercise) => exercise.exerciseId !== removedExercise.exerciseId
-              ),
-            ],
-          }
-        : undefined,
-    })),
+    set((state) => {
+      if (!state.workout) return {};
+      const newExercises = [
+        ...state.workout.workout.exercises.filter(
+          (exercise) => exercise.exerciseId !== removedExercise.exerciseId
+        ),
+      ];
+      const newState = {
+        workout: {
+          ...state.workout,
+          workout: {
+            ...state.workout.workout,
+            exercises: newExercises,
+          },
+        },
+      };
+      console.log("new state: ", newState);
+      return newState;
+    }),
   updateExercise: (updatedExercise) =>
     set((state) => ({
       workout: state?.workout
@@ -91,20 +101,25 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
           }
         : undefined,
     })),
-  replaceExercise: (newExercise, oldExercise, temporary) =>
-    set((state) => ({
-      workout: state?.workout
-        ? {
-            ...state.workout,
-            exercises: [
-              ...state.workout.workout.exercises.filter(
-                (exercise) => exercise.exerciseId !== oldExercise.exerciseId
-              ),
-              newExercise,
-            ],
-          }
-        : undefined,
-    })),
+  replaceExercise: (newExercise, oldExercise) =>
+    set((state) => {
+      if (!state.workout) return {};
+      const allExercises = state.workout.workout.exercises.filter(
+        (exercise) => exercise.exerciseId !== oldExercise.exerciseId
+      );
+      const newExercises = [...allExercises, newExercise];
+      const newState = {
+        workout: {
+          ...state.workout,
+          workout: {
+            ...state.workout.workout,
+            exercises: newExercises,
+          },
+        },
+      };
+      console.log("new state: ", newState);
+      return newState;
+    }),
   addSet: (exerciseId) => {
     set((state) => {
       if (!state.workout) return {};
