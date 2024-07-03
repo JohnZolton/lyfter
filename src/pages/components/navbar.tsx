@@ -37,9 +37,10 @@ import NDK, {
   NDKUser,
 } from "@nostr-dev-kit/ndk";
 import { Skeleton } from "~/components/ui/skeleton";
+import { fullWorkout } from "~/lib/store";
 
 interface NavBarProps {
-  workout?: Workout;
+  workout?: fullWorkout;
   updateTitleDay?: (description: string, newDay: string) => void;
   title: string;
   subtitle?: string;
@@ -52,8 +53,8 @@ export const NavBar = ({
   subtitle,
 }: NavBarProps) => {
   const router = useRouter();
-  const [newDay, setNewDay] = useState(workout?.nominalDay);
-  const [newTitle, setNewTitle] = useState(workout?.description);
+  const [newDay, setNewDay] = useState(workout?.workout.nominalDay);
+  const [newTitle, setNewTitle] = useState(workout?.workout.description);
   const [displayName, setDisplayName] = useState("");
   const { mutate: updateWorkout } =
     api.getWorkouts.updateWorkoutDescription.useMutation();
@@ -63,7 +64,7 @@ export const NavBar = ({
       const updated = updateWorkout({
         nominalDay: newDay,
         description: newTitle,
-        workoutId: workout?.workoutId,
+        workoutId: workout?.workout.workoutId,
       });
       if (updateTitleDay) {
         updateTitleDay(newTitle, newDay);

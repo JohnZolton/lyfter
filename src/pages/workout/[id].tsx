@@ -19,26 +19,18 @@ import {
   DialogClose,
 } from "~/components/ui/dialog";
 import SignedIn, { SignInButton, SignedOut } from "../components/auth";
+import useWorkoutStore, { fullWorkout } from "~/lib/store";
 
 const Home: NextPage = () => {
-  const [workout, setWorkout] = useState<
-    | (Workout & {
-        exercises: (Exercise & {
-          sets: (exerciseSet & {
-            priorSet?: exerciseSet | null;
-          })[];
-        })[];
-      })
-    | undefined
-  >();
   const router = useRouter();
   const workoutId = router.query.id as string;
+  const { workout, updateWorkout } = useWorkoutStore();
 
   const { mutate: getWorkout } = api.getWorkouts.getWorkoutById.useMutation({
     onSuccess: (gotWorkout) => {
       console.log("got workout");
       console.log(gotWorkout);
-      setWorkout(gotWorkout.workout);
+      updateWorkout({ workout: gotWorkout.workout });
     },
   });
 
@@ -48,7 +40,12 @@ const Home: NextPage = () => {
 
   function updateTitleDay(description: string, newDay: string) {
     if (workout) {
-      setWorkout({ ...workout, description: description, nominalDay: newDay });
+      const newWorkout = {
+        ...workout,
+        description: description,
+        nominalDay: newDay,
+      };
+      updateWorkout(newWorkout);
     }
   }
 
@@ -78,12 +75,12 @@ const Home: NextPage = () => {
     <>
       <NavBar
         workout={workout}
-        title={workout.description}
-        subtitle={workout.nominalDay}
+        title={workout.workout.description}
+        subtitle={workout.workout.nominalDay}
         updateTitleDay={updateTitleDay}
       />
       <SignedIn>
-        <WorkoutUi todaysWorkout={workout} setTodaysWorkout={setWorkout} />
+        <WorkoutUi todaysWorkout={workout} setTodaysWorkout={updateWorkout} />
       </SignedIn>
       <div className="mt-10 flex flex-row items-center justify-center">
         <SignedOut>
@@ -94,55 +91,22 @@ const Home: NextPage = () => {
   );
 };
 interface WorkoutUiProps {
-  todaysWorkout: Workout & {
-    exercises: (Exercise & {
-      sets: (exerciseSet & {
-        priorSet?: exerciseSet | null;
-      })[];
-    })[];
-  };
-  setTodaysWorkout: React.Dispatch<
-    React.SetStateAction<
-      | (Workout & {
-          exercises: (Exercise & {
-            sets: (exerciseSet & {
-              priorSet?: exerciseSet | null;
-            })[];
-          })[];
-        })
-      | undefined
-    >
-  >;
+  todaysWorkout: fullWorkout;
+  setTodaysWorkout: (workout: fullWorkout) => void;
 }
 
 function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
-  useEffect(() => {
-    if (todaysWorkout) {
-      const allSetsCompleted = todaysWorkout.exercises.every((exercise) =>
-        exercise.sets.every(
-          (set) => set.reps !== undefined && set.reps !== 0 && set.reps !== null
-        )
-      );
-      setWorkoutComplete(allSetsCompleted);
-    }
-  }, [todaysWorkout]);
   const [workoutComplete, setWorkoutComplete] = useState(false);
-
   const router = useRouter();
-
   const { mutate: endWorkout } = api.getWorkouts.endWorkout.useMutation();
-
   function handleEndWorkout() {
-    endWorkout({ workoutId: todaysWorkout.workoutId });
+    endWorkout({ workoutId: todaysWorkout.workout.workoutId });
     void router.push("/home");
   }
 
   return (
     <div className="flex flex-col items-center pb-8">
-      <WorkoutDisplay3
-        workoutPlan={todaysWorkout}
-        setWorkoutPlan={setTodaysWorkout}
-      />
+      <WorkoutDisplay3 workoutPlan={todaysWorkout.workout} />
       <div className="mt-3">
         {!workoutComplete && (
           <Dialog>
