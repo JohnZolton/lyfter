@@ -13,10 +13,18 @@ function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
   if (currentSet === undefined) {
     return <div></div>;
   }
-  if (!currentSet.reps && currentSet.targetReps) {
+  const { weight, priorSet } = currentSet;
+  if (
+    weight !== undefined &&
+    weight !== null &&
+    priorSet?.weight !== undefined &&
+    priorSet.weight !== null &&
+    priorSet?.reps &&
+    !currentSet.reps
+  ) {
     return (
       <div className="flex w-full flex-row items-center justify-center  px-2">
-        {currentSet.targetReps}
+        {weight > priorSet.weight ? priorSet.reps : priorSet.reps + 1}
       </div>
     );
   }

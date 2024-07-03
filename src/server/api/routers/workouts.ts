@@ -868,6 +868,16 @@ export const getAllWorkouts = createTRPCRouter({
           rir: input.rir,
         },
       });
+      await ctx.prisma.exerciseSet.updateMany({
+        where: {
+          exerciseId: updatedSet.exerciseId,
+          setNumber: { gt: updatedSet.setNumber },
+          OR: [{ reps: 0 }, { reps: null }],
+        },
+        data: {
+          weight: updatedSet.weight,
+        },
+      });
       return updatedSet;
     }),
 
