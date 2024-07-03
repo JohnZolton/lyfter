@@ -84,9 +84,6 @@ function ExerciseDisplay({
     )
   );
 
-  function handleSaveButton() {
-    console.log("todo");
-  }
   const { mutate: recordNewExercise } =
     api.getWorkouts.addNewExercise.useMutation({
       onSuccess(data) {

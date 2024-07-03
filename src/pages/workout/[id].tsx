@@ -24,8 +24,7 @@ import useWorkoutStore, { fullWorkout } from "~/lib/store";
 const Home: NextPage = () => {
   const router = useRouter();
   const workoutId = router.query.id as string;
-  const { workout, updateWorkout, addExercise, removeWorkout } =
-    useWorkoutStore();
+  const { workout, updateWorkout } = useWorkoutStore();
 
   const { mutate: getWorkout } = api.getWorkouts.getWorkoutById.useMutation({
     onSuccess: (gotWorkout) => {
@@ -104,8 +103,6 @@ function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
     endWorkout({ workoutId: todaysWorkout.workout.workoutId });
     void router.push("/home");
   }
-  const { workout, updateWorkout, addExercise, removeWorkout } =
-    useWorkoutStore();
 
   return (
     <div className="flex flex-col items-center pb-8">
