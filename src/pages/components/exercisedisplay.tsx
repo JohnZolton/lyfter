@@ -191,7 +191,7 @@ function ExerciseDisplay({
       priorSet: null,
       setNumber: exercise?.sets.length + 1,
     };
-    recordNewSet({ ...newSet });
+    recordNewSet(newSet);
     addSet(exercise.exerciseId);
     setIsMenuOpen(false);
   }
