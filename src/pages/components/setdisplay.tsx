@@ -37,7 +37,6 @@ function SetDisplay({
     }
     if (value !== null) {
       const updatedSet = { ...set, weight: value };
-      console.log("updated: ", updatedSet);
       updateSet(set.exerciseId, updatedSet);
       recordSet(updatedSet);
     }
@@ -67,6 +66,7 @@ function SetDisplay({
     }
   };
 
+  if (!currentSet) return <div></div>;
   return (
     <div
       className={`m-1 flex flex-row items-center  justify-between rounded-lg bg-slate-800 p-1 px-2 shadow-md

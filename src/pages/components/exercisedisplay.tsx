@@ -148,6 +148,11 @@ function ExerciseDisplay({
       RPE: rpe,
     });
   }
+  useEffect(() => {
+    if (exercise.sets.every((set) => set.reps && set.reps > 0)) {
+      setExerciseCompleted(true);
+    }
+  }, [exercise]);
 
   const [newExDescription, setNewExDescription] = useState("");
   const [newExMuscleGroup, setNewExMuscleGroup] = useState<MuscleGroup | null>(
