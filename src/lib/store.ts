@@ -64,7 +64,6 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
           },
         },
       };
-      console.log("new state: ", newState);
       return newState;
     }),
   removeExercise: (removedExercise) =>
@@ -84,23 +83,28 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
           },
         },
       };
-      console.log("new state: ", newState);
       return newState;
     }),
   updateExercise: (updatedExercise) =>
-    set((state) => ({
-      workout: state?.workout
-        ? {
-            ...state.workout,
-            exercises: [
-              ...state.workout.workout.exercises.filter(
-                (exercise) => exercise.exerciseId !== updatedExercise.exerciseId
-              ),
-              updatedExercise,
-            ],
-          }
-        : undefined,
-    })),
+    set((state) => {
+      if (!state.workout) return {};
+      const newExercises = [
+        ...state.workout.workout.exercises.filter(
+          (exercise) => exercise.exerciseId !== updatedExercise.exerciseId
+        ),
+      ];
+      const newState = {
+        workout: {
+          ...state.workout,
+          workout: {
+            ...state.workout.workout,
+            exercises: [...newExercises, updatedExercise],
+          },
+        },
+      };
+      console.log("new state: ", newState);
+      return newState;
+    }),
   replaceExercise: (newExercise, oldExercise) =>
     set((state) => {
       if (!state.workout) return {};
@@ -117,7 +121,6 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
           },
         },
       };
-      console.log("new state: ", newState);
       return newState;
     }),
   addSet: (exerciseId) => {
@@ -155,7 +158,6 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
           },
         },
       };
-      console.log("new state: ", newState);
       return newState;
     });
   },
@@ -236,7 +238,6 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
           },
         },
       };
-      console.log("new state: ", newState);
       return newState;
     });
   },
@@ -263,7 +264,6 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
           },
         },
       };
-      console.log("new state: ", newState);
       return newState;
     });
   },

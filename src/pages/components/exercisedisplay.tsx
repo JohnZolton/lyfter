@@ -161,7 +161,7 @@ function ExerciseDisplay({
     if (newExDescription && newExMuscleGroup) {
       recordNewExercise({
         workoutId: exercise.workoutId,
-        exerciseNumber: exercise.exerciseOrder,
+        exerciseNumber: exercise?.exerciseOrder ?? 0,
         muscleGroup: newExMuscleGroup,
         description: newExDescription,
       });
@@ -192,7 +192,7 @@ function ExerciseDisplay({
       rir: lastSet?.rir ?? 3,
       lastSetId: null,
       priorSet: null,
-      setNumber: exercise.sets.length + 1,
+      setNumber: exercise?.sets.length + 1,
     };
     recordNewSet({ ...newSet });
     addSet(exercise.exerciseId);
@@ -234,7 +234,7 @@ function ExerciseDisplay({
 
   return (
     <div
-      key={exercise.description}
+      key={exercise?.description}
       className="rounded-xl bg-slate-700  p-2 shadow-md"
     >
       <div className="flex flex-row items-center pb-1">
@@ -427,7 +427,7 @@ function ExerciseDisplay({
               <DropdownMenuItem onClick={() => handleEditExercise()}>
                 Edit Exercise
               </DropdownMenuItem>
-              {exercise.exerciseOrder !== 0 && (
+              {exercise?.exerciseOrder !== 0 && (
                 <DropdownMenuItem onClick={() => moveExerciseUp(exercise)}>
                   Move up
                 </DropdownMenuItem>
@@ -564,7 +564,7 @@ function ExerciseDisplay({
               {description}
               <span className="text-sm font-light">
                 {" "}
-                - {exercise.muscleGroup}
+                - {exercise?.muscleGroup ?? ""}
               </span>
             </div>
           )}
@@ -573,11 +573,11 @@ function ExerciseDisplay({
       <div className="rounded-md bg-slate-800 py-1">
         <div className="flex flex-row justify-between px-6 text-sm">
           <div className="">Weight</div>
-          <div>Reps · RIR {exercise.sets[0]?.rir}</div>
+          <div>Reps · RIR {exercise?.sets[0]?.rir}</div>
           <div>Target</div>
         </div>
         {currentExercise &&
-          currentExercise.sets &&
+          currentExercise?.sets &&
           currentExercise?.sets
             .sort((a, b) => a.setNumber - b.setNumber)
             .map((set, index) => (
