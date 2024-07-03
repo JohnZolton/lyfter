@@ -196,6 +196,14 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
               if (oldSet.setId === updatedSet.setId) {
                 return { ...updatedSet };
               }
+              if (
+                oldSet.setNumber > updatedSet.setNumber &&
+                (oldSet.reps === 0 ||
+                  oldSet.reps === undefined ||
+                  oldSet.reps === null)
+              ) {
+                oldSet.weight = updatedSet.weight;
+              }
               return oldSet;
             });
             return { ...exercise, sets: newSets };

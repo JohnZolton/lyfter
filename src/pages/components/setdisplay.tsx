@@ -28,6 +28,7 @@ function SetDisplay({
       ?.sets.find((s) => s.setId === set.setId)
   );
 
+  const { mutate: recordSet } = api.getWorkouts.updateSets.useMutation();
   const handleWeightChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = parseInt(event.target.value) ?? null;
     if (!feedbackLogged) {
@@ -38,6 +39,7 @@ function SetDisplay({
       const updatedSet = { ...set, weight: value };
       console.log("updated: ", updatedSet);
       updateSet(set.exerciseId, updatedSet);
+      recordSet(updatedSet);
     }
   };
 
@@ -49,6 +51,7 @@ function SetDisplay({
     if (value !== null && value >= 0) {
       const updatedSet = { ...set, reps: value };
       updateSet(set.exerciseId, updatedSet);
+      recordSet(updatedSet);
       if (
         set.priorSet &&
         set.priorSet.reps &&
