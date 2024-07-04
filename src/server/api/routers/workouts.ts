@@ -419,7 +419,10 @@ export const getAllWorkouts = createTRPCRouter({
       const workout = await ctx.prisma.workout.findFirst({
         where: { userId: ctx.userId, workoutId: input.workoutId },
         include: {
-          exercises: { include: { sets: { include: { priorSet: true } } } },
+          exercises: {
+            where: { active: true },
+            include: { sets: { include: { priorSet: true } } },
+          },
         },
       });
 
@@ -535,6 +538,7 @@ export const getAllWorkouts = createTRPCRouter({
       const newExercises = await Promise.all(
         priorWorkout.exercises
           .sort((a, b) => a.exerciseOrder - b.exerciseOrder)
+          .filter((exercise) => exercise.deleted === false)
           .map(async (exercise, index) => {
             const newSets: newSetTemplate[] = exercise.sets
               .sort((a, b) => a.setNumber - b.setNumber)
@@ -566,6 +570,7 @@ export const getAllWorkouts = createTRPCRouter({
               muscleGroup: lastValidExercise.muscleGroup,
               exerciseOrder: index,
               priorExerciseId: lastValidExercise.exerciseId,
+              note: lastValidExercise.note ?? "",
               sets: newSets,
             };
 
@@ -705,24 +710,48 @@ export const getAllWorkouts = createTRPCRouter({
     .input(
       z.object({
         exerciseId: z.string(),
+        permanent: z.boolean(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const deletedExercise = await ctx.prisma.exercise.delete({
-        where: { exerciseId: input.exerciseId },
-      });
-      const allExercises = await ctx.prisma.exercise.findMany({
-        where: { workoutId: deletedExercise.workoutId },
-        orderBy: { exerciseOrder: "asc" },
-      });
-      const updatePromises = allExercises.map((exercise, index) =>
-        ctx.prisma.exercise.update({
-          where: { exerciseId: exercise.exerciseId },
-          data: { exerciseOrder: index + 1 },
-        })
-      );
-      await Promise.all(updatePromises);
-      return deletedExercise;
+      if (input.permanent) {
+        //permanent deletion
+        const updatedExercise = await ctx.prisma.exercise.update({
+          where: { exerciseId: input.exerciseId },
+          data: { active: false, deleted: true },
+        });
+        const allExercises = await ctx.prisma.exercise.findMany({
+          where: { workoutId: updatedExercise.workoutId },
+          orderBy: { exerciseOrder: "asc" },
+        });
+        const updatePromises = allExercises.map((exercise, index) =>
+          ctx.prisma.exercise.update({
+            where: { exerciseId: exercise.exerciseId },
+            data: { exerciseOrder: index + 1 },
+          })
+        );
+        await Promise.all(updatePromises);
+        return updatedExercise;
+      } else {
+        // Temporary deletion
+        const updatedExercise = await ctx.prisma.exercise.update({
+          where: { exerciseId: input.exerciseId },
+          data: { active: false },
+        });
+        const allExercises = await ctx.prisma.exercise.findMany({
+          where: { workoutId: updatedExercise.workoutId },
+          orderBy: { exerciseOrder: "asc" },
+        });
+        const updatePromises = allExercises.map((exercise, index) =>
+          ctx.prisma.exercise.update({
+            where: { exerciseId: exercise.exerciseId },
+            data: { exerciseOrder: index + 1 },
+          })
+        );
+        await Promise.all(updatePromises);
+        return updatedExercise;
+      }
+      return;
     }),
 
   updateWorkoutDescription: privateProcedure
@@ -758,6 +787,10 @@ export const getAllWorkouts = createTRPCRouter({
         data: {
           pump: Pump[input.pump as keyof typeof Pump],
           RPE: RPE[input.RPE as keyof typeof RPE],
+          feedbackRecorded: true,
+        },
+        include: {
+          sets: { include: { priorSet: true } },
         },
       });
       return updatedExercise;
@@ -796,6 +829,22 @@ export const getAllWorkouts = createTRPCRouter({
       return updatedExercise;
     }),
 
+  updateExerciseNote: privateProcedure
+    .input(
+      z.object({
+        exerciseId: z.string(),
+        note: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const updatedExercise = await ctx.prisma.exercise.update({
+        where: { exerciseId: input.exerciseId },
+        data: {
+          note: input.note,
+        },
+      });
+      return updatedExercise;
+    }),
   updateExerciseDescription: privateProcedure
     .input(
       z.object({

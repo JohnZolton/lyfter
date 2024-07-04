@@ -41,9 +41,6 @@ function WorkoutDisplay3({ workoutPlan }: display3Props) {
                     key={exercise.exerciseId.toString()}
                   >
                     <ExerciseDisplay
-                      workoutNumber={workout.workout.workoutId}
-                      exerciseNumber={exercise.exerciseId}
-                      exerciseIndex={exerciseNumber}
                       key={
                         workoutPlan.workoutNumber
                           ? workoutPlan.workoutNumber.toString()

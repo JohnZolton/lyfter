@@ -28,7 +28,6 @@ const Home: NextPage = () => {
 
   const { mutate: getWorkout } = api.getWorkouts.getWorkoutById.useMutation({
     onSuccess: (gotWorkout) => {
-      console.log("got workout");
       console.log(gotWorkout);
       updateWorkout({ workout: gotWorkout.workout });
     },
@@ -58,7 +57,7 @@ const Home: NextPage = () => {
           updateTitleDay={updateTitleDay}
         />
         <SignedIn>
-          <div className="mt-8 flex flex-row items-center justify-center">
+          <div className="mt-10 flex flex-row items-center justify-center">
             <LoadingSpinner />
           </div>
         </SignedIn>
@@ -105,7 +104,7 @@ function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
   }
 
   return (
-    <div className="flex flex-col items-center pb-8">
+    <div className="flex flex-col items-center">
       <WorkoutDisplay3 workoutPlan={todaysWorkout.workout} />
       <div className="mt-3">
         {!workoutComplete && (

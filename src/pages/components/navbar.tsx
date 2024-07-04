@@ -303,14 +303,14 @@ function Avatar({ setDisplayName }: AvatarProps) {
   if (url) {
     return (
       <div className="flex items-center justify-center">
-        <img src={url} className="h-14 w-14 rounded-full object-cover" />
+        <img src={url} className="h-10 w-10 rounded-full object-cover" />
       </div>
     );
   }
 
   return (
     <div className="flex items-center justify-center">
-      <Skeleton className="h-14 w-14 rounded-full object-cover" />
+      <Skeleton className="h-10 w-10 rounded-full object-cover" />
     </div>
   );
 }

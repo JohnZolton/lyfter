@@ -1,14 +1,5 @@
 import { create } from "zustand";
-import {
-  Exercise,
-  exerciseSet,
-  Workout,
-  WorkoutPlan,
-  MuscleGroup,
-  Pump,
-  RPE,
-} from "@prisma/client";
-import { api } from "~/utils/api";
+import { Exercise, exerciseSet, Workout } from "@prisma/client";
 
 export interface fullWorkout {
   workout:
@@ -19,9 +10,6 @@ export interface fullWorkout {
       };
 }
 
-interface fullExercise {
-  exercise: Exercise & { sets: exerciseSet[] };
-}
 interface WorkoutState {
   workout: fullWorkout | undefined;
   removeWorkout: (workout: fullWorkout) => void;
@@ -41,9 +29,24 @@ interface WorkoutState {
 const useWorkoutStore = create<WorkoutState>((set) => ({
   workout: undefined,
   updateWorkout: (updatedWorkout) => {
-    set(() => ({
-      workout: updatedWorkout,
-    }));
+    set((state) => {
+      if (!state.workout) {
+        return {
+          workout: updatedWorkout,
+        };
+      }
+      const newState = {
+        workout: {
+          ...state.workout,
+          workout: {
+            ...state.workout.workout,
+            description: updatedWorkout.workout.description,
+            nominalDay: updatedWorkout.workout.nominalDay,
+          },
+        },
+      };
+      return newState;
+    });
   },
   removeWorkout: (workout) => {
     console.log(workout);
@@ -102,7 +105,6 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
           },
         },
       };
-      console.log("new state: ", newState);
       return newState;
     }),
   replaceExercise: (newExercise, oldExercise) =>
@@ -296,7 +298,6 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
           },
         },
       };
-      console.log("new state: ", newState);
       return newState;
     });
   },
