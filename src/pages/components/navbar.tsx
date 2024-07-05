@@ -188,6 +188,11 @@ export const NavBar = ({
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
+                  <Link href={"/overview"} className="">
+                    Meso Overview
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
                   <SignOutButton className="" />
                 </DropdownMenuItem>
               </SignedIn>
@@ -223,6 +228,11 @@ function NavMenuItems({ setDisplayName }: AvatarProps) {
       <li>
         <Link href="/allworkouts" className=" hover:text-white hover:underline">
           <Button variant={"ghost"}>History</Button>
+        </Link>
+      </li>
+      <li>
+        <Link href="/overview" className=" hover:text-white hover:underline">
+          <Button variant={"ghost"}>Overview</Button>
         </Link>
       </li>
       <li>
@@ -303,14 +313,14 @@ function Avatar({ setDisplayName }: AvatarProps) {
   if (url) {
     return (
       <div className="flex items-center justify-center">
-        <img src={url} className="h-14 w-14 rounded-full object-cover" />
+        <img src={url} className="h-10 w-10 rounded-full object-cover" />
       </div>
     );
   }
 
   return (
     <div className="flex items-center justify-center">
-      <Skeleton className="h-14 w-14 rounded-full object-cover" />
+      <Skeleton className="h-10 w-10 rounded-full object-cover" />
     </div>
   );
 }

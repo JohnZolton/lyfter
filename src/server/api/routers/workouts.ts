@@ -419,7 +419,10 @@ export const getAllWorkouts = createTRPCRouter({
       const workout = await ctx.prisma.workout.findFirst({
         where: { userId: ctx.userId, workoutId: input.workoutId },
         include: {
-          exercises: { include: { sets: { include: { priorSet: true } } } },
+          exercises: {
+            where: { active: true },
+            include: { sets: { include: { priorSet: true } } },
+          },
         },
       });
 
@@ -512,8 +515,11 @@ export const getAllWorkouts = createTRPCRouter({
         const workoutDate = new Date(priorWorkout.date);
         const currentDate = new Date();
         const sixDaysAgo = new Date();
+        //testing
+        const oneMinuteAgo = new Date(currentDate.getTime() - 60 * 1000);
         sixDaysAgo.setDate(currentDate.getDate() - 6);
         if (workoutDate >= sixDaysAgo) {
+          //if (workoutDate >= oneMinuteAgo) {
           return priorWorkout.workoutId;
         }
       }
@@ -535,6 +541,8 @@ export const getAllWorkouts = createTRPCRouter({
       const newExercises = await Promise.all(
         priorWorkout.exercises
           .sort((a, b) => a.exerciseOrder - b.exerciseOrder)
+          .filter((exercise) => !exercise.deleted)
+          .filter((exercise) => exercise.active === true)
           .map(async (exercise, index) => {
             const newSets: newSetTemplate[] = exercise.sets
               .sort((a, b) => a.setNumber - b.setNumber)
@@ -566,6 +574,7 @@ export const getAllWorkouts = createTRPCRouter({
               muscleGroup: lastValidExercise.muscleGroup,
               exerciseOrder: index,
               priorExerciseId: lastValidExercise.exerciseId,
+              note: lastValidExercise.note ?? "",
               sets: newSets,
             };
 
@@ -705,24 +714,48 @@ export const getAllWorkouts = createTRPCRouter({
     .input(
       z.object({
         exerciseId: z.string(),
+        permanent: z.boolean(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const deletedExercise = await ctx.prisma.exercise.delete({
-        where: { exerciseId: input.exerciseId },
-      });
-      const allExercises = await ctx.prisma.exercise.findMany({
-        where: { workoutId: deletedExercise.workoutId },
-        orderBy: { exerciseOrder: "asc" },
-      });
-      const updatePromises = allExercises.map((exercise, index) =>
-        ctx.prisma.exercise.update({
-          where: { exerciseId: exercise.exerciseId },
-          data: { exerciseOrder: index + 1 },
-        })
-      );
-      await Promise.all(updatePromises);
-      return deletedExercise;
+      if (input.permanent) {
+        //permanent deletion
+        const updatedExercise = await ctx.prisma.exercise.update({
+          where: { exerciseId: input.exerciseId },
+          data: { active: false, deleted: true },
+        });
+        const allExercises = await ctx.prisma.exercise.findMany({
+          where: { workoutId: updatedExercise.workoutId },
+          orderBy: { exerciseOrder: "asc" },
+        });
+        const updatePromises = allExercises.map((exercise, index) =>
+          ctx.prisma.exercise.update({
+            where: { exerciseId: exercise.exerciseId },
+            data: { exerciseOrder: index + 1 },
+          })
+        );
+        await Promise.all(updatePromises);
+        return updatedExercise;
+      } else {
+        // Temporary deletion
+        const updatedExercise = await ctx.prisma.exercise.update({
+          where: { exerciseId: input.exerciseId },
+          data: { active: false },
+        });
+        const allExercises = await ctx.prisma.exercise.findMany({
+          where: { workoutId: updatedExercise.workoutId },
+          orderBy: { exerciseOrder: "asc" },
+        });
+        const updatePromises = allExercises.map((exercise, index) =>
+          ctx.prisma.exercise.update({
+            where: { exerciseId: exercise.exerciseId },
+            data: { exerciseOrder: index + 1 },
+          })
+        );
+        await Promise.all(updatePromises);
+        return updatedExercise;
+      }
+      return;
     }),
 
   updateWorkoutDescription: privateProcedure
@@ -758,6 +791,10 @@ export const getAllWorkouts = createTRPCRouter({
         data: {
           pump: Pump[input.pump as keyof typeof Pump],
           RPE: RPE[input.RPE as keyof typeof RPE],
+          feedbackRecorded: true,
+        },
+        include: {
+          sets: { include: { priorSet: true } },
         },
       });
       return updatedExercise;
@@ -796,6 +833,22 @@ export const getAllWorkouts = createTRPCRouter({
       return updatedExercise;
     }),
 
+  updateExerciseNote: privateProcedure
+    .input(
+      z.object({
+        exerciseId: z.string(),
+        note: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const updatedExercise = await ctx.prisma.exercise.update({
+        where: { exerciseId: input.exerciseId },
+        data: {
+          note: input.note,
+        },
+      });
+      return updatedExercise;
+    }),
   updateExerciseDescription: privateProcedure
     .input(
       z.object({
@@ -916,4 +969,44 @@ export const getAllWorkouts = createTRPCRouter({
       });
       return workout;
     }),
+
+  getMesoOverview: privateProcedure.query(async ({ ctx }) => {
+    const workoutPlan = await ctx.prisma.workoutPlan.findFirst({
+      where: { userId: ctx.userId },
+      orderBy: { date: "asc" },
+      include: {
+        workouts: { include: { exercises: { include: { sets: true } } } },
+      },
+    });
+    if (!workoutPlan) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Workouts not found",
+      });
+    }
+    type WeeklyOverview = {
+      [weekNumber: number]: {
+        [muscleGroup in MuscleGroup]?: number;
+      };
+    };
+    const weeklyOverview: WeeklyOverview = {};
+    workoutPlan.workouts.forEach((workout) => {
+      const weekNumber = workout.workoutNumber ?? 0;
+      if (!weeklyOverview[weekNumber]) {
+        weeklyOverview[weekNumber] = {};
+      }
+      workout.exercises.forEach((exercise) => {
+        const muscleGroup = exercise.muscleGroup;
+        if (!weeklyOverview[weekNumber]![muscleGroup]) {
+          weeklyOverview[weekNumber]![muscleGroup] = 0;
+        }
+        const completedSets = exercise.sets.filter(
+          (set) => set.reps && set.reps > 0
+        ).length;
+        weeklyOverview[weekNumber]![muscleGroup]! += completedSets;
+      });
+    });
+    console.log(weeklyOverview);
+    return weeklyOverview;
+  }),
 });

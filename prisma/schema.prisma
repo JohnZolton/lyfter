@@ -220,8 +220,11 @@ model Exercise {
   muscleGroup MuscleGroup
   workoutId String
   temporary Boolean @default(false)
+  active Boolean @default(true)
+  deleted Boolean @default(false)
   priorExerciseId String?
   feedbackRecorded Boolean @default(false)
+  note String?
   pump Pump?
   RPE RPE?
   workout   Workout @relation(fields: [workoutId], references: [workoutId], onDelete: Cascade)

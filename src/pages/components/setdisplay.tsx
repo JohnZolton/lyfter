@@ -87,7 +87,7 @@ function SetDisplay({
       </div>
       <div>
         <select
-          className=" rounded bg-gray-700 p-2 px-3 text-center text-sm text-white"
+          className="rounded bg-gray-700 p-2 px-3 text-center text-sm text-white"
           onChange={handleRepsChange}
           value={currentSet?.reps ?? 0}
         >

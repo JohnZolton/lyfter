@@ -47,20 +47,10 @@ interface ExerciseDisplayProps {
       priorSet?: exerciseSet | null;
     })[];
   };
-  workoutNumber: string;
-  exerciseNumber: string;
-  exerciseIndex: number;
 }
 
-function ExerciseDisplay({
-  exercise,
-  workoutNumber,
-  exerciseNumber,
-  exerciseIndex,
-}: ExerciseDisplayProps) {
-  const [description, setDescription] = useState(
-    exercise?.description ?? "none"
-  );
+function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
+  const [description, setDescription] = useState(exercise?.description ?? null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [exerciseStarted, setExerciseStarted] = useState(false);
   const [feedbackLogged, setFeedbackLogged] = useState(false);
@@ -73,7 +63,6 @@ function ExerciseDisplay({
     removeSet,
     moveExerciseDown,
     moveExerciseUp,
-    updateWorkout,
     updateExercise,
     workout,
   } = useWorkoutStore();
@@ -91,41 +80,41 @@ function ExerciseDisplay({
       },
     });
 
-  const { mutate: deleteExercise } = api.getWorkouts.deleteExercise.useMutation(
-    {}
-  );
-  function handleRemoveExercise() {
+  const { mutate: deleteExercise } =
+    api.getWorkouts.deleteExercise.useMutation();
+  function handleRemoveExercise(permanent: boolean) {
     removeExercise(exercise);
-    deleteExercise({ exerciseId: exercise.exerciseId });
+    deleteExercise({ exerciseId: exercise.exerciseId, permanent: permanent });
     setIsMenuOpen(false);
   }
   const { mutate: deleteSet } = api.getWorkouts.removeSet.useMutation({});
   const { mutate: recordExerciseSoreness } =
     api.getWorkouts.recordExerciseSoreness.useMutation({});
 
-  const { mutate: recordSet } = api.getWorkouts.updateSets.useMutation();
-
   const [editingName, setEditingName] = useState(false);
-  function handleEditExercise() {
-    setEditingName(true);
-  }
+
   const { mutate: updateDescription } =
     api.getWorkouts.updateExerciseDescription.useMutation({});
   function handleSaveExercise() {
     setEditingName(false);
-    updateDescription({ exerciseId: exercise.exerciseId, description });
+    if (description) {
+      updateDescription({ exerciseId: exercise.exerciseId, description });
+      updateExercise({ ...exercise, description: description });
+    }
   }
 
   const [soreness, setSoreness] = useState("");
   const [pump, setPump] = useState("");
   const [rpe, setRPE] = useState("");
+
   function savePreFeedback() {
     setFeedbackLogged(true);
     recordExerciseSoreness({ exerciseId: exercise.exerciseId });
     if (soreness === "a while ago") {
-      addSet(exercise.exerciseId);
+      handleAddSet();
     }
     if (soreness === "still sore") {
+      handleRemoveSet();
     }
   }
   function startSurvey() {
@@ -135,7 +124,9 @@ function ExerciseDisplay({
   }
 
   const { mutate: recordExerciseFeedback } =
-    api.getWorkouts.recordExerciseFeedback.useMutation({});
+    api.getWorkouts.recordExerciseFeedback.useMutation({
+      onSuccess: (updatedExercise) => updateExercise(updatedExercise),
+    });
 
   const [exerciseCompleted, setExerciseCompleted] = useState(false);
   const [postExerciseSurveyCompleted, setPostExerciseSurveyCompleted] =
@@ -234,13 +225,24 @@ function ExerciseDisplay({
     });
   }
 
+  const [editingNote, setEditingNote] = useState(false);
+  const [note, setNote] = useState(exercise?.note ? exercise.note : "");
+  const { mutate: recordNote } =
+    api.getWorkouts.updateExerciseNote.useMutation();
+  function handleSaveNote() {
+    setEditingNote(false);
+    const updatedEx = { ...exercise, note: note };
+    updateExercise(updatedEx);
+    recordNote({ exerciseId: updatedEx.exerciseId, note: updatedEx.note });
+  }
+
   return (
     <div
-      key={exercise?.description}
+      key={exercise?.description ?? "default-key"}
       className="rounded-xl bg-slate-700  p-2 shadow-md"
     >
       <div className="flex flex-row items-center pb-1">
-        <div className="flex items-center justify-center px-1">
+        <div className="flex items-center justify-center">
           <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <DropdownMenuTrigger asChild>
               <EllipsisVertical />
@@ -406,19 +408,22 @@ function ExerciseDisplay({
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Are you sure?</DialogTitle>
+                    <DialogTitle>Delete Exercise</DialogTitle>
                   </DialogHeader>
                   <DialogDescription>
                     <DialogClose asChild onBlur={() => setIsMenuOpen(false)}>
                       <div className="flex flex-row items-center justify-between">
                         <Button
                           variant={"destructive"}
-                          onClick={() => handleRemoveExercise()}
+                          onClick={() => handleRemoveExercise(false)}
                         >
-                          Remove Exercise
+                          Just this time
                         </Button>
-                        <Button type="button" variant="secondary">
-                          Cancel
+                        <Button
+                          variant={"destructive"}
+                          onClick={() => handleRemoveExercise(true)}
+                        >
+                          This and future
                         </Button>
                       </div>
                     </DialogClose>
@@ -426,7 +431,7 @@ function ExerciseDisplay({
                 </DialogContent>
               </Dialog>
 
-              <DropdownMenuItem onClick={() => handleEditExercise()}>
+              <DropdownMenuItem onClick={() => setEditingName(true)}>
                 Edit Exercise
               </DropdownMenuItem>
               {exercise?.exerciseOrder !== 0 && (
@@ -437,15 +442,25 @@ function ExerciseDisplay({
               <DropdownMenuItem onClick={() => moveExerciseDown(exercise)}>
                 Move down
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setEditingNote(true)}>
+                {exercise?.note ? "Edit Note" : "Add Note"}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <Dialog
-            open={exerciseCompleted && !postExerciseSurveyCompleted}
+            open={
+              exerciseCompleted &&
+              !postExerciseSurveyCompleted &&
+              feedbackLogged
+            }
             onOpenChange={setExerciseCompleted}
           >
             <DialogContent className="w-xs items-center justify-center px-4 md:max-w-md">
               <DialogHeader className="mx-auto text-center">
-                <DialogTitle>Exercise Feedback</DialogTitle>
+                <DialogTitle>
+                  Exercise Feedback{" "}
+                  {exercise?.description && `- ${exercise.description}`}
+                </DialogTitle>
               </DialogHeader>
               <DialogDescription>
                 <div className="flex flex-col items-center gap-y-3">
@@ -552,7 +567,7 @@ function ExerciseDisplay({
           {editingName ? (
             <Input
               type="text"
-              value={description}
+              value={description ?? ""}
               onChange={(e) => setDescription(e.target.value)}
               onBlur={handleSaveExercise}
               onKeyDown={(e) => {
@@ -563,7 +578,7 @@ function ExerciseDisplay({
             />
           ) : (
             <div>
-              {description}
+              {description ?? ""}
               <span className="text-sm font-light">
                 {" "}
                 - {exercise?.muscleGroup ?? ""}
@@ -572,8 +587,25 @@ function ExerciseDisplay({
           )}
         </div>
       </div>
+      {editingNote ? (
+        <Input
+          type="text"
+          onChange={(e) => setNote(e.target.value)}
+          value={note ?? ""}
+          onBlur={() => handleSaveNote()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleSaveNote();
+            }
+          }}
+        />
+      ) : (
+        <div className="mb-1 rounded bg-slate-800 px-3 text-sm font-light">
+          {exercise?.note ?? ""}
+        </div>
+      )}
       <div className="rounded-md bg-slate-800 py-1">
-        <div className="flex flex-row justify-between px-6 text-sm">
+        <div className="flex flex-row justify-between px-6 text-sm shadow-md">
           <div className="">Weight</div>
           <div>Reps · RIR {exercise?.sets[0]?.rir}</div>
           <div>Target</div>

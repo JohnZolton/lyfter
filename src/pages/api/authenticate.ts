@@ -48,12 +48,8 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ error: "Event timestamp too old" });
     }
 
-    console.log("api/auth rawevent: ", rawEvent);
     const isGood = validateEvent(rawEvent);
-    console.log(isGood);
-
     if (isGood) {
-      console.log("valid nip97");
       const token = jwt.sign({ pubkey: rawEvent.pubkey }, JWT_SECRET, {
         expiresIn: "2h",
       });
