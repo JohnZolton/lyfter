@@ -13,7 +13,7 @@ export interface fullWorkout {
 interface WorkoutState {
   workout: fullWorkout | undefined;
   removeWorkout: (workout: fullWorkout) => void;
-  updateWorkout: (updatedWorkout: fullWorkout) => void;
+  updateWorkout: (updatedWorkout: fullWorkout | undefined) => void;
   addExercise: (exercise: Exercise) => void;
   removeExercise: (exercise: Exercise) => void;
   updateExercise: (exercise: Exercise) => void;
@@ -34,6 +34,9 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
         return {
           workout: updatedWorkout,
         };
+      }
+      if (updatedWorkout === undefined) {
+        return { workout: undefined };
       }
       const newState = {
         workout: {

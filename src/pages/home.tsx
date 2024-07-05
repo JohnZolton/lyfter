@@ -18,7 +18,6 @@ const Home: NextPage = () => {
   const [token, setToken] = useState<string | null>(null);
   useEffect(() => {
     const storedToken = sessionStorage.getItem("authHeader");
-    console.log("TOOOKEN: ", storedToken);
     setToken(storedToken);
   });
 

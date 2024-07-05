@@ -98,8 +98,10 @@ function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
   const [workoutComplete, setWorkoutComplete] = useState(false);
   const router = useRouter();
   const { mutate: endWorkout } = api.getWorkouts.endWorkout.useMutation();
+  const { updateWorkout } = useWorkoutStore();
   function handleEndWorkout() {
     endWorkout({ workoutId: todaysWorkout.workout.workoutId });
+    updateWorkout(undefined);
     void router.push("/home");
   }
 

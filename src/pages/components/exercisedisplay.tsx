@@ -99,6 +99,7 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
     setEditingName(false);
     if (description) {
       updateDescription({ exerciseId: exercise.exerciseId, description });
+      updateExercise({ ...exercise, description: description });
     }
   }
 
@@ -577,7 +578,7 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
             />
           ) : (
             <div>
-              {exercise?.description ?? ""}
+              {description ?? ""}
               <span className="text-sm font-light">
                 {" "}
                 - {exercise?.muscleGroup ?? ""}

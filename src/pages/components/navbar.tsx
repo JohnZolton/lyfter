@@ -188,6 +188,11 @@ export const NavBar = ({
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
+                  <Link href={"/overview"} className="">
+                    Meso Overview
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
                   <SignOutButton className="" />
                 </DropdownMenuItem>
               </SignedIn>
@@ -223,6 +228,11 @@ function NavMenuItems({ setDisplayName }: AvatarProps) {
       <li>
         <Link href="/allworkouts" className=" hover:text-white hover:underline">
           <Button variant={"ghost"}>History</Button>
+        </Link>
+      </li>
+      <li>
+        <Link href="/overview" className=" hover:text-white hover:underline">
+          <Button variant={"ghost"}>Overview</Button>
         </Link>
       </li>
       <li>

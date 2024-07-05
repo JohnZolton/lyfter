@@ -515,8 +515,11 @@ export const getAllWorkouts = createTRPCRouter({
         const workoutDate = new Date(priorWorkout.date);
         const currentDate = new Date();
         const sixDaysAgo = new Date();
+        //testing
+        const oneMinuteAgo = new Date(currentDate.getTime() - 60 * 1000);
         sixDaysAgo.setDate(currentDate.getDate() - 6);
         if (workoutDate >= sixDaysAgo) {
+          //if (workoutDate >= oneMinuteAgo) {
           return priorWorkout.workoutId;
         }
       }
@@ -538,7 +541,8 @@ export const getAllWorkouts = createTRPCRouter({
       const newExercises = await Promise.all(
         priorWorkout.exercises
           .sort((a, b) => a.exerciseOrder - b.exerciseOrder)
-          .filter((exercise) => exercise.deleted === false)
+          .filter((exercise) => !exercise.deleted)
+          .filter((exercise) => exercise.active === true)
           .map(async (exercise, index) => {
             const newSets: newSetTemplate[] = exercise.sets
               .sort((a, b) => a.setNumber - b.setNumber)
@@ -965,4 +969,44 @@ export const getAllWorkouts = createTRPCRouter({
       });
       return workout;
     }),
+
+  getMesoOverview: privateProcedure.query(async ({ ctx }) => {
+    const workoutPlan = await ctx.prisma.workoutPlan.findFirst({
+      where: { userId: ctx.userId },
+      orderBy: { date: "asc" },
+      include: {
+        workouts: { include: { exercises: { include: { sets: true } } } },
+      },
+    });
+    if (!workoutPlan) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Workouts not found",
+      });
+    }
+    type WeeklyOverview = {
+      [weekNumber: number]: {
+        [muscleGroup in MuscleGroup]?: number;
+      };
+    };
+    const weeklyOverview: WeeklyOverview = {};
+    workoutPlan.workouts.forEach((workout) => {
+      const weekNumber = workout.workoutNumber ?? 0;
+      if (!weeklyOverview[weekNumber]) {
+        weeklyOverview[weekNumber] = {};
+      }
+      workout.exercises.forEach((exercise) => {
+        const muscleGroup = exercise.muscleGroup;
+        if (!weeklyOverview[weekNumber]![muscleGroup]) {
+          weeklyOverview[weekNumber]![muscleGroup] = 0;
+        }
+        const completedSets = exercise.sets.filter(
+          (set) => set.reps && set.reps > 0
+        ).length;
+        weeklyOverview[weekNumber]![muscleGroup]! += completedSets;
+      });
+    });
+    console.log(weeklyOverview);
+    return weeklyOverview;
+  }),
 });

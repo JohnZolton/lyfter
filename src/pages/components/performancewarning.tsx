@@ -28,8 +28,8 @@ function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
       </div>
     );
   }
-  if (!currentSet.reps) {
-    return <div></div>;
+  if (!currentSet.reps && priorSet?.reps) {
+    return <div>{priorSet?.reps + 1 ?? 5}</div>;
   }
 
   function isImprovement(
