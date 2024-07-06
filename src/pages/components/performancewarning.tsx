@@ -17,99 +17,49 @@ function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
     api.getWorkouts.recordMissedTarget.useMutation();
   const { handleMissedTarget } = useWorkoutStore();
   useEffect(() => {
-    if (
-      currentSet &&
-      currentSet.reps &&
-      isRegression(currentSet, currentSet.priorSet)
-    ) {
+    if (currentSet && currentSet.reps && isRegression()) {
       handleMissedTarget(currentSet);
       recordMissedSets({ setId: currentSet.setId });
     }
   }, [currentSet]);
-  if (currentSet === undefined) {
-    return <div></div>;
-  }
-  const { weight, priorSet } = currentSet;
-  if (priorSet === undefined || priorSet?.reps === 0) {
-    return <div></div>;
-  }
-  if (
-    weight !== undefined &&
-    weight !== null &&
-    priorSet?.weight !== undefined &&
-    priorSet.weight !== null &&
-    priorSet?.reps &&
-    !currentSet.reps
-  ) {
-    return (
-      <div className="flex w-full flex-row items-center justify-center  px-2">
-        {weight > priorSet.weight ? priorSet.reps : priorSet.reps + 1}
-      </div>
-    );
-  }
-  if (!currentSet.reps && priorSet?.reps) {
-    return <div>{priorSet?.reps + 1 ?? 5}</div>;
-  }
 
-  function isImprovement(
-    currentSet: exerciseSet,
-    priorSet: exerciseSet | null | undefined
-  ) {
+  if (!currentSet) return null;
+
+  const { weight, reps, priorSet } = currentSet;
+  if (!priorSet || priorSet.reps === 0) return null;
+
+  const { weight: priorWeight, reps: priorReps } = priorSet;
+
+  function isImprovement() {
     if (!priorSet) return false;
     return (
-      (currentSet.reps !== 0 &&
-        currentSet.reps !== undefined &&
-        currentSet.reps !== null &&
-        currentSet.weight! > priorSet.weight!) ||
-      (currentSet.weight! >= priorSet.weight! &&
-        currentSet.reps! > priorSet.reps!)
+      (reps !== 0 && weight! > priorWeight!) ||
+      (weight! >= priorWeight! && reps! > priorReps!)
     );
+  }
+  function isMaintenance() {
+    if (!priorReps) return false;
+    return weight === priorWeight && reps === priorReps;
+  }
+  function isRegression() {
+    if (!priorSet || !reps) return false;
+    return (
+      weight! < priorWeight! || (weight === priorWeight && reps < priorReps!)
+    );
+  }
+  function getPerformanceIcon() {
+    if (isImprovement()) {
+      return <Check className="text-green-500" />;
+    }
+    if (isMaintenance()) {
+      return <Equal className="text-yellow-500" />;
+    }
+    if (isRegression()) {
+      return <ThumbsDown className="text-red-500" />;
+    }
+    return null;
   }
 
-  function isMaintenance(
-    currentSet: exerciseSet,
-    priorSet: exerciseSet | null | undefined
-  ) {
-    if (!priorSet) return false;
-    return (
-      currentSet.weight === priorSet.weight && currentSet.reps === priorSet.reps
-    );
-  }
-
-  function isRegression(
-    currentSet: exerciseSet,
-    priorSet: exerciseSet | null | undefined
-  ) {
-    if (!priorSet) return false;
-    if (!currentSet.reps) return false;
-    return (
-      currentSet.weight! <= priorSet.weight! &&
-      currentSet.reps <= priorSet.reps!
-    );
-  }
-
-  if (isImprovement(currentSet, currentSet.priorSet)) {
-    return (
-      <div className="flex w-full flex-row items-center justify-center px-2  text-green-500">
-        <Check />
-      </div>
-    );
-  }
-  if (isMaintenance(currentSet, currentSet.priorSet)) {
-    return (
-      <div className="flex w-full flex-row items-center justify-center  px-2 text-yellow-500">
-        <Equal />
-      </div>
-    );
-  }
-  if (isRegression(currentSet, currentSet.priorSet)) {
-    return (
-      <div className="flex w-full flex-row items-center justify-center  px-2 text-red-500">
-        <ThumbsDown />
-      </div>
-    );
-  }
-
-  return <div className="h-6 w-6"></div>;
+  return <div className="h-6 w-6">{getPerformanceIcon()}</div>;
 }
 export default PerformanceWarning;
