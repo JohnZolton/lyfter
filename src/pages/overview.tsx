@@ -17,10 +17,24 @@ import { MuscleGroup } from "@prisma/client";
 const Home: NextPage = () => {
   const { data: overview } = api.getWorkouts.getMesoOverview.useQuery();
   console.log(overview);
-  if (!overview) {
-    return <div>Loading...</div>;
-  }
 
+  if (!overview) {
+    return (
+      <>
+        <PageLayout>
+          <NavBar title="Mesocycle Overview" />
+          <SignedIn>
+            <div className="mt-6 flex items-center justify-center">
+              <LoadingSpinner />
+            </div>
+          </SignedIn>
+          <SignedOut>
+            <SignInButton />
+          </SignedOut>
+        </PageLayout>
+      </>
+    );
+  }
   const muscleGroups = Object.keys(MuscleGroup);
   const muscleGroupData = muscleGroups.reduce((acc, group) => {
     acc[group] = {};

@@ -26,6 +26,16 @@ const Home: NextPage = () => {
   const workoutId = router.query.id as string;
   const { workout, updateWorkout } = useWorkoutStore();
 
+  useEffect(() => {
+    function handleRouteChange() {
+      updateWorkout(undefined);
+    }
+    router.events.on("routeChangeStart", handleRouteChange);
+    return () => {
+      router.events.off("routeChangeStart", handleRouteChange);
+    };
+  }, [router, updateWorkout]);
+
   const { mutate: getWorkout } = api.getWorkouts.getWorkoutById.useMutation({
     onSuccess: (gotWorkout) => {
       console.log(gotWorkout);

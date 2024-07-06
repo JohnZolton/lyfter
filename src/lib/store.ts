@@ -287,9 +287,9 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
       const updatedExercises = state.workout.workout.exercises.map(
         (exercise) => {
           if (exercise.exerciseId === curSet.exerciseId) {
-            const newSets = exercise.sets
-              .sort((a, b) => b.setNumber - a.setNumber)
-              .slice(0, curSet.setNumber + 1);
+            const newSets = exercise.sets.filter(
+              (set) => set.setNumber <= curSet.setNumber
+            );
             return { ...exercise, sets: newSets };
           }
           return exercise;

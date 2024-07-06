@@ -30,6 +30,9 @@ function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
     return <div></div>;
   }
   const { weight, priorSet } = currentSet;
+  if (priorSet === undefined || priorSet?.reps === 0) {
+    return <div></div>;
+  }
   if (
     weight !== undefined &&
     weight !== null &&
@@ -54,7 +57,10 @@ function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
   ) {
     if (!priorSet) return false;
     return (
-      currentSet.weight! > priorSet.weight! ||
+      (currentSet.reps !== 0 &&
+        currentSet.reps !== undefined &&
+        currentSet.reps !== null &&
+        currentSet.weight! > priorSet.weight!) ||
       (currentSet.weight! >= priorSet.weight! &&
         currentSet.reps! > priorSet.reps!)
     );

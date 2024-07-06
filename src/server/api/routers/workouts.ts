@@ -468,7 +468,9 @@ export const getAllWorkouts = createTRPCRouter({
         include: {
           exercises: {
             where: { active: true },
-            include: { sets: { include: { priorSet: true } } },
+            include: {
+              sets: { where: { isActive: true }, include: { priorSet: true } },
+            },
           },
         },
       });
@@ -576,8 +578,8 @@ export const getAllWorkouts = createTRPCRouter({
         //testing
         const oneMinuteAgo = new Date(currentDate.getTime() - 60 * 1000);
         sixDaysAgo.setDate(currentDate.getDate() - 6);
-        //if (workoutDate >= sixDaysAgo) {
-        if (workoutDate >= oneMinuteAgo) {
+        if (workoutDate >= sixDaysAgo) {
+          //if (workoutDate >= oneMinuteAgo) {
           return priorWorkout.workoutId;
         }
       }
@@ -1070,7 +1072,7 @@ export const getAllWorkouts = createTRPCRouter({
   getMesoOverview: privateProcedure.query(async ({ ctx }) => {
     const workoutPlan = await ctx.prisma.workoutPlan.findFirst({
       where: { userId: ctx.userId },
-      orderBy: { date: "asc" },
+      orderBy: { date: "desc" },
       include: {
         workouts: { include: { exercises: { include: { sets: true } } } },
       },
