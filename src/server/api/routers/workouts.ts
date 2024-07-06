@@ -1074,7 +1074,15 @@ export const getAllWorkouts = createTRPCRouter({
       where: { userId: ctx.userId },
       orderBy: { date: "desc" },
       include: {
-        workouts: { include: { exercises: { include: { sets: true } } } },
+        workouts: {
+          where: { isActive: true },
+          include: {
+            exercises: {
+              where: { active: true },
+              include: { sets: { where: { isActive: true } } },
+            },
+          },
+        },
       },
     });
     if (!workoutPlan) {
@@ -1083,30 +1091,38 @@ export const getAllWorkouts = createTRPCRouter({
         message: "Workouts not found",
       });
     }
-    type WeeklyOverview = {
-      [weekNumber: number]: {
-        [muscleGroup in MuscleGroup]?: number;
-      };
+    type MuscleGroupOverview = {
+      [muscleGroup: string]: number[];
     };
-    const weeklyOverview: WeeklyOverview = {};
+    const muscleGroupOverview: MuscleGroupOverview = {};
+    const numberOfWeeks = Math.max(
+      ...workoutPlan.workouts.map((workout) => workout.workoutNumber ?? 0)
+    );
+    Object.keys(MuscleGroup).forEach((muscleGroup) => {
+      muscleGroupOverview[muscleGroup as keyof typeof MuscleGroup] = Array(
+        numberOfWeeks
+      ).fill(0) as number[];
+    });
     workoutPlan.workouts.forEach((workout) => {
       const weekNumber = workout.workoutNumber ?? 0;
-      if (!weeklyOverview[weekNumber]) {
-        weeklyOverview[weekNumber] = {};
-      }
+      if (weekNumber === undefined || weekNumber <= 0) return;
       workout.exercises.forEach((exercise) => {
-        const muscleGroup = exercise.muscleGroup;
-        if (!weeklyOverview[weekNumber]![muscleGroup]) {
-          weeklyOverview[weekNumber]![muscleGroup] = 0;
+        const muscleGroup = exercise.muscleGroup as keyof typeof MuscleGroup;
+        if (!muscleGroupOverview[muscleGroup]) {
+          muscleGroupOverview[muscleGroup] = Array(numberOfWeeks).fill(
+            0
+          ) as number[];
         }
         const completedSets = exercise.sets.filter(
           (set) => set.reps && set.reps > 0
         ).length;
-        weeklyOverview[weekNumber]![muscleGroup]! += completedSets;
+        if (muscleGroupOverview[muscleGroup]) {
+          muscleGroupOverview[muscleGroup]![weekNumber - 1] += completedSets;
+        }
       });
     });
-    console.log(weeklyOverview);
-    return weeklyOverview;
+    console.log(muscleGroupOverview);
+    return muscleGroupOverview;
   }),
 
   recordMissedTarget: privateProcedure
