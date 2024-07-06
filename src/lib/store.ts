@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { Exercise, exerciseSet, Workout } from "@prisma/client";
+import { cursorTo } from "readline";
 
 export interface fullWorkout {
   workout:
@@ -23,7 +24,7 @@ interface WorkoutState {
   updateSet: (exerciseId: string, set: exerciseSet) => void;
   moveExerciseUp: (movedUpExercise: Exercise) => void;
   moveExerciseDown: (movedUpExercise: Exercise) => void;
-  handleMissedTarget: (exerciseId: string, setIndex: number) => void;
+  handleMissedTarget: (curSet: exerciseSet) => void;
 }
 
 const useWorkoutStore = create<WorkoutState>((set) => ({
@@ -280,13 +281,15 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
       return newState;
     });
   },
-  handleMissedTarget: (exerciseId, setIndex) => {
+  handleMissedTarget: (curSet) => {
     set((state) => {
       if (!state.workout) return {};
       const updatedExercises = state.workout.workout.exercises.map(
         (exercise) => {
-          if (exercise.exerciseId === exerciseId) {
-            const newSets = exercise.sets.slice(0, setIndex + 1);
+          if (exercise.exerciseId === curSet.exerciseId) {
+            const newSets = exercise.sets.filter(
+              (set) => set.setNumber <= curSet.setNumber
+            );
             return { ...exercise, sets: newSets };
           }
           return exercise;

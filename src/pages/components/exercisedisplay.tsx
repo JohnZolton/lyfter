@@ -177,6 +177,7 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
     const newSet: exerciseSet & { priorSet?: null } = {
       date: new Date(),
       exerciseId: exercise.exerciseId,
+      isActive: true,
       setId: createUniqueId(),
       weight: lastSet?.weight ?? 0,
       targetReps: null,
@@ -197,17 +198,13 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
     api.getWorkouts.replaceExercise.useMutation();
   function handleReplaceExercise(temporary: boolean) {
     setIsMenuOpen(false);
-    const newEx = {
-      ...exercise,
-      description: replacementExDescription,
-      temporary: temporary,
-      exerciseId: createUniqueId(),
-    };
-    const newSets = newEx.sets.map((curSet, index) => ({
+    const newExId = createUniqueId();
+    const newSets = exercise.sets.map((curSet, index) => ({
       date: new Date(),
-      exerciseId: exercise.exerciseId,
+      exerciseId: newExId,
       setId: createUniqueId(),
       weight: 0,
+      isActive: true,
       targetReps: 5,
       targetWeight: null,
       reps: null,
@@ -216,7 +213,13 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
       priorSet: null,
       setNumber: index + 1,
     }));
-    newEx.sets = newSets;
+    const newEx = {
+      ...exercise,
+      description: replacementExDescription,
+      temporary: temporary,
+      exerciseId: newExId,
+      sets: newSets,
+    };
     replaceExercise(newEx, exercise);
     saveReplacementEx({
       exerciseId: exercise.exerciseId,

@@ -1,5 +1,8 @@
 import type { exerciseSet } from "@prisma/client";
 import { Equal, Check, ThumbsDown } from "lucide-react";
+import useWorkoutStore from "~/lib/store";
+import { api } from "~/utils/api";
+import { useEffect } from "react";
 
 interface PerformanceWarningProps {
   currentSet:
@@ -10,10 +13,26 @@ interface PerformanceWarningProps {
 }
 
 function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
+  const { mutate: recordMissedSets } =
+    api.getWorkouts.recordMissedTarget.useMutation();
+  const { handleMissedTarget } = useWorkoutStore();
+  useEffect(() => {
+    if (
+      currentSet &&
+      currentSet.reps &&
+      isRegression(currentSet, currentSet.priorSet)
+    ) {
+      handleMissedTarget(currentSet);
+      recordMissedSets({ setId: currentSet.setId });
+    }
+  }, [currentSet]);
   if (currentSet === undefined) {
     return <div></div>;
   }
   const { weight, priorSet } = currentSet;
+  if (priorSet === undefined || priorSet?.reps === 0) {
+    return <div></div>;
+  }
   if (
     weight !== undefined &&
     weight !== null &&
@@ -38,7 +57,10 @@ function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
   ) {
     if (!priorSet) return false;
     return (
-      currentSet.weight! > priorSet.weight! ||
+      (currentSet.reps !== 0 &&
+        currentSet.reps !== undefined &&
+        currentSet.reps !== null &&
+        currentSet.weight! > priorSet.weight!) ||
       (currentSet.weight! >= priorSet.weight! &&
         currentSet.reps! > priorSet.reps!)
     );
@@ -59,9 +81,10 @@ function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
     priorSet: exerciseSet | null | undefined
   ) {
     if (!priorSet) return false;
+    if (!currentSet.reps) return false;
     return (
       currentSet.weight! <= priorSet.weight! &&
-      currentSet.reps! <= priorSet.reps!
+      currentSet.reps <= priorSet.reps!
     );
   }
 

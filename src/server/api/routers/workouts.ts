@@ -5,6 +5,7 @@ import { createTRPCRouter, privateProcedure } from "~/server/api/trpc";
 import type { Workout, Exercise, exerciseSet } from "@prisma/client";
 import { MuscleGroup, Pump, RPE } from "@prisma/client";
 import { v4 } from "uuid";
+import { isAscii } from "buffer";
 
 export const getAllWorkouts = createTRPCRouter({
   newTestPlanTwo: privateProcedure
@@ -93,9 +94,16 @@ export const getAllWorkouts = createTRPCRouter({
       take: 10,
       include: {
         workouts: {
+          where: { isActive: true },
           include: {
             exercises: {
-              include: { sets: { include: { priorSet: true } } },
+              where: { active: true },
+              include: {
+                sets: {
+                  where: { isActive: true },
+                  include: { priorSet: true },
+                },
+              },
               orderBy: { date: "asc" },
             },
           },
@@ -118,15 +126,23 @@ export const getAllWorkouts = createTRPCRouter({
       },
       include: {
         workouts: {
+          where: { isActive: true },
           include: {
             exercises: {
-              include: { sets: true },
+              where: { active: true },
+              include: { sets: { where: { isActive: true } } },
             },
           },
         },
       },
       orderBy: { date: "desc" },
     });
+    if (!allPlans) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Plan not found",
+      });
+    }
     const currentPlan = allPlans[0];
     console.log("currentPlan: ", currentPlan);
     // sort into weeks
@@ -281,8 +297,9 @@ export const getAllWorkouts = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const deletedWorkout = await ctx.prisma.workout.delete({
+      const deletedWorkout = await ctx.prisma.workout.update({
         where: { workoutId: input.workoutId },
+        data: { isActive: false },
       });
       return deletedWorkout;
     }),
@@ -349,9 +366,18 @@ export const getAllWorkouts = createTRPCRouter({
       orderBy: [{ date: "desc" }],
       include: {
         workouts: {
+          where: { isActive: true },
           orderBy: [{ date: "desc" }],
           include: {
-            exercises: { include: { sets: { include: { priorSet: true } } } },
+            exercises: {
+              where: { active: true },
+              include: {
+                sets: {
+                  where: { isActive: true },
+                  include: { priorSet: true },
+                },
+              },
+            },
           },
         },
       },
@@ -365,10 +391,17 @@ export const getAllWorkouts = createTRPCRouter({
       orderBy: [{ date: "desc" }],
       include: {
         workouts: {
+          where: { isActive: true },
           orderBy: [{ date: "desc" }],
         },
       },
     });
+    if (!workoutPlan) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Plan not found",
+      });
+    }
 
     const workoutMap = new Map<string, Workout>();
     workoutPlan?.workouts.forEach((workout) => {
@@ -396,14 +429,24 @@ export const getAllWorkouts = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const workout = await ctx.prisma.workout.findFirst({
-        where: { userId: ctx.userId, workoutId: input.workoutId },
+        where: {
+          userId: ctx.userId,
+          workoutId: input.workoutId,
+          isActive: true,
+        },
         include: {
-          exercises: { include: { sets: { include: { priorSet: true } } } },
+          exercises: {
+            where: { active: true },
+            include: { sets: { include: { priorSet: true } } },
+          },
         },
       });
 
       if (!workout || !workout) {
-        throw new Error("Workout not found");
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Workout not found",
+        });
       }
 
       return { workout };
@@ -417,17 +460,26 @@ export const getAllWorkouts = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const workout = await ctx.prisma.workout.findFirst({
-        where: { userId: ctx.userId, workoutId: input.workoutId },
+        where: {
+          userId: ctx.userId,
+          workoutId: input.workoutId,
+          isActive: true,
+        },
         include: {
           exercises: {
             where: { active: true },
-            include: { sets: { include: { priorSet: true } } },
+            include: {
+              sets: { where: { isActive: true }, include: { priorSet: true } },
+            },
           },
         },
       });
 
       if (!workout || !workout) {
-        throw new Error("Workout not found");
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Workout not found",
+        });
       }
 
       return { workout };
@@ -449,7 +501,10 @@ export const getAllWorkouts = createTRPCRouter({
 
       console.log(oldExercise);
       if (!oldExercise) {
-        return;
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Exercise not found",
+        });
       }
       let lastValidExercise = oldExercise;
       while (lastValidExercise.temporary && lastValidExercise.priorExerciseId) {
@@ -486,8 +541,9 @@ export const getAllWorkouts = createTRPCRouter({
         },
         include: { sets: true },
       });
-      await ctx.prisma.exercise.delete({
+      await ctx.prisma.exercise.update({
         where: { exerciseId: input.exerciseId },
+        data: { active: false },
       });
       return newExercise;
     }),
@@ -502,8 +558,12 @@ export const getAllWorkouts = createTRPCRouter({
         where: { workoutId: input.priorWorkoutId },
         include: {
           exercises: {
+            where: { active: true },
             include: {
-              sets: { include: { priorSet: true } },
+              sets: {
+                where: { isActive: true },
+                include: { priorSet: true },
+              },
             },
           },
         },
@@ -663,9 +723,16 @@ export const getAllWorkouts = createTRPCRouter({
           sets: true,
         },
       });
+      if (!exercise) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Failed to update exercise",
+        });
+      }
       await ctx.prisma.exercise.updateMany({
         where: {
           workoutId: input.workoutId,
+          active: true,
           exerciseOrder: {
             gte: input.exerciseNumber + 1,
           },
@@ -724,6 +791,12 @@ export const getAllWorkouts = createTRPCRouter({
           where: { exerciseId: input.exerciseId },
           data: { active: false, deleted: true },
         });
+        if (!updatedExercise) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Failed to update exercise",
+          });
+        }
         const allExercises = await ctx.prisma.exercise.findMany({
           where: { workoutId: updatedExercise.workoutId },
           orderBy: { exerciseOrder: "asc" },
@@ -742,6 +815,12 @@ export const getAllWorkouts = createTRPCRouter({
           where: { exerciseId: input.exerciseId },
           data: { active: false },
         });
+        if (!updatedExercise) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Failed to update exercise",
+          });
+        }
         const allExercises = await ctx.prisma.exercise.findMany({
           where: { workoutId: updatedExercise.workoutId },
           orderBy: { exerciseOrder: "asc" },
@@ -888,6 +967,12 @@ export const getAllWorkouts = createTRPCRouter({
           setNumber: input.setNumber,
         },
       });
+      if (!updatedSet) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Failed to update missed set",
+        });
+      }
       return updatedSet;
     }),
   removeSet: privateProcedure
@@ -897,8 +982,9 @@ export const getAllWorkouts = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const updatedSet = await ctx.prisma.exerciseSet.delete({
+      const updatedSet = await ctx.prisma.exerciseSet.update({
         where: { setId: input.setId },
+        data: { isActive: false },
       });
       return updatedSet;
     }),
@@ -921,9 +1007,16 @@ export const getAllWorkouts = createTRPCRouter({
           rir: input.rir,
         },
       });
+      if (!updatedSet) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Failed to update missed set",
+        });
+      }
       await ctx.prisma.exerciseSet.updateMany({
         where: {
           exerciseId: updatedSet.exerciseId,
+          isActive: true,
           setNumber: { gt: updatedSet.setNumber },
           OR: [{ reps: 0 }, { reps: null }],
         },
@@ -938,8 +1031,14 @@ export const getAllWorkouts = createTRPCRouter({
     const workouts = await ctx.prisma.workout.findMany({
       where: {
         userId: ctx.userId,
+        isActive: true,
       },
-      include: { exercises: { include: { sets: true } } },
+      include: {
+        exercises: {
+          where: { active: true },
+          include: { sets: { where: { isActive: true } } },
+        },
+      },
       orderBy: [{ date: "asc" }],
       take: 7,
     });
@@ -973,7 +1072,7 @@ export const getAllWorkouts = createTRPCRouter({
   getMesoOverview: privateProcedure.query(async ({ ctx }) => {
     const workoutPlan = await ctx.prisma.workoutPlan.findFirst({
       where: { userId: ctx.userId },
-      orderBy: { date: "asc" },
+      orderBy: { date: "desc" },
       include: {
         workouts: { include: { exercises: { include: { sets: true } } } },
       },
@@ -1009,4 +1108,31 @@ export const getAllWorkouts = createTRPCRouter({
     console.log(weeklyOverview);
     return weeklyOverview;
   }),
+
+  recordMissedTarget: privateProcedure
+    .input(
+      z.object({
+        setId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const missedSet = await ctx.prisma.exerciseSet.findFirst({
+        where: { setId: input.setId },
+      });
+      if (!missedSet) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Failed to update missed set",
+        });
+      }
+      await ctx.prisma.exerciseSet.updateMany({
+        where: {
+          exerciseId: missedSet.exerciseId,
+          setNumber: { gt: missedSet.setNumber },
+        },
+        data: {
+          isActive: false,
+        },
+      });
+    }),
 });

@@ -202,6 +202,7 @@ model Workout {
   workoutNumber     Int?
   planId            String?
   isCompleted       Boolean @default(false)
+  isActive Boolean @default(true)
   plan              WorkoutPlan?  @relation(fields: [planId], references: [planId], onDelete: Cascade)
   originalWorkoutId String?
 
@@ -266,6 +267,7 @@ model exerciseSet {
   targetWeight     Int?
   reps       Int?
   targetReps Int?
+  isActive Boolean @default(true)
   rir        Int?
   setNumber  Int
   exercise   Exercise @relation(fields: [exerciseId], references: [exerciseId], onDelete: Cascade)

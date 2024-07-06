@@ -61,7 +61,7 @@ function SetDisplay({
         set.priorSet.weight &&
         set.weight < set.priorSet.weight
       ) {
-        handleMissedTarget(set.exerciseId, index);
+        handleMissedTarget(set);
       }
     }
   };
