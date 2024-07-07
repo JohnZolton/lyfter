@@ -207,14 +207,14 @@ function DisplayPlan({ plan }: DisplayPlanProps) {
   }
 
   return (
-    <div className="mx-auto max-w-3xl flex-col">
+    <div className="max-w-3xl flex-col">
       {workoutList &&
         Object.keys(workoutList).map((day, idx) => (
           <div key={"base" + idx.toString()}>
             {workoutList[day as keyof typeof workoutList][0]?.description && (
               <div
                 key={day}
-                className="mb-4 flex flex-col rounded-md bg-slate-800 p-4 shadow-md"
+                className="mb-4 flex flex-col rounded-md bg-slate-800 py-2 shadow-md"
               >
                 <div className="mb-4 text-center text-3xl font-bold">{day}</div>
                 <div
@@ -250,19 +250,18 @@ function DisplayPlan({ plan }: DisplayPlanProps) {
                           {workoutList[day as keyof typeof workoutList].map(
                             (workout) => (
                               <td
-                                className="border px-3 py-2"
+                                className="border px-3 py-2 align-top"
                                 key={workout.workoutId}
                               >
                                 {workout.exercises[index]?.sets
                                   .sort((a, b) => a.setNumber - b.setNumber)
                                   .map((set, setIndex) => (
                                     <div
-                                      className="flex items-center justify-between"
+                                      className="flex items-center justify-start"
                                       key={set.setId}
                                     >
                                       <div>
-                                        {set.weight || 0} lbs x {set.reps || 0}{" "}
-                                        @ {set.rir} RIR
+                                        {set.weight || 0} lbs x {set.reps || 0}
                                       </div>
                                       <div className="pl-2">
                                         <PerformanceWarning currentSet={set} />
