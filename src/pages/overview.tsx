@@ -66,16 +66,13 @@ const Overview: NextPage = () => {
         <SignedIn>
           {Object.entries(overview).map(([muscleGroup, sets], index) => (
             <div key={index} className="my-1">
-              <Card>
+              <Card className="mx-2">
                 <CardHeader>
                   <CardTitle>{muscleGroup}</CardTitle>
                   <CardDescription>Total weekly sets</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ChartContainer
-                    config={chartConfig}
-                    className="min-h-[100px]"
-                  >
+                  <ChartContainer config={chartConfig} className="min-h-[75px]">
                     <BarChart accessibilityLayer data={transformData(sets)}>
                       <Bar
                         dataKey="totalVolume"

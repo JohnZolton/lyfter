@@ -12,6 +12,12 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import SignedIn, { SignInButton, SignedOut } from "./components/auth";
+import {
+  CardHeader,
+  Card,
+  CardContent,
+  CardDescription,
+} from "~/components/ui/card";
 
 const Home: NextPage = () => {
   const [workoutTitle, setWorkoutTitle] = useState<string | undefined>();
@@ -82,13 +88,15 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
 
   if (isLoading) {
     return (
-      <div className="max-w-600 flex flex-col justify-center gap-y-4 bg-slate-800 p-4 shadow-md">
-        <Skeleton className="h-14 w-full" />
-        <Skeleton className="h-14 w-full" />
-        <Skeleton className="h-14 w-full" />
-        <Skeleton className="h-14 w-full" />
-        <Skeleton className="h-14 w-full" />
-      </div>
+      <Card>
+        <CardContent className="flex flex-col gap-y-2">
+          <Skeleton className="h-14 w-full" />
+          <Skeleton className="h-14 w-full" />
+          <Skeleton className="h-14 w-full" />
+          <Skeleton className="h-14 w-full" />
+          <Skeleton className="h-14 w-full" />
+        </CardContent>
+      </Card>
     );
   }
 
@@ -98,23 +106,24 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
         style={{ maxWidth: "600px", margin: "0 auto" }}
         className="w-full rounded-lg px-4 py-2"
       >
-        <div className="rounded-lg bg-slate-800 px-4 py-2  shadow-md">
-          {workoutPlan &&
-            workoutPlan.map((workout) => (
-              <div
-                key={workout.workoutId}
-                className="my-2 flex items-center justify-between"
-              >
-                <div className="text-slate-100">
-                  <div className="text-ls font-semibold">
-                    {workout.description}
-                  </div>
-                  <div>{workout.nominalDay}</div>
+        {workoutPlan &&
+          workoutPlan.map((workout) => (
+            <div
+              key={workout.workoutId}
+              className="my-2 flex items-center justify-between bg-slate-800"
+            >
+              <div className="text-slate-100">
+                <div className="text-ls font-semibold">
+                  {workout.description}
                 </div>
-                <WorkoutButton workoutId={workout.workoutId} />
+                <div>
+                  Week {workout.workoutNumber ? workout.workoutNumber + 1 : 1} -{" "}
+                  {workout.nominalDay}
+                </div>
               </div>
-            ))}
-        </div>
+              <WorkoutButton workoutId={workout.workoutId} />
+            </div>
+          ))}
       </div>
     );
   }

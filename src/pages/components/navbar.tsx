@@ -75,16 +75,26 @@ export const NavBar = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <div className="flex max-w-2xl flex-row items-center justify-between px-4 pb-2 pt-4">
-      {subtitle && (
-        <div className="text-2xl">
-          <span className="font-semibold sm:text-3xl">{title}</span> -{" "}
-          {subtitle}
-        </div>
-      )}
-      {!subtitle && (
-        <div className="text-2xl font-semibold sm:text-3xl">{title}</div>
-      )}
+    <div className="mx-auto flex w-full flex-row items-center justify-between px-4 pb-2 pt-4">
+      <div>
+        {subtitle && (
+          <>
+            <div className="text-2xl">
+              <span className="font-semibold sm:text-3xl">{title}</span>
+            </div>
+            <div>
+              Week{" "}
+              {workout?.workout.workoutNumber
+                ? workout.workout.workoutNumber + 1
+                : 1}{" "}
+              - {subtitle}
+            </div>
+          </>
+        )}
+        {!subtitle && (
+          <div className="text-2xl font-semibold sm:text-3xl">{title}</div>
+        )}
+      </div>
 
       <nav className="flex items-center justify-end">
         <div className="hidden flex-col items-end space-x-6 sm:flex sm:flex-row">
@@ -277,7 +287,7 @@ function Avatar({ setDisplayName }: AvatarProps) {
 
   useEffect(() => {
     const userNpub = sessionStorage.getItem("userNpub");
-    if ((!url || !userName) && userNpub) {
+    if ((!url || !userName) && userNpub && retryCount < maxRetries) {
       const timeout = setTimeout(() => {
         void getProfile(userNpub);
         setRetryCount((prev) => prev + 1);
