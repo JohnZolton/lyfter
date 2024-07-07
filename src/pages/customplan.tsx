@@ -29,6 +29,12 @@ import {
 } from "~/components/ui/dialog";
 import { useRouter } from "next/router";
 import SignedIn, { SignInButton, SignedOut } from "./components/auth";
+import {
+  CardHeader,
+  Card,
+  CardContent,
+  CardDescription,
+} from "~/components/ui/card";
 
 type ExerciseTemplate = {
   id: string;
@@ -274,21 +280,19 @@ function WorkoutPlanForm() {
   }
 
   return (
-    <div className="mt-5 flex w-full flex-col items-center justify-center">
-      <div className="space-y-5">
-        <div className="w-full rounded-lg bg-gray-900 p-5">
-          <div className="flex w-full flex-row items-center justify-between gap-x-2">
-            <Input
-              required
-              ref={inputRef}
-              value={planDescription}
-              onChange={(event) => setPlanDescription(event.target.value)}
-              placeholder="Plan Title"
-            ></Input>
-          </div>
-        </div>
-      </div>
-      <div className="md: flex w-full flex-col gap-x-4 md:flex-row">
+    <div className="mt-5 flex w-full flex-col items-center justify-center gap-y-2">
+      <Card>
+        <CardHeader>
+          <Input
+            required
+            ref={inputRef}
+            value={planDescription}
+            onChange={(event) => setPlanDescription(event.target.value)}
+            placeholder="Plan Title"
+          ></Input>
+        </CardHeader>
+      </Card>
+      <div className=" w-full flex-col gap-x-4 md:flex md:flex-row">
         {workoutPlan?.workouts.map((workout, index) => (
           <WorkoutDisplay
             workout={workout}
@@ -343,18 +347,20 @@ function WorkoutDisplay({
   const [workoutDay, setWorkoutDay] = useState("");
 
   return (
-    <div className="my-2 w-full rounded-lg bg-gray-900 p-5">
-      <div className="flex w-full flex-col space-y-2">
+    <Card className="my-2">
+      <CardHeader>
+        <Input
+          value={workout.description}
+          onChange={(event) =>
+            onDescriptionChange(event.target.value, workoutDay)
+          }
+          className=""
+          type="text"
+          placeholder="Workout Title"
+        />
+      </CardHeader>
+      <CardContent>
         <div className="mb-3 flex flex-row items-center justify-between gap-x-2">
-          <Input
-            value={workout.description}
-            onChange={(event) =>
-              onDescriptionChange(event.target.value, workoutDay)
-            }
-            className=""
-            type="text"
-            placeholder="Workout Title"
-          />
           <Select
             required
             onValueChange={(value) => {
@@ -397,7 +403,7 @@ function WorkoutDisplay({
             }
           />
         ))}
-        <div className="flex flex-row justify-between md:gap-x-4">
+        <div className="flex flex-row justify-between pt-4 md:gap-x-4">
           <Button onClick={onAddExercise}>Add Exercise</Button>
           <Dialog>
             <DialogTrigger asChild>
@@ -423,8 +429,8 @@ function WorkoutDisplay({
             </DialogContent>
           </Dialog>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 

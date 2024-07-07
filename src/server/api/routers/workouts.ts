@@ -102,9 +102,10 @@ export const getAllWorkouts = createTRPCRouter({
                 sets: {
                   where: { isActive: true },
                   include: { priorSet: true },
+                  orderBy: { setNumber: "asc" },
                 },
               },
-              orderBy: { date: "asc" },
+              orderBy: { exerciseOrder: "asc" },
             },
           },
         },
@@ -1091,12 +1092,13 @@ export const getAllWorkouts = createTRPCRouter({
         message: "Workouts not found",
       });
     }
+    console.log(workoutPlan.workouts[0]);
     type MuscleGroupOverview = {
       [muscleGroup: string]: number[];
     };
     const muscleGroupOverview: MuscleGroupOverview = {};
     const numberOfWeeks = Math.max(
-      ...workoutPlan.workouts.map((workout) => workout.workoutNumber ?? 0)
+      ...workoutPlan.workouts.map((workout) => (workout.workoutNumber ?? 0) + 1)
     );
     Object.keys(MuscleGroup).forEach((muscleGroup) => {
       muscleGroupOverview[muscleGroup as keyof typeof MuscleGroup] = Array(
@@ -1104,7 +1106,8 @@ export const getAllWorkouts = createTRPCRouter({
       ).fill(0) as number[];
     });
     workoutPlan.workouts.forEach((workout) => {
-      const weekNumber = workout.workoutNumber ?? 0;
+      const weekNumber = (workout.workoutNumber ?? 0) + 1;
+
       if (weekNumber === undefined || weekNumber <= 0) return;
       workout.exercises.forEach((exercise) => {
         const muscleGroup = exercise.muscleGroup as keyof typeof MuscleGroup;
@@ -1121,7 +1124,6 @@ export const getAllWorkouts = createTRPCRouter({
         }
       });
     });
-    console.log(muscleGroupOverview);
     return muscleGroupOverview;
   }),
 
