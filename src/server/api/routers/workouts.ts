@@ -100,7 +100,7 @@ export const getAllWorkouts = createTRPCRouter({
               where: { active: true },
               include: {
                 sets: {
-                  where: { isActive: true },
+                  where: { isActive: true, reps: { gt: 0 } },
                   include: { priorSet: true },
                   orderBy: { setNumber: "asc" },
                 },
