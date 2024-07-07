@@ -88,15 +88,13 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
 
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="flex flex-col gap-y-2">
-          <Skeleton className="h-14 w-full" />
-          <Skeleton className="h-14 w-full" />
-          <Skeleton className="h-14 w-full" />
-          <Skeleton className="h-14 w-full" />
-          <Skeleton className="h-14 w-full" />
-        </CardContent>
-      </Card>
+      <div className="max-w-600 flex flex-col justify-center gap-y-4 bg-slate-800 p-4 shadow-md">
+        <Skeleton className="h-14 w-full" />
+        <Skeleton className="h-14 w-full" />
+        <Skeleton className="h-14 w-full" />
+        <Skeleton className="h-14 w-full" />
+        <Skeleton className="h-14 w-full" />
+      </div>
     );
   }
 
