@@ -349,7 +349,7 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
                         }}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Muscle Group" />
+                          <SelectValue placeholder="Type" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
@@ -381,6 +381,12 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
                             </SelectItem>
                             <SelectItem value={MuscleGroup.Calves}>
                               Calves
+                            </SelectItem>
+                          </SelectGroup>
+                          <SelectGroup>
+                            <SelectLabel>Cardio</SelectLabel>
+                            <SelectItem value={MuscleGroup.Cardio}>
+                              Cardio
                             </SelectItem>
                           </SelectGroup>
                         </SelectContent>
@@ -607,26 +613,68 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
           {exercise?.note ?? ""}
         </div>
       )}
-      <div className="rounded-md bg-slate-800 py-1">
-        <div className="flex flex-row justify-between px-6 text-sm shadow-md">
-          <div className="">Weight</div>
-          <div>Reps · RIR {exercise?.sets[0]?.rir}</div>
-          <div>Target</div>
+      {currentExercise?.muscleGroup === MuscleGroup.Cardio && (
+        <div className="rounded-md bg-slate-800 py-1">
+          <div className="flex flex-row justify-between px-6 text-sm shadow-md">
+            <div className="">Duration</div>
+            <div>Intensity</div>
+            <div>Last Time</div>
+          </div>
+          <div className="flex flex-row justify-between px-4 py-1 text-sm shadow-md">
+            <div>
+              <select
+                className="rounded bg-gray-700 p-2 px-3 text-center text-sm text-white"
+                onChange={() => console.log("todo")}
+                value={0}
+              >
+                <option value={0}>0</option>
+                {Array.from({ length: 300 }, (_, i) => (
+                  <option key={i} value={i}>
+                    {i}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <select
+                className="rounded bg-gray-700 p-2 text-center text-sm text-white"
+                onChange={() => console.log("todo")}
+                value={0}
+              >
+                <option value={RPE.easy}>Easy</option>
+                <option value={RPE.medium}>Moderate</option>
+                <option value={RPE.hard}>Hard</option>
+                <option value={RPE.veryHard}>Very Hard</option>
+              </select>
+            </div>
+            <div className="h-8 w-16">
+              {currentExercise.targetDuration ?? ""}
+            </div>
+          </div>
         </div>
-        {currentExercise &&
-          currentExercise?.sets &&
-          currentExercise?.sets
-            .sort((a, b) => a.setNumber - b.setNumber)
-            .map((set, index) => (
-              <SetDisplay
-                key={index}
-                set={set}
-                index={index}
-                startSurvey={startSurvey}
-                feedbackLogged={feedbackLogged}
-              />
-            ))}
-      </div>
+      )}
+      {currentExercise?.muscleGroup !== MuscleGroup.Cardio && (
+        <div className="rounded-md bg-slate-800 py-1">
+          <div className="flex flex-row justify-between px-6 text-sm shadow-md">
+            <div className="">Weight</div>
+            <div>Reps · RIR {exercise?.sets[0]?.rir}</div>
+            <div>Target</div>
+          </div>
+          {currentExercise &&
+            currentExercise?.sets &&
+            currentExercise?.sets
+              .sort((a, b) => a.setNumber - b.setNumber)
+              .map((set, index) => (
+                <SetDisplay
+                  key={index}
+                  set={set}
+                  index={index}
+                  startSurvey={startSurvey}
+                  feedbackLogged={feedbackLogged}
+                />
+              ))}
+        </div>
+      )}
     </div>
   );
 }
