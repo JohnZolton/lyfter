@@ -637,6 +637,12 @@ export const getAllWorkouts = createTRPCRouter({
               priorExerciseId: lastValidExercise.exerciseId,
               note: lastValidExercise.note ?? "",
               sets: newSets,
+              isCardio: lastValidExercise.isCardio,
+              targetDuration: lastValidExercise.duration,
+              RPE:
+                lastValidExercise.muscleGroup === MuscleGroup.Cardio
+                  ? lastValidExercise.RPE
+                  : null,
             };
 
             if (
@@ -673,19 +679,26 @@ export const getAllWorkouts = createTRPCRouter({
               description: exercise?.description ?? "none",
               muscleGroup:
                 MuscleGroup[exercise?.muscleGroup as keyof typeof MuscleGroup],
-              sets: {
-                create: exercise?.sets.map((set, index) => {
-                  const setData = {
-                    setNumber: index,
-                    targetWeight: set.targetWeight,
-                    weight: set.targetWeight,
-                    targetReps: set.targetReps,
-                    rir: set.rir,
-                    lastSetId: set.lastSetId ?? null,
-                  };
-                  return setData;
-                }),
-              },
+              targetDuration: exercise.targetDuration,
+              RPE: exercise.RPE,
+              priorExerciseId: exercise.priorExerciseId,
+              note: exercise.note,
+              sets:
+                exercise.muscleGroup !== MuscleGroup.Cardio
+                  ? {
+                      create: exercise?.sets.map((set, index) => {
+                        const setData = {
+                          setNumber: index,
+                          targetWeight: set.targetWeight,
+                          weight: set.targetWeight,
+                          targetReps: set.targetReps,
+                          rir: set.rir,
+                          lastSetId: set.lastSetId ?? null,
+                        };
+                        return setData;
+                      }),
+                    }
+                  : undefined,
               exerciseOrder: index,
             })),
           },
@@ -750,14 +763,17 @@ export const getAllWorkouts = createTRPCRouter({
           description: input.description,
           muscleGroup:
             MuscleGroup[input.muscleGroup as keyof typeof MuscleGroup],
-          sets: {
-            create: {
-              weight: 0,
-              reps: 0,
-              rir: exercise?.sets[0]?.rir || 3,
-              setNumber: 0,
-            },
-          },
+          sets:
+            input.muscleGroup !== MuscleGroup.Cardio
+              ? {
+                  create: {
+                    weight: 0,
+                    reps: 0,
+                    rir: exercise?.sets[0]?.rir || 3,
+                    setNumber: 0,
+                  },
+                }
+              : undefined,
           exerciseOrder: input.exerciseNumber + 1,
         },
         include: {
@@ -925,6 +941,24 @@ export const getAllWorkouts = createTRPCRouter({
         where: { exerciseId: input.exerciseId },
         data: {
           note: input.note,
+        },
+      });
+      return updatedExercise;
+    }),
+  updateCardio: privateProcedure
+    .input(
+      z.object({
+        exerciseId: z.string(),
+        RPE: z.string(),
+        duration: z.number(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const updatedExercise = await ctx.prisma.exercise.update({
+        where: { exerciseId: input.exerciseId },
+        data: {
+          duration: input.duration,
+          RPE: input.RPE as RPE,
         },
       });
       return updatedExercise;

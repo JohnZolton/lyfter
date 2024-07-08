@@ -26,7 +26,7 @@ function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
   if (!currentSet) return null;
 
   const { weight, reps, priorSet } = currentSet;
-  if (!priorSet || priorSet.reps === 0) return null;
+  if (!priorSet || priorSet.reps === 0 || priorSet.reps === null) return null;
 
   const { weight: priorWeight, reps: priorReps } = priorSet;
 
@@ -34,7 +34,7 @@ function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
     if (!priorSet) return false;
     return (
       (reps !== 0 && weight! > priorWeight!) ||
-      (weight! >= priorWeight! && reps! > priorReps!)
+      (weight! >= priorWeight! && reps! > priorReps)
     );
   }
   function isMaintenance() {
@@ -44,7 +44,7 @@ function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
   function isRegression() {
     if (!priorSet || !reps) return false;
     return (
-      weight! < priorWeight! || (weight === priorWeight && reps < priorReps!)
+      weight! < priorWeight! || (weight === priorWeight && reps < priorReps)
     );
   }
   function getPerformanceIcon() {

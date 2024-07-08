@@ -102,7 +102,7 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
     return (
       <div
         style={{ maxWidth: "600px", margin: "0 auto" }}
-        className="w-full rounded-lg px-4 py-2"
+        className="w-full rounded-lg bg-slate-800 px-4 py-2"
       >
         {workoutPlan &&
           workoutPlan.map((workout) => (

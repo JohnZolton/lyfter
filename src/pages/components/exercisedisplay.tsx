@@ -238,6 +238,7 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
     updateExercise(updatedEx);
     recordNote({ exerciseId: updatedEx.exerciseId, note: updatedEx.note });
   }
+  const { mutate: updateCardio } = api.getWorkouts.updateCardio.useMutation();
 
   return (
     <div
@@ -624,8 +625,18 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
             <div>
               <select
                 className="rounded bg-gray-700 p-2 px-3 text-center text-sm text-white"
-                onChange={() => console.log("todo")}
-                value={0}
+                onChange={(e) => {
+                  updateCardio({
+                    exerciseId: currentExercise?.exerciseId,
+                    RPE: currentExercise.RPE ?? RPE.easy,
+                    duration: Number(e.target.value) ?? 0,
+                  });
+                  updateExercise({
+                    ...currentExercise,
+                    duration: Number(e.target.value),
+                  });
+                }}
+                value={currentExercise?.duration ?? 0}
               >
                 <option value={0}>0</option>
                 {Array.from({ length: 300 }, (_, i) => (
@@ -638,8 +649,18 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
             <div>
               <select
                 className="rounded bg-gray-700 p-2 text-center text-sm text-white"
-                onChange={() => console.log("todo")}
-                value={0}
+                onChange={(e) => {
+                  updateCardio({
+                    exerciseId: currentExercise?.exerciseId,
+                    RPE: e.target.value as RPE,
+                    duration: currentExercise?.duration ?? 0,
+                  });
+                  updateExercise({
+                    ...currentExercise,
+                    RPE: e.target.value as RPE,
+                  });
+                }}
+                value={currentExercise?.RPE ?? RPE.easy}
               >
                 <option value={RPE.easy}>Easy</option>
                 <option value={RPE.medium}>Moderate</option>
@@ -647,7 +668,7 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
                 <option value={RPE.veryHard}>Very Hard</option>
               </select>
             </div>
-            <div className="h-8 w-16">
+            <div className="flex h-8 w-16 items-center justify-center text-lg">
               {currentExercise.targetDuration ?? ""}
             </div>
           </div>
