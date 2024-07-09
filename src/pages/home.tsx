@@ -102,7 +102,7 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
     return (
       <div
         style={{ maxWidth: "600px", margin: "0 auto" }}
-        className="w-full rounded-lg px-4 py-2"
+        className="w-full rounded-lg bg-slate-800 px-4 py-2"
       >
         {workoutPlan &&
           workoutPlan.map((workout) => (
@@ -114,10 +114,7 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
                 <div className="text-ls font-semibold">
                   {workout.description}
                 </div>
-                <div>
-                  Week {workout.workoutNumber ? workout.workoutNumber + 1 : 1} -{" "}
-                  {workout.nominalDay}
-                </div>
+                <div>{workout.nominalDay}</div>
               </div>
               <WorkoutButton workoutId={workout.workoutId} />
             </div>

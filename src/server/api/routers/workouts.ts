@@ -580,7 +580,7 @@ export const getAllWorkouts = createTRPCRouter({
         const oneMinuteAgo = new Date(currentDate.getTime() - 60 * 1000);
         sixDaysAgo.setDate(currentDate.getDate() - 6);
         if (workoutDate >= sixDaysAgo) {
-          //if (workoutDate >= oneMinuteAgo) {
+        //if (workoutDate >= oneMinuteAgo) {
           return priorWorkout.workoutId;
         }
       }
@@ -637,6 +637,12 @@ export const getAllWorkouts = createTRPCRouter({
               priorExerciseId: lastValidExercise.exerciseId,
               note: lastValidExercise.note ?? "",
               sets: newSets,
+              isCardio: lastValidExercise.isCardio,
+              targetDuration: lastValidExercise.duration,
+              RPE:
+                lastValidExercise.muscleGroup === MuscleGroup.Cardio
+                  ? lastValidExercise.RPE
+                  : null,
             };
 
             if (
@@ -673,19 +679,26 @@ export const getAllWorkouts = createTRPCRouter({
               description: exercise?.description ?? "none",
               muscleGroup:
                 MuscleGroup[exercise?.muscleGroup as keyof typeof MuscleGroup],
-              sets: {
-                create: exercise?.sets.map((set, index) => {
-                  const setData = {
-                    setNumber: index,
-                    targetWeight: set.targetWeight,
-                    weight: set.targetWeight,
-                    targetReps: set.targetReps,
-                    rir: set.rir,
-                    lastSetId: set.lastSetId ?? null,
-                  };
-                  return setData;
-                }),
-              },
+              targetDuration: exercise.targetDuration,
+              RPE: exercise.RPE,
+              priorExerciseId: exercise.priorExerciseId,
+              note: exercise.note,
+              sets:
+                exercise.muscleGroup !== MuscleGroup.Cardio
+                  ? {
+                      create: exercise?.sets.map((set, index) => {
+                        const setData = {
+                          setNumber: index,
+                          targetWeight: set.targetWeight,
+                          weight: set.targetWeight,
+                          targetReps: set.targetReps,
+                          rir: set.rir,
+                          lastSetId: set.lastSetId ?? null,
+                        };
+                        return setData;
+                      }),
+                    }
+                  : undefined,
               exerciseOrder: index,
             })),
           },
@@ -750,14 +763,17 @@ export const getAllWorkouts = createTRPCRouter({
           description: input.description,
           muscleGroup:
             MuscleGroup[input.muscleGroup as keyof typeof MuscleGroup],
-          sets: {
-            create: {
-              weight: 0,
-              reps: 0,
-              rir: exercise?.sets[0]?.rir || 3,
-              setNumber: 0,
-            },
-          },
+          sets:
+            input.muscleGroup !== MuscleGroup.Cardio
+              ? {
+                  create: {
+                    weight: 0,
+                    reps: 0,
+                    rir: exercise?.sets[0]?.rir || 3,
+                    setNumber: 0,
+                  },
+                }
+              : undefined,
           exerciseOrder: input.exerciseNumber + 1,
         },
         include: {
@@ -929,6 +945,24 @@ export const getAllWorkouts = createTRPCRouter({
       });
       return updatedExercise;
     }),
+  updateCardio: privateProcedure
+    .input(
+      z.object({
+        exerciseId: z.string(),
+        RPE: z.string(),
+        duration: z.number(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const updatedExercise = await ctx.prisma.exercise.update({
+        where: { exerciseId: input.exerciseId },
+        data: {
+          duration: input.duration,
+          RPE: input.RPE as RPE,
+        },
+      });
+      return updatedExercise;
+    }),
   updateExerciseDescription: privateProcedure
     .input(
       z.object({
@@ -1096,22 +1130,45 @@ export const getAllWorkouts = createTRPCRouter({
     type MuscleGroupOverview = {
       [muscleGroup: string]: number[];
     };
+    type CardioOverview = {
+      [week: number]: {
+        easy: number;
+        medium: number;
+        hard: number;
+        veryHard: number;
+      };
+    };
+    const cardioOverview: CardioOverview = {};
+
     const muscleGroupOverview: MuscleGroupOverview = {};
     const numberOfWeeks = Math.max(
       ...workoutPlan.workouts.map((workout) => (workout.workoutNumber ?? 0) + 1)
     );
     Object.keys(MuscleGroup).forEach((muscleGroup) => {
-      muscleGroupOverview[muscleGroup as keyof typeof MuscleGroup] = Array(
-        numberOfWeeks
-      ).fill(0) as number[];
+      if (muscleGroup !== MuscleGroup.Cardio) {
+        muscleGroupOverview[muscleGroup as keyof typeof MuscleGroup] = Array(
+          numberOfWeeks
+        ).fill(0) as number[];
+      }
     });
+    for (let i = 1; i <= numberOfWeeks; i++) {
+      cardioOverview[i] = {
+        easy: 0,
+        medium: 0,
+        hard: 0,
+        veryHard: 0,
+      };
+    }
     workoutPlan.workouts.forEach((workout) => {
       const weekNumber = (workout.workoutNumber ?? 0) + 1;
 
       if (weekNumber === undefined || weekNumber <= 0) return;
       workout.exercises.forEach((exercise) => {
         const muscleGroup = exercise.muscleGroup as keyof typeof MuscleGroup;
-        if (!muscleGroupOverview[muscleGroup]) {
+        if (
+          !muscleGroupOverview[muscleGroup] &&
+          muscleGroup !== MuscleGroup.Cardio
+        ) {
           muscleGroupOverview[muscleGroup] = Array(numberOfWeeks).fill(
             0
           ) as number[];
@@ -1122,9 +1179,14 @@ export const getAllWorkouts = createTRPCRouter({
         if (muscleGroupOverview[muscleGroup]) {
           muscleGroupOverview[muscleGroup]![weekNumber - 1] += completedSets;
         }
+        if (exercise.muscleGroup === MuscleGroup.Cardio && exercise.duration) {
+          const rpe = exercise.RPE as keyof typeof RPE;
+          cardioOverview[weekNumber]![rpe] += exercise.duration;
+        }
       });
     });
-    return muscleGroupOverview;
+    console.log(cardioOverview);
+    return { muscleGroupOverview, cardioOverview };
   }),
 
   recordMissedTarget: privateProcedure

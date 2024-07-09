@@ -229,6 +229,9 @@ model Exercise {
   pump Pump?
   RPE RPE?
   workout   Workout @relation(fields: [workoutId], references: [workoutId], onDelete: Cascade)
+  isCardio Boolean @default(false)
+  duration Int?
+  targetDuration Int?
 
   @@index([workoutId])
 }
@@ -244,6 +247,7 @@ enum MuscleGroup {
   Glutes
   Hamstrings
   Calves
+  Cardio
 }
 enum Pump {
   low
