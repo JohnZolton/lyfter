@@ -114,10 +114,7 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
                 <div className="text-ls font-semibold">
                   {workout.description}
                 </div>
-                <div>
-                  Week {workout.workoutNumber ? workout.workoutNumber + 1 : 1} -{" "}
-                  {workout.nominalDay}
-                </div>
+                <div>{workout.nominalDay}</div>
               </div>
               <WorkoutButton workoutId={workout.workoutId} />
             </div>
