@@ -291,7 +291,7 @@ const PushFirst = {
     },
     {
       id: createUniqueId(),
-      description: "Cable Overhead Extension",
+      description: "Cable Pushdown",
       muscleGroup: "Triceps",
       sets: 3,
     },

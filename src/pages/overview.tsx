@@ -126,7 +126,7 @@ const Overview: NextPage = () => {
           {Object.entries(overview.muscleGroupOverview).map(
             ([muscleGroup, sets], index) => (
               <div key={index} className="my-1">
-                <Card className="mx-2">
+                <Card className="mx-2 bg-gray-800">
                   <CardHeader>
                     <CardTitle>{muscleGroup}</CardTitle>
                     <CardDescription>Total weekly sets</CardDescription>
@@ -167,7 +167,7 @@ const Overview: NextPage = () => {
           )}
           {overview.cardioOverview && (
             <div className="my-1">
-              <Card className="mx-2">
+              <Card className="mx-2 bg-gray-800">
                 <CardHeader>
                   <CardTitle>Cardio</CardTitle>
                   <CardDescription>Total Weekly Minutes</CardDescription>

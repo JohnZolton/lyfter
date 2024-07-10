@@ -245,7 +245,7 @@ function NavMenuItems({ setDisplayName }: AvatarProps) {
           <Button variant={"ghost"}>Overview</Button>
         </Link>
       </li>
-      <li>
+      <li className="h-10 w-10">
         <DropdownMenu>
           <DropdownMenuTrigger>
             <Avatar setDisplayName={setDisplayName} />
