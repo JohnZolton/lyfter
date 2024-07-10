@@ -207,7 +207,7 @@ function DisplayPlan({ plan }: DisplayPlanProps) {
   }
 
   return (
-    <div className="max-w-3xl flex-col">
+    <div className="w-full max-w-3xl flex-col">
       {workoutList &&
         Object.keys(workoutList).map((day, idx) => (
           <div key={"base" + idx.toString()}>
@@ -217,62 +217,83 @@ function DisplayPlan({ plan }: DisplayPlanProps) {
                 className="mb-4 flex flex-col rounded-md bg-slate-800 py-2 shadow-md"
               >
                 <div className="mb-4 text-center text-3xl font-bold">{day}</div>
+                <div className="mb-4 px-4 text-2xl font-bold">
+                  {workoutList[day as keyof typeof workoutList][0]?.description}
+                </div>
                 <div
-                  className="overflow-x-auto bg-slate-900"
+                  className="flex items-start overflow-x-auto bg-slate-900 align-top"
                   style={{ maxWidth: "100vw" }}
                 >
-                  <table className="table-fixed whitespace-nowrap">
+                  <table className="table-fixed justify-start whitespace-nowrap">
                     <thead>
                       <tr>
-                        <th className="left-0 z-10 w-1/4 bg-slate-900">
-                          {
-                            workoutList[day as keyof typeof workoutList][0]
-                              ?.description
-                          }
-                        </th>
-                        {workoutList[day as keyof typeof workoutList].map(
-                          (workout, workoutCount) => (
-                            <th className="w-1/4" key={workout.workoutId}>
+                        {workoutList[day as keyof typeof workoutList]
+                          .sort((a, b) => a.workoutNumber! - b.workoutNumber!)
+                          .map((workout, workoutCount) => (
+                            <th colSpan={2} key={workout.workoutId}>
                               Week {workoutCount + 1}
                             </th>
+                          ))}
+                      </tr>
+                      <tr>
+                        {workoutList[day as keyof typeof workoutList].map(
+                          (workout, workoutCount) => (
+                            <React.Fragment key={workoutCount}>
+                              <th className="w-1/2">Exercise</th>
+                              <th className="w-1/2">Sets</th>
+                            </React.Fragment>
                           )
                         )}
                       </tr>
                     </thead>
-                    <tbody>
-                      {workoutList[
-                        day as keyof typeof workoutList
-                      ][0]?.exercises.map((exercise, index) => (
-                        <tr key={index}>
-                          <td className="left-0 z-10 border bg-slate-900 px-4 py-2">
-                            {exercise.description}
-                          </td>
-                          {workoutList[day as keyof typeof workoutList].map(
-                            (workout) => (
-                              <td
-                                className="border px-3 py-2 align-top"
-                                key={workout.workoutId}
-                              >
-                                {workout.exercises[index]?.sets
-                                  .sort((a, b) => a.setNumber - b.setNumber)
-                                  .map((set, setIndex) => (
-                                    <div
-                                      className="flex items-center justify-start"
-                                      key={set.setId}
-                                    >
-                                      <div>
-                                        {set.weight || 0} lbs x {set.reps || 0}
-                                      </div>
-                                      <div className="pl-2">
-                                        <PerformanceWarning currentSet={set} />
-                                      </div>
-                                    </div>
-                                  ))}
-                              </td>
-                            )
-                          )}
-                        </tr>
-                      ))}
+                    <tbody className="">
+                      <tr className="align-top">
+                        {workoutList[day as keyof typeof workoutList].map(
+                          (workout) => (
+                            <td colSpan={2} key={workout.workoutId}>
+                              <table className="w-full">
+                                <tbody>
+                                  {workout.exercises
+                                    .sort(
+                                      (a, b) =>
+                                        a.exerciseOrder - b.exerciseOrder
+                                    )
+                                    .map((exercise) => (
+                                      <tr key={exercise.exerciseId}>
+                                        <td className="w-1/2 border p-2 align-top">
+                                          {exercise.description}
+                                        </td>
+                                        <td className="w-1/2 border">
+                                          {exercise.sets
+                                            .sort(
+                                              (a, b) =>
+                                                a.setNumber - b.setNumber
+                                            )
+                                            .map((set, idx) => (
+                                              <div
+                                                key={idx}
+                                                className="flex flex-row justify-between p-1"
+                                              >
+                                                <div>
+                                                  {set.weight || 0} lbs x{" "}
+                                                  {set.reps || 0}
+                                                </div>
+                                                <div className="px-2">
+                                                  <PerformanceWarning
+                                                    currentSet={set}
+                                                  />
+                                                </div>
+                                              </div>
+                                            ))}
+                                        </td>
+                                      </tr>
+                                    ))}
+                                </tbody>
+                              </table>
+                            </td>
+                          )
+                        )}
+                      </tr>
                     </tbody>
                   </table>
                 </div>

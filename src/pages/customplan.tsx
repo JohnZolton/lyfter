@@ -281,7 +281,7 @@ function WorkoutPlanForm() {
 
   return (
     <div className="mt-5 flex w-full flex-col items-center justify-center gap-y-2">
-      <Card>
+      <Card className="bg-gray-800">
         <CardHeader>
           <Input
             required
@@ -347,7 +347,7 @@ function WorkoutDisplay({
   const [workoutDay, setWorkoutDay] = useState("");
 
   return (
-    <Card className="my-2">
+    <Card className="my-2 bg-gray-800">
       <CardHeader>
         <Input
           value={workout.description}

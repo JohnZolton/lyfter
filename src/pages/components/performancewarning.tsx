@@ -30,13 +30,11 @@ function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
     (exercise) => exercise.exerciseId === currentSet?.exerciseId
   );
 
-  console.log(currentExercise?.sets.length);
-  console.log(currentSet?.setNumber);
   useEffect(() => {
     if (
       currentSet &&
       currentSet.reps &&
-      isRegression() &&
+      isRegression({ currentSet }) &&
       !deloadDenied &&
       currentExercise?.sets &&
       currentSet.setNumber < currentExercise?.sets?.length - 1
@@ -58,74 +56,90 @@ function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
 
   if (!currentSet) return null;
 
-  const { weight, reps, priorSet } = currentSet;
-  if (!priorSet || priorSet.reps === 0 || priorSet.reps === null) return null;
-
-  const { weight: priorWeight, reps: priorReps } = priorSet;
-
-  function isImprovement() {
-    if (!priorSet) return false;
+  function isImprovement({ currentSet }: PerformanceWarningProps) {
+    if (!currentSet || !currentSet.priorSet) return false;
     return (
-      (reps !== null && reps > 0 && weight! > priorWeight!) ||
-      (weight! >= priorWeight! && reps! > priorReps)
+      (currentSet.priorSet.weight !== null &&
+        currentSet.priorSet.reps !== null &&
+        currentSet.reps !== null &&
+        currentSet.reps > 0 &&
+        currentSet.weight! > currentSet.priorSet.weight) ||
+      (currentSet.weight! >= currentSet.priorSet.weight! &&
+        currentSet.priorSet.reps !== null &&
+        currentSet.reps !== null &&
+        currentSet.reps > currentSet.priorSet.reps)
     );
   }
 
-  function isMaintenance() {
-    if (!priorReps) return false;
-    return weight === priorWeight && reps === priorReps;
-  }
-
-  function isRegression() {
+  function isMaintenance({ currentSet }: PerformanceWarningProps) {
+    if (!currentSet?.priorSet) return false;
     return (
-      priorSet &&
-      priorSet.weight &&
-      weight &&
-      reps &&
-      reps > 0 &&
-      ((priorWeight && weight < priorSet.weight) ||
-        (weight === priorWeight && reps < priorReps))
+      currentSet.weight === currentSet.priorSet.weight &&
+      currentSet.reps === currentSet.priorSet.reps &&
+      currentSet.reps !== null &&
+      currentSet.reps > 0
     );
   }
-  function greaterWeight() {
+
+  function isRegression({ currentSet }: PerformanceWarningProps) {
+    return (
+      currentSet?.priorSet &&
+      currentSet?.priorSet.weight &&
+      currentSet.weight &&
+      currentSet.reps &&
+      currentSet.reps > 0 &&
+      ((currentSet.priorSet.weight &&
+        currentSet.weight < currentSet.priorSet.weight) ||
+        (currentSet.weight === currentSet.priorSet.weight &&
+          currentSet.priorSet.reps !== null &&
+          currentSet.reps < currentSet?.priorSet?.reps))
+    );
+  }
+  function greaterWeight({ currentSet }: PerformanceWarningProps) {
     if (
-      priorWeight &&
-      weight &&
-      weight > priorWeight &&
-      priorReps &&
-      (reps === 0 || reps === null)
+      currentSet?.priorSet?.weight &&
+      currentSet.weight &&
+      currentSet.weight > currentSet.priorSet.weight &&
+      (currentSet.reps === 0 || currentSet.reps === null)
     ) {
       return true;
     }
   }
-  function equalWeight() {
+  function equalWeight({ currentSet }: PerformanceWarningProps) {
     if (
-      priorWeight &&
-      weight &&
-      weight === priorWeight &&
-      priorReps &&
-      (reps === 0 || reps === null)
+      currentSet?.priorSet?.weight &&
+      currentSet.weight &&
+      currentSet.weight === currentSet.priorSet.weight &&
+      currentSet.priorSet.reps &&
+      (currentSet.reps === 0 || currentSet.reps === null)
     ) {
       return true;
     }
   }
   function getPerformanceIcon() {
-    if (weight === priorWeight && priorReps && reps === 0) {
+    if (!currentSet || currentSet === undefined || currentSet === null)
+      return null;
+
+    if (
+      currentSet &&
+      currentSet.weight === currentSet.priorSet?.weight &&
+      currentSet.reps === 0
+    ) {
       return currentSet?.targetReps;
     }
-    if (equalWeight()) {
-      return currentSet?.targetReps;
+    if (equalWeight({ currentSet })) {
+      return currentSet.targetReps;
     }
-    if (greaterWeight()) {
-      return priorReps;
+    if (greaterWeight({ currentSet })) {
+      return currentSet?.priorSet?.reps;
     }
-    if (isImprovement()) {
+    if (isImprovement({ currentSet })) {
       return <Check className="text-green-500" />;
     }
-    if (isMaintenance()) {
+    if (isMaintenance({ currentSet })) {
       return <Equal className="text-yellow-500" />;
     }
-    if (isRegression()) {
+    if (isRegression({ currentSet })) {
       return <ThumbsDown className="text-red-500" />;
     }
     return null;
