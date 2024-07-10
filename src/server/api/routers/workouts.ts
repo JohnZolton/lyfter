@@ -578,6 +578,7 @@ export const getAllWorkouts = createTRPCRouter({
         const fiveDaysAgo = new Date();
         //testing
         const oneMinuteAgo = new Date(currentDate.getTime() - 60 * 1000);
+
         fiveDaysAgo.setDate(currentDate.getDate() - 5);
         if (workoutDate >= fiveDaysAgo) {
           //if (workoutDate >= oneMinuteAgo) {
