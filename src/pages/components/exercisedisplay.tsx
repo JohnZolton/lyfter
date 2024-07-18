@@ -186,7 +186,7 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
       rir: lastSet?.rir ?? 3,
       lastSetId: null,
       priorSet: null,
-      setNumber: exercise?.sets.length + 1,
+      setNumber: exercise?.sets.length,
     };
     recordNewSet(newSet);
     addSet(exercise.exerciseId);
@@ -685,6 +685,7 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
             currentExercise?.sets &&
             currentExercise?.sets
               .sort((a, b) => a.setNumber - b.setNumber)
+              .filter((set) => set.isActive)
               .map((set, index) => (
                 <SetDisplay
                   key={index}
