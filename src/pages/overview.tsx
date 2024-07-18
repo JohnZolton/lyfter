@@ -31,7 +31,7 @@ import {
 const chartConfig = {
   totalVolume: {
     label: "Sets",
-    color: "#4b5563",
+    color: "#c9ccd0",
   },
 } satisfies ChartConfig;
 const chartConfig2 = {
@@ -145,7 +145,7 @@ const Overview: NextPage = () => {
                           <LabelList
                             position="center"
                             offset={12}
-                            className="fill-foreground"
+                            className="bg-black text-xl font-semibold text-black"
                             fontSize={12}
                           />
                         </Bar>
@@ -207,9 +207,9 @@ const Overview: NextPage = () => {
                         stackId={"a"}
                       >
                         <LabelList
-                          position="top"
+                          position="bottom"
                           offset={12}
-                          className="fill-foreground"
+                          className="bg-black text-xl font-semibold"
                           fontSize={12}
                         />
                       </Bar>

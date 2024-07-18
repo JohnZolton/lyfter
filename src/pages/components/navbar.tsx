@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useAuth } from "../_app";
 import { useEffect, useState } from "react";
 import {
   DropdownMenu,
@@ -268,7 +269,8 @@ function Avatar({ setDisplayName }: AvatarProps) {
   const [url, setUrl] = useState("");
   const [userName, setUserName] = useState("");
   const [retryCount, setRetryCount] = useState(0);
-  const maxRetries = 5;
+  const { authWithNostr } = useAuth();
+  const maxRetries = 10;
   useEffect(() => {
     if (typeof window !== "undefined") {
       const userNpub = sessionStorage.getItem("userNpub");
@@ -284,9 +286,25 @@ function Avatar({ setDisplayName }: AvatarProps) {
       }
     }
   }, [setDisplayName]);
+  async function handleNostrAuth() {
+    try {
+      const token = await authWithNostr();
+      sessionStorage.setItem("authToken", token);
+      const userNpub = sessionStorage.getItem("userNpub");
+      const imgUrl = sessionStorage.getItem("profileImage");
+      const displayName = sessionStorage.getItem("displayName");
+      setUrl(imgUrl ?? "");
+      setUserName(displayName ?? "");
+    } catch (error) {
+      console.error("Auth failed: ", error);
+    }
+  }
 
   useEffect(() => {
     const userNpub = sessionStorage.getItem("userNpub");
+    if (!userNpub) {
+      void handleNostrAuth();
+    }
     if ((!url || !userName) && userNpub && retryCount < maxRetries) {
       const timeout = setTimeout(() => {
         void getProfile(userNpub);
@@ -297,7 +315,6 @@ function Avatar({ setDisplayName }: AvatarProps) {
   }, [url, userName, retryCount]);
 
   async function getProfile(npub: string | null) {
-    console.log("fetching profile");
     if (!npub) {
       return;
     }
@@ -317,6 +334,8 @@ function Avatar({ setDisplayName }: AvatarProps) {
       console.log(user.profile);
       sessionStorage.setItem("profileImage", user.profile?.image ?? "");
       sessionStorage.setItem("displayName", user.profile?.name ?? "");
+      setUrl(user.profile?.image ?? "");
+      setUserName(user.profile?.name ?? "");
     }
   }
 

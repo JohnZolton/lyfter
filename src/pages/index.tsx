@@ -83,6 +83,7 @@ const Home: NextPage = () => {
             <div>
               Track long term performance over time to monitor your progress.
             </div>
+            <div>We even track cardio.</div>
           </div>
         </div>
       </PageLayout>
