@@ -25,10 +25,16 @@ interface PerformanceWarningProps {
 function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
   const { mutate: recordMissedSets } =
     api.getWorkouts.recordMissedTarget.useMutation();
-  const { handleMissedTarget, workout } = useWorkoutStore();
+  const { handleTakeDeload, setDeloadDenied, workout } = useWorkoutStore();
   const currentExercise = workout?.workout.exercises.find(
     (exercise) => exercise.exerciseId === currentSet?.exerciseId
   );
+
+  const deloadDenied = useWorkoutStore((state) =>
+    state.workout?.workout?.exercises.find(
+      (exercise) => exercise.exerciseId === currentSet?.exerciseId
+    )
+  )?.deloadDenied;
 
   useEffect(() => {
     if (
@@ -44,12 +50,11 @@ function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
   }, [currentSet]);
 
   const [deloadTrigger, setDeloadTrigger] = useState(false);
-  const [deloadDenied, setDeloadDenied] = useState(false);
   function handleDeload() {
-    setDeloadTrigger(false);
-    setDeloadDenied(true);
     if (currentSet) {
-      handleMissedTarget(currentSet);
+      setDeloadTrigger(false);
+      setDeloadDenied(currentSet);
+      handleTakeDeload(currentSet);
       recordMissedSets({ setId: currentSet.setId });
     }
   }
@@ -157,7 +162,7 @@ function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
             <DialogClose
               asChild
               onBlur={() => {
-                setDeloadDenied(true);
+                setDeloadDenied(currentSet);
                 setDeloadTrigger(false);
               }}
             >

@@ -164,10 +164,10 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
     }
   }
   function handleRemoveSet() {
-    removeSet(exercise.exerciseId);
     const removedSet = exercise.sets[exercise.sets.length - 1];
     if (removedSet?.setId) {
       deleteSet({ setId: removedSet.setId });
+      removeSet(exercise.exerciseId);
     }
     setIsMenuOpen(false);
   }
@@ -189,7 +189,7 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
       setNumber: exercise?.sets.length,
     };
     recordNewSet(newSet);
-    addSet(exercise.exerciseId);
+    addSet(newSet);
     setIsMenuOpen(false);
   }
 

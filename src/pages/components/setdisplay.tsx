@@ -20,7 +20,7 @@ function SetDisplay({
   startSurvey,
   feedbackLogged,
 }: SetDisplayProps) {
-  const { updateSet, handleMissedTarget } = useWorkoutStore();
+  const { updateSet, handleTakeDeload, setDeloadDenied } = useWorkoutStore();
 
   const currentSet = useWorkoutStore((state) =>
     state.workout?.workout?.exercises
@@ -61,7 +61,7 @@ function SetDisplay({
         set.priorSet.weight &&
         set.weight < set.priorSet.weight
       ) {
-        handleMissedTarget(set);
+        handleTakeDeload(set);
       }
     }
   };

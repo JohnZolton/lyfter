@@ -7,6 +7,7 @@ export interface fullWorkout {
     | Workout & {
         exercises: (Exercise & {
           sets: exerciseSet[];
+          deloadDenied?: boolean;
         })[];
       };
 }
@@ -19,12 +20,13 @@ interface WorkoutState {
   removeExercise: (exercise: Exercise) => void;
   updateExercise: (exercise: Exercise) => void;
   replaceExercise: (oldExercise: Exercise, newExercise: Exercise) => void;
-  addSet: (exerciseId: string) => void;
+  addSet: (newSet: exerciseSet) => void;
   removeSet: (exerciseId: string) => void;
   updateSet: (exerciseId: string, set: exerciseSet) => void;
   moveExerciseUp: (movedUpExercise: Exercise) => void;
   moveExerciseDown: (movedUpExercise: Exercise) => void;
-  handleMissedTarget: (curSet: exerciseSet) => void;
+  handleTakeDeload: (curSet: exerciseSet) => void;
+  setDeloadDenied: (curSet: exerciseSet) => void;
 }
 
 const useWorkoutStore = create<WorkoutState>((set) => ({
@@ -129,24 +131,13 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
       };
       return newState;
     }),
-  addSet: (exerciseId) => {
+  addSet: (newSet) => {
     set((state) => {
       if (!state.workout) return {};
 
       const updatedExercise = state.workout.workout.exercises.map(
         (exercise) => {
-          if (exercise.exerciseId === exerciseId) {
-            const lastSet = exercise.sets[exercise.sets.length - 1];
-            if (!lastSet) return {};
-            const newSet: exerciseSet = {
-              ...lastSet,
-              reps: 0,
-              setId: `newSetId${lastSet?.exerciseId}-${
-                exercise.sets.length + 1
-              }`,
-              setNumber: lastSet?.setNumber ?? exercise.sets.length + 1,
-              date: lastSet?.date,
-            };
+          if (exercise.exerciseId === newSet.exerciseId) {
             return {
               ...exercise,
               sets: [...exercise.sets, newSet],
@@ -281,7 +272,7 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
       return newState;
     });
   },
-  handleMissedTarget: (curSet) => {
+  handleTakeDeload: (curSet) => {
     set((state) => {
       if (!state.workout) return {};
       const updatedExercises = state.workout.workout.exercises.map(
@@ -291,6 +282,29 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
               (set) => set.setNumber <= curSet.setNumber
             );
             return { ...exercise, sets: newSets };
+          }
+          return exercise;
+        }
+      );
+      const newState = {
+        workout: {
+          ...state.workout,
+          workout: {
+            ...state.workout.workout,
+            exercises: updatedExercises,
+          },
+        },
+      };
+      return newState;
+    });
+  },
+  setDeloadDenied: (curSet) => {
+    set((state) => {
+      if (!state.workout) return {};
+      const updatedExercises = state.workout.workout.exercises.map(
+        (exercise) => {
+          if (exercise.exerciseId === curSet.exerciseId) {
+            return { ...exercise, deloadDenied: true };
           }
           return exercise;
         }
