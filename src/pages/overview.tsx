@@ -68,7 +68,9 @@ const Overview: NextPage = () => {
             </div>
           </SignedIn>
           <SignedOut>
-            <SignInButton />
+            <div className="mt-14 flex flex-row items-center justify-center">
+              <SignInButton />
+            </div>
           </SignedOut>
         </PageLayout>
       </>

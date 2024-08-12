@@ -72,7 +72,7 @@ const Home: NextPage = () => {
           </div>
         </SignedIn>
         <SignedOut>
-          <div className="mt-10 flex flex-row items-center justify-center">
+          <div className="mt-14 flex flex-row items-center justify-center">
             <SignInButton />
           </div>
         </SignedOut>

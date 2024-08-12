@@ -65,11 +65,14 @@ function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
     if (!currentSet || !currentSet.priorSet) return false;
     return (
       (currentSet.priorSet.weight !== null &&
+        currentSet.priorSet.weight !== undefined &&
         currentSet.priorSet.reps !== null &&
         currentSet.reps !== null &&
         currentSet.reps > 0 &&
         currentSet.weight! > currentSet.priorSet.weight) ||
       (currentSet.weight! >= currentSet.priorSet.weight! &&
+        currentSet?.priorSet.weight !== undefined &&
+        currentSet?.priorSet.weight !== null &&
         currentSet.priorSet.reps !== null &&
         currentSet.reps !== null &&
         currentSet.reps > currentSet.priorSet.reps)
@@ -79,6 +82,8 @@ function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
   function isMaintenance({ currentSet }: PerformanceWarningProps) {
     if (!currentSet?.priorSet) return false;
     return (
+      currentSet?.priorSet.weight !== undefined &&
+      currentSet?.priorSet.weight !== null &&
       currentSet.weight === currentSet.priorSet.weight &&
       currentSet.reps === currentSet.priorSet.reps &&
       currentSet.reps !== null &&
@@ -89,11 +94,14 @@ function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
   function isRegression({ currentSet }: PerformanceWarningProps) {
     return (
       currentSet?.priorSet &&
-      currentSet?.priorSet.weight &&
-      currentSet.weight &&
+      currentSet?.priorSet.weight !== undefined &&
+      currentSet?.priorSet.weight !== null &&
+      currentSet.weight !== undefined &&
+      currentSet.weight !== null &&
       currentSet.reps &&
       currentSet.reps > 0 &&
-      ((currentSet.priorSet.weight &&
+      ((currentSet.priorSet.weight !== undefined &&
+        currentSet?.priorSet.weight !== null &&
         currentSet.weight < currentSet.priorSet.weight) ||
         (currentSet.weight === currentSet.priorSet.weight &&
           currentSet.priorSet.reps !== null &&
@@ -102,8 +110,10 @@ function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
   }
   function greaterWeight({ currentSet }: PerformanceWarningProps) {
     if (
-      currentSet?.priorSet?.weight &&
-      currentSet.weight &&
+      currentSet?.priorSet?.weight !== undefined &&
+      currentSet?.priorSet?.weight !== null &&
+      currentSet.weight !== undefined &&
+      currentSet.weight !== null &&
       currentSet.weight > currentSet.priorSet.weight &&
       (currentSet.reps === 0 || currentSet.reps === null)
     ) {
@@ -112,8 +122,10 @@ function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
   }
   function equalWeight({ currentSet }: PerformanceWarningProps) {
     if (
-      currentSet?.priorSet?.weight &&
-      currentSet.weight &&
+      currentSet?.priorSet?.weight !== undefined &&
+      currentSet?.priorSet?.weight !== null &&
+      currentSet.weight !== undefined &&
+      currentSet.weight !== null &&
       currentSet.weight === currentSet.priorSet.weight &&
       currentSet.priorSet.reps &&
       (currentSet.reps === 0 || currentSet.reps === null)
@@ -129,6 +141,14 @@ function PerformanceWarning({ currentSet }: PerformanceWarningProps) {
       currentSet &&
       currentSet.weight === currentSet.priorSet?.weight &&
       currentSet.reps === 0
+    ) {
+      return currentSet?.targetReps;
+    }
+    if (
+      currentSet.weight === currentSet.priorSet?.weight &&
+      currentSet.reps === 0 &&
+      currentSet.priorSet?.weight !== null &&
+      currentSet.priorSet?.weight !== undefined
     ) {
       return currentSet?.targetReps;
     }
