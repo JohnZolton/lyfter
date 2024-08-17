@@ -218,6 +218,7 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
       description: replacementExDescription,
       temporary: temporary,
       exerciseId: newExId,
+      MuscleGroup: exercise.muscleGroup,
       sets: newSets,
     };
     replaceExercise(newEx, exercise);
