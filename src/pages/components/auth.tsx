@@ -68,7 +68,7 @@ export function SignInButtonAmber() {
       const authUrl = `${baseUrl}/api/authenticate`;
       const callbackUrl = `${
         isLiveMode ? baseUrl : window.location.origin
-      }/api/auth/amber/`;
+      }/api/auth/amber?event=`;
 
       const event = {
         kind: 27235,
