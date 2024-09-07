@@ -64,11 +64,11 @@ export function SignInButtonAmber() {
   function handleSignIn() {
     try {
       const isLiveMode = process.env.NODE_ENV === "production";
-      const authUrl = `https://${
-        isLiveMode ? process.env.AUTH_URL ?? "liftr.club" : "localhost:3000"
-      }/api/authenticate`;
-
-      const callbackUrl = `${window.location.origin}/api/auth/amber/`;
+      const baseUrl = "https://www.liftr.club";
+      const authUrl = `${baseUrl}/api/authenticate`;
+      const callbackUrl = `${
+        isLiveMode ? baseUrl : window.location.origin
+      }/api/auth/amber/`;
 
       const event = {
         kind: 27235,
