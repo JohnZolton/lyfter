@@ -273,9 +273,9 @@ function Avatar({ setDisplayName }: AvatarProps) {
   const maxRetries = 10;
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const userNpub = sessionStorage.getItem("userNpub");
-      const imgUrl = sessionStorage.getItem("profileImage");
-      const displayName = sessionStorage.getItem("displayName");
+      const userNpub = localStorage.getItem("userNpub");
+      const imgUrl = localStorage.getItem("profileImage");
+      const displayName = localStorage.getItem("displayName");
       setUrl(imgUrl ?? "");
       if (setDisplayName) {
         setDisplayName(displayName ?? "");
@@ -289,10 +289,10 @@ function Avatar({ setDisplayName }: AvatarProps) {
   async function handleNostrAuth() {
     try {
       const token = await authWithNostr();
-      sessionStorage.setItem("authToken", token);
-      const userNpub = sessionStorage.getItem("userNpub");
-      const imgUrl = sessionStorage.getItem("profileImage");
-      const displayName = sessionStorage.getItem("displayName");
+      localStorage.setItem("authToken", token);
+      const userNpub = localStorage.getItem("userNpub");
+      const imgUrl = localStorage.getItem("profileImage");
+      const displayName = localStorage.getItem("displayName");
       setUrl(imgUrl ?? "");
       setUserName(displayName ?? "");
     } catch (error) {
@@ -301,7 +301,7 @@ function Avatar({ setDisplayName }: AvatarProps) {
   }
 
   useEffect(() => {
-    const userNpub = sessionStorage.getItem("userNpub");
+    const userNpub = localStorage.getItem("userNpub");
     if (!userNpub) {
       void handleNostrAuth();
     }
@@ -332,8 +332,8 @@ function Avatar({ setDisplayName }: AvatarProps) {
       console.log(user);
       await user.fetchProfile();
       console.log(user.profile);
-      sessionStorage.setItem("profileImage", user.profile?.image ?? "");
-      sessionStorage.setItem("displayName", user.profile?.name ?? "");
+      localStorage.setItem("profileImage", user.profile?.image ?? "");
+      localStorage.setItem("displayName", user.profile?.name ?? "");
       setUrl(user.profile?.image ?? "");
       setUserName(user.profile?.name ?? "");
     }

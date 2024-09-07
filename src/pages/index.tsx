@@ -1,10 +1,15 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
+import { useEffect } from "react";
 
 import { buttonVariants } from "~/components/ui/button";
 import PageLayout from "./components/pagelayout";
-import SignedIn, { SignInButton, SignedOut } from "./components/auth";
+import SignedIn, {
+  SignInButton,
+  SignInButtonAmber,
+  SignedOut,
+} from "./components/auth";
 
 const Home: NextPage = () => {
   return (
@@ -23,6 +28,7 @@ const Home: NextPage = () => {
           <h3 className="text-2xl text-white ">Your Workout Tracker</h3>
           <SignedOut>
             <SignInButton />
+            <SignInButtonAmber />
           </SignedOut>
           <SignedIn>
             <Link

@@ -30,7 +30,7 @@ export function SignOutButton({ className }: SignOutButtonProps) {
   const router = useRouter();
   function handleSignOut() {
     try {
-      sessionStorage.clear();
+      localStorage.clear();
       void router.push("/");
     } catch (error) {
       console.error("logout failed: ", error);
@@ -48,7 +48,6 @@ export function SignInButton() {
   async function handleSignIn() {
     try {
       const token = await authWithNostr();
-      sessionStorage.setItem("authToken", token);
     } catch (error) {
       console.error("Auth failed: ", error);
     }
@@ -56,5 +55,38 @@ export function SignInButton() {
   function handleButtonClick() {
     handleSignIn().catch((error) => console.error("error: ", error));
   }
-  return <Button onClick={handleButtonClick}>Sign in with Nostr</Button>;
+  return (
+    <Button onClick={handleButtonClick}>Sign in with Nostr Extension</Button>
+  );
+}
+
+export function SignInButtonAmber() {
+  function handleSignIn() {
+    try {
+      const isLiveMode = process.env.NODE_ENV === "production";
+      const authUrl = `https://${
+        isLiveMode ? process.env.AUTH_URL ?? "liftr.club" : "localhost:3000"
+      }/api/authenticate`;
+
+      const callbackUrl = `${window.location.origin}/api/auth/amber/`;
+
+      const event = {
+        kind: 27235,
+        created_at: Math.floor(Date.now() / 1000),
+        tags: [
+          ["u", authUrl],
+          ["method", "GET"],
+        ],
+        content: "",
+      };
+
+      const encodedJson = encodeURIComponent(JSON.stringify(event));
+      const signerUrl = `nostrsigner:${encodedJson}?compressionType=none&returnType=event&type=sign_event&callbackUrl=${callbackUrl}`;
+
+      window.open(signerUrl, "_blank");
+    } catch (error) {
+      console.error("Auth failed: ", error);
+    }
+  }
+  return <Button onClick={handleSignIn}>Sign in with Amber</Button>;
 }

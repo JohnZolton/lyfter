@@ -33,7 +33,7 @@ export const api = createTRPCNext<AppRouter>({
           headers() {
             const token =
               typeof window !== "undefined"
-                ? sessionStorage.getItem("authHeader")
+                ? localStorage.getItem("authHeader")
                 : "";
             return { Authorization: token ?? "" };
           },
