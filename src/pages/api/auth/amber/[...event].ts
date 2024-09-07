@@ -14,17 +14,16 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     const { event: encodedEvent } = req.query;
-    const eventParam = Array.isArray(encodedEvent)
-      ? encodedEvent[0]
-      : encodedEvent; // Handle string[] and string
+    const decodedEvent = decodeURIComponent(req.query.event as string);
+    console.log(decodedEvent);
 
-    if (!eventParam || typeof eventParam !== "string") {
+    if (!decodedEvent || typeof decodedEvent !== "string") {
       return res
         .status(400)
         .json({ error: "Missing or invalid event parameter" });
     }
 
-    const rawEvent = JSON.parse(eventParam) as NDKEvent;
+    const rawEvent = JSON.parse(decodedEvent) as NDKEvent;
     console.log(rawEvent);
 
     if (!rawEvent) {
