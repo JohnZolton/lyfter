@@ -11,21 +11,21 @@ import { Skeleton } from "../components/ui/skeleton";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
-import SignedIn, { SignInButton, SignedOut } from "./components/auth";
+import SignedIn, {
+  SignInButton,
+  SignInButtonAmber,
+  SignedOut,
+} from "./components/auth";
 import {
   CardHeader,
   Card,
   CardContent,
   CardDescription,
 } from "~/components/ui/card";
+import { useAuth } from "./_app";
 
 const Home: NextPage = () => {
   const [workoutTitle, setWorkoutTitle] = useState<string | undefined>();
-  const [token, setToken] = useState<string | null>(null);
-  useEffect(() => {
-    const storedToken = sessionStorage.getItem("authHeader");
-    setToken(storedToken);
-  });
 
   return (
     <>
@@ -35,8 +35,9 @@ const Home: NextPage = () => {
           <WorkoutUiHandler setTitle={setWorkoutTitle} />
         </SignedIn>
         <SignedOut>
-          <div className="mt-14 flex flex-row items-center justify-center">
+          <div className="mt-14 flex flex-col items-center justify-center gap-y-8">
             <SignInButton />
+            <SignInButtonAmber />
           </div>
         </SignedOut>
       </PageLayout>
