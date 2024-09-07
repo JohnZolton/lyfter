@@ -14,6 +14,7 @@ import { EventTemplate } from "nostr-tools";
 import { WindowNostr } from "nostr-tools/lib/types/nip07";
 import { Buffer } from "buffer";
 import { JwtPayload } from "jsonwebtoken";
+import { setuid } from "process";
 
 function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   return (
@@ -137,8 +138,12 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const updateAuthFromStorage = () => {
     const storedAuthHeader = localStorage.getItem("authHeader");
+    const userNpub = localStorage.getItem("userNpub");
     if (storedAuthHeader && verifyJWT(storedAuthHeader)) {
       setAuthHeader(storedAuthHeader);
+      if (userNpub) {
+        setUser(userNpub);
+      }
     } else {
       localStorage.removeItem("authHeader");
       setAuthHeader(null);

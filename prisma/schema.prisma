@@ -50,10 +50,13 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
-  isSubscribed Boolean @default(false)
+  isSearchSubscribed Boolean @default(false)
+  isIdsSubscribed Boolean @default(false)
   stripeCustomerId String? @unique
-  stripeCurrentPeriodEnd DateTime?
-  stripeSubscriptionId String? @unique
+  stripeSearchSubscriptionId String?  @unique
+  stripeIDSSubscriptionId   String?  @unique
+  stripeSearchPeriodEnd     DateTime?
+  stripeIDSPeriodEnd        DateTime?
   accounts      Account[]
   sessions      Session[]
 }
@@ -75,10 +78,6 @@ model OAReport {
   paid Boolean @default(false)
   orderTime DateTime @default(now())
   userID   String
-  title String
-  specKey String
-  oaKey String?
-  claimKey String?
   rawFeatures RawFeatureItem[]
   features FeatureItem[]
   files Reference[]
@@ -176,6 +175,7 @@ model Reference {
   report    OAReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
   @@index([reportId, userId])
 }
+
 
 
 
