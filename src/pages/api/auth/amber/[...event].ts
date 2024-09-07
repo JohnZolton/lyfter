@@ -34,9 +34,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     if (rawEvent.kind !== 27235) {
       return res.status(400).json({ error: "Invalid event kind" });
     }
-    const ourUrl = `https://${
-      process.env.AUTH_URL ?? "localhost:3000"
-    }/api/authenticate`;
+    const ourUrl = `https://www.liftr.club/api/authenticate`;
     const goodTags = [
       ["u", ourUrl],
       ["method", "GET"],
