@@ -13,7 +13,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   try {
-    const { event: encodedEvent } = req.query;
     const decodedEvent = decodeURIComponent(req.query.event as string);
     console.log(decodedEvent);
 
