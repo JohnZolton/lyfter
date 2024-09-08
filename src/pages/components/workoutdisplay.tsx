@@ -1,4 +1,5 @@
 import { v4 } from "uuid";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Workout, Exercise, exerciseSet } from "@prisma/client";
 import ExerciseDisplay from "./exercisedisplay";
 import { api } from "~/utils/api";
@@ -17,6 +18,8 @@ function WorkoutDisplay3({ workoutPlan }: display3Props) {
   const { workout, updateWorkout, addExercise, removeWorkout } =
     useWorkoutStore();
 
+  const [parent, enableAnimations] = useAutoAnimate({ duration: 800 });
+
   return (
     <div className="flex w-11/12 max-w-sm flex-col items-center rounded-lg">
       {workout && (
@@ -24,28 +27,17 @@ function WorkoutDisplay3({ workoutPlan }: display3Props) {
           key={"w" + workout.workout.workoutId.toString()}
           className="w-full"
         >
-          <div className="flex w-full flex-col items-center">
+          <div className="flex w-full flex-col items-center" ref={parent}>
             {workout.workout.exercises &&
               workout.workout.exercises
-                .sort((a, b) => {
-                  if (a.exerciseOrder === b.exerciseOrder) {
-                    return (
-                      new Date(b.date).getTime() - new Date(a.date).getTime()
-                    );
-                  }
-                  return a.exerciseOrder - b.exerciseOrder;
-                })
+                .sort((a, b) => a.exerciseOrder - b.exerciseOrder)
                 .map((exercise, exerciseNumber) => (
                   <div
                     className="w-full p-1"
-                    key={exercise.exerciseId.toString()}
+                    key={`external-${exercise.exerciseId.toString()}`}
                   >
                     <ExerciseDisplay
-                      key={
-                        workoutPlan.workoutNumber
-                          ? workoutPlan.workoutNumber.toString()
-                          : "none" + exerciseNumber.toString()
-                      }
+                      key={"internal" + exercise.exerciseId.toString()}
                       exercise={exercise}
                     />
                   </div>
