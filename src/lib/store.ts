@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { Exercise, exerciseSet, Workout } from "@prisma/client";
 import { cursorTo } from "readline";
+import { MoveDown } from "lucide-react";
 
 export interface fullWorkout {
   workout:
@@ -223,23 +224,31 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
   moveExerciseUp: (movedUpExercise) => {
     set((state) => {
       if (!state.workout) return {};
-      const updatedExercises = state.workout.workout.exercises.map(
-        (exercise) => {
-          if (exercise.exerciseOrder === movedUpExercise.exerciseOrder - 1) {
-            return { ...exercise, exerciseOrder: exercise.exerciseOrder + 1 };
-          }
-          if (exercise.exerciseId === movedUpExercise.exerciseId) {
-            return { ...exercise, exerciseOrder: exercise.exerciseOrder - 1 };
-          }
-          return exercise;
-        }
+      const exercises = [...state.workout.workout.exercises];
+      const movedIndex = exercises.findIndex(
+        (ex) => ex.exerciseId === movedUpExercise.exerciseId
       );
+      if (movedIndex <= 0 || movedIndex >= exercises.length) return {};
+
+      const earlierEx = exercises[movedIndex - 1];
+      const currEx = exercises[movedIndex];
+      if (earlierEx && currEx) {
+        exercises[movedIndex - 1] = currEx;
+        exercises[movedIndex] = earlierEx;
+      }
+
+      // Normalize exercise orders
+      const normalizedExercises = exercises.map((exercise, index) => ({
+        ...exercise,
+        exerciseOrder: index + 1,
+      }));
+
       const newState = {
         workout: {
           ...state.workout,
           workout: {
             ...state.workout.workout,
-            exercises: updatedExercises,
+            exercises: normalizedExercises,
           },
         },
       };
@@ -249,23 +258,31 @@ const useWorkoutStore = create<WorkoutState>((set) => ({
   moveExerciseDown: (movedDownExercise) => {
     set((state) => {
       if (!state.workout) return {};
-      const updatedExercises = state.workout.workout.exercises.map(
-        (exercise) => {
-          if (exercise.exerciseOrder === movedDownExercise.exerciseOrder + 1) {
-            return { ...exercise, exerciseOrder: exercise.exerciseOrder - 1 };
-          }
-          if (exercise.exerciseId === movedDownExercise.exerciseId) {
-            return { ...exercise, exerciseOrder: exercise.exerciseOrder + 1 };
-          }
-          return exercise;
-        }
+      const exercises = [...state.workout.workout.exercises];
+      const movedIndex = exercises.findIndex(
+        (ex) => ex.exerciseId === movedDownExercise.exerciseId
       );
+      if (movedIndex < 0 || movedIndex >= exercises.length) return {};
+
+      const earlierEx = exercises[movedIndex + 1];
+      const currEx = exercises[movedIndex];
+      if (earlierEx && currEx) {
+        exercises[movedIndex + 1] = currEx;
+        exercises[movedIndex] = earlierEx;
+      }
+
+      // Normalize exercise orders
+      const normalizedExercises = exercises.map((exercise, index) => ({
+        ...exercise,
+        exerciseOrder: index + 1,
+      }));
+
       const newState = {
         workout: {
           ...state.workout,
           workout: {
             ...state.workout.workout,
-            exercises: updatedExercises,
+            exercises: normalizedExercises,
           },
         },
       };

@@ -1,7 +1,8 @@
 import { v4 } from "uuid";
+import autoAnimate from "@formkit/auto-animate";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Exercise, exerciseSet, MuscleGroup, Pump, RPE } from "@prisma/client";
-import { useState } from "react";
-import { useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { api } from "~/utils/api";
 import SetDisplay from "./setdisplay";
 import { Menu, EllipsisVertical } from "lucide-react";
@@ -67,6 +68,11 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
     workout,
   } = useWorkoutStore();
 
+  const currentExerciseIndex = useWorkoutStore((state) =>
+    state.workout?.workout?.exercises.findIndex(
+      (coreExercise) => coreExercise.exerciseId === exercise.exerciseId
+    )
+  );
   const currentExercise = useWorkoutStore((state) =>
     state.workout?.workout?.exercises.find(
       (coreExercise) => coreExercise.exerciseId === exercise.exerciseId
@@ -240,6 +246,47 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
     recordNote({ exerciseId: updatedEx.exerciseId, note: updatedEx.note });
   }
   const { mutate: updateCardio } = api.getWorkouts.updateCardio.useMutation();
+
+  const [parent, enableAnimations] = useAutoAnimate({ duration: 500 });
+
+  const { mutate: updateExOrder } =
+    api.getWorkouts.updateExerciseOrder.useMutation();
+
+  function handleMoveDown() {
+    const curIndex = workout?.workout.exercises.findIndex(
+      (ex) => ex.exerciseId === currentExercise?.exerciseId
+    );
+    if (
+      curIndex !== undefined &&
+      workout &&
+      curIndex >= 0 &&
+      curIndex < workout?.workout.exercises.length - 1
+    ) {
+      const upperExercise = workout?.workout.exercises[curIndex + 1];
+      if (currentExercise && upperExercise) {
+        moveExerciseDown(currentExercise);
+        updateExOrder({
+          exerciseId1: currentExercise.exerciseId,
+          exerciseId2: upperExercise.exerciseId,
+        });
+      }
+    }
+  }
+  function handleMoveUp() {
+    const curIndex = workout?.workout.exercises.findIndex(
+      (ex) => ex.exerciseId === currentExercise?.exerciseId
+    );
+    if (curIndex && curIndex > 0) {
+      const upperExercise = workout?.workout.exercises[curIndex - 1];
+      if (currentExercise && upperExercise) {
+        moveExerciseUp(currentExercise);
+        updateExOrder({
+          exerciseId1: currentExercise.exerciseId,
+          exerciseId2: upperExercise.exerciseId,
+        });
+      }
+    }
+  }
 
   return (
     <div
@@ -445,14 +492,18 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
               <DropdownMenuItem onClick={() => setEditingName(true)}>
                 Edit Exercise
               </DropdownMenuItem>
-              {exercise?.exerciseOrder !== 0 && (
-                <DropdownMenuItem onClick={() => moveExerciseUp(exercise)}>
+              {currentExerciseIndex !== 0 && (
+                <DropdownMenuItem onClick={handleMoveUp}>
                   Move up
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem onClick={() => moveExerciseDown(exercise)}>
-                Move down
-              </DropdownMenuItem>
+              {workout &&
+                currentExerciseIndex !==
+                  workout.workout.exercises.length - 1 && (
+                  <DropdownMenuItem onClick={handleMoveDown}>
+                    Move down
+                  </DropdownMenuItem>
+                )}
               <DropdownMenuItem onClick={() => setEditingNote(true)}>
                 {exercise?.note ? "Edit Note" : "Add Note"}
               </DropdownMenuItem>
@@ -615,6 +666,34 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
           {exercise?.note ?? ""}
         </div>
       )}
+      {currentExercise?.muscleGroup !== MuscleGroup.Cardio && (
+        <div className="rounded-md bg-slate-800 py-1">
+          <div
+            key={`${currentExercise?.exerciseId ?? "error no header"}-header`}
+            className="flex flex-row justify-between px-6 text-sm shadow-md"
+          >
+            <div className="">Weight</div>
+            <div>Reps · RIR {exercise?.sets[0]?.rir}</div>
+            <div>Target</div>
+          </div>
+          <div ref={parent}>
+            {currentExercise &&
+              currentExercise?.sets &&
+              currentExercise?.sets
+                .sort((a, b) => a.setNumber - b.setNumber)
+                .filter((set) => set.isActive)
+                .map((set, index) => (
+                  <SetDisplay
+                    key={`${index}-${currentExercise.exerciseId}`}
+                    set={set}
+                    index={index}
+                    startSurvey={startSurvey}
+                    feedbackLogged={feedbackLogged}
+                  />
+                ))}
+          </div>
+        </div>
+      )}
       {currentExercise?.muscleGroup === MuscleGroup.Cardio && (
         <div className="rounded-md bg-slate-800 py-1">
           <div className="flex flex-row justify-between px-6 text-sm shadow-md">
@@ -673,29 +752,6 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
               {currentExercise.targetDuration ?? ""}
             </div>
           </div>
-        </div>
-      )}
-      {currentExercise?.muscleGroup !== MuscleGroup.Cardio && (
-        <div className="rounded-md bg-slate-800 py-1">
-          <div className="flex flex-row justify-between px-6 text-sm shadow-md">
-            <div className="">Weight</div>
-            <div>Reps · RIR {exercise?.sets[0]?.rir}</div>
-            <div>Target</div>
-          </div>
-          {currentExercise &&
-            currentExercise?.sets &&
-            currentExercise?.sets
-              .sort((a, b) => a.setNumber - b.setNumber)
-              .filter((set) => set.isActive)
-              .map((set, index) => (
-                <SetDisplay
-                  key={index}
-                  set={set}
-                  index={index}
-                  startSurvey={startSurvey}
-                  feedbackLogged={feedbackLogged}
-                />
-              ))}
         </div>
       )}
     </div>

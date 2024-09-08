@@ -916,18 +916,40 @@ export const getAllWorkouts = createTRPCRouter({
   updateExerciseOrder: privateProcedure
     .input(
       z.object({
-        exerciseId: z.string(),
-        order: z.number(),
+        exerciseId1: z.string(),
+        exerciseId2: z.string(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const updatedExercise = await ctx.prisma.exercise.update({
-        where: { exerciseId: input.exerciseId },
-        data: {
-          exerciseOrder: input.order,
+      const ex1 = await ctx.prisma.exercise.findFirst({
+        where: {
+          exerciseId: input.exerciseId1,
         },
       });
-      return updatedExercise;
+      const ex2 = await ctx.prisma.exercise.findFirst({
+        where: {
+          exerciseId: input.exerciseId2,
+        },
+      });
+      if (ex1 && ex2) {
+        const new2 = await ctx.prisma.exercise.update({
+          where: {
+            exerciseId: input.exerciseId2,
+          },
+          data: {
+            exerciseOrder: ex1.exerciseOrder,
+          },
+        });
+        const new1 = await ctx.prisma.exercise.update({
+          where: {
+            exerciseId: input.exerciseId1,
+          },
+          data: {
+            exerciseOrder: ex2.exerciseOrder,
+          },
+        });
+        return { new1, new2 };
+      }
     }),
 
   updateExerciseNote: privateProcedure
