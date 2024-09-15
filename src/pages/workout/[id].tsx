@@ -20,6 +20,7 @@ import {
 } from "~/components/ui/dialog";
 import SignedIn, { SignInButton, SignedOut } from "../components/auth";
 import useWorkoutStore, { fullWorkout } from "~/lib/store";
+import { format } from "path";
 
 const Home: NextPage = () => {
   const router = useRouter();
@@ -115,6 +116,66 @@ function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
     void router.push("/home");
   }
 
+  function shareToNostr() {
+    let formattedString = `Workout Completed!\n\n${
+      todaysWorkout.workout.description
+    } - Week ${todaysWorkout.workout.workoutNumber ?? ""}\n\n`;
+    completedWorkout.forEach((exercise) => {
+      formattedString += `${exercise.description}\n`;
+      exercise.sets.forEach((set, index) => {
+        const goals = set.targetReps !== null && set.targetWeight !== null;
+        const metTarget =
+          set.reps !== null &&
+          set.targetReps !== null &&
+          set.targetWeight !== null &&
+          set.weight !== null &&
+          set.reps !== null &&
+          set.reps >= set.targetReps &&
+          set.weight >= set.targetWeight;
+        if (
+          todaysWorkout.workout.workoutNumber &&
+          todaysWorkout.workout.workoutNumber > 1
+        ) {
+          const emoji = metTarget ? "✅" : "❌";
+          formattedString += `${set.weight ?? ""} x ${
+            set.reps ?? ""
+          } ${emoji} (${set.targetWeight ?? ""} x ${set.targetReps ?? ""} 🎯)`;
+        } else {
+          formattedString += `${set.weight ?? ""} x ${set.reps ?? ""}`;
+        }
+        formattedString += "\n";
+      });
+      formattedString += "\n";
+    });
+    formattedString += "\nliftr.club";
+    console.log(formattedString);
+    const isLiveMode = process.env.NODE_ENV === "production";
+    const baseUrl = "https://www.liftr.club";
+    const callbackUrl = `${
+      isLiveMode ? baseUrl : window.location.origin
+    }/nostr-publish-callback?event=`;
+
+    const event = {
+      kind: 1,
+      created_at: Math.floor(Date.now() / 1000),
+      content: formattedString,
+    };
+
+    const encodedJson = encodeURIComponent(JSON.stringify(event));
+    const signerUrl = `nostrsigner:${encodedJson}?compressionType=none&returnType=event&type=sign_event&callbackUrl=${callbackUrl}`;
+
+    window.open(signerUrl, "_blank");
+    void router.push("/home");
+  }
+  const completedWorkout = todaysWorkout.workout.exercises
+    .filter((exercise) =>
+      exercise.sets.some((set) => set.reps !== null && set.reps > 0)
+    )
+    .map((exercise) => ({
+      ...exercise,
+      sets: exercise.sets.filter((set) => set.reps !== null && set.reps > 0),
+    }));
+
   return (
     <div className="flex flex-col items-center">
       <WorkoutDisplay3 workoutPlan={todaysWorkout.workout} />
@@ -126,24 +187,48 @@ function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>End Workout</DialogTitle>
+                <DialogTitle>Share to Nostr?</DialogTitle>
               </DialogHeader>
               <DialogDescription>
-                <DialogClose asChild>
-                  <div className="flex w-full flex-col items-center justify-center gap-y-4">
-                    <div className="flex w-full flex-row items-center justify-between px-10">
-                      <Button
-                        variant={"destructive"}
-                        onClick={() => handleEndWorkout()}
-                      >
-                        Confirm
-                      </Button>
-                      <Button type="button" variant="secondary">
-                        Cancel
-                      </Button>
+                <div className="flex w-full flex-col items-center justify-center">
+                  <div>
+                    <div className="">
+                      <span className="font-semibold">
+                        {todaysWorkout.workout.description}
+                      </span>
+                      - Week {todaysWorkout.workout.workoutNumber}
                     </div>
+                    {completedWorkout.map((exercise) => (
+                      <div
+                        key={`endDisplay-${exercise.exerciseId}`}
+                        className="my-2 flex flex-col"
+                      >
+                        <div className="font-semibold">
+                          {exercise.description}
+                        </div>
+                        <div>
+                          {exercise.sets.map((set) => (
+                            <div key={`endSet-${set.setId}`}>
+                              {set.weight} lbs x {set.reps} (target:{" "}
+                              {set.targetReps} x {set.targetWeight})
+                            </div>
+                          ))}
+                        </div>
+                        <div>liftr.club</div>
+                      </div>
+                    ))}
                   </div>
-                </DialogClose>
+                  <DialogClose asChild>
+                    <div className="flex w-full flex-col items-center justify-center gap-y-4">
+                      <div className="flex w-full flex-row items-center justify-between px-10">
+                        <Button onClick={() => shareToNostr()}>Share</Button>
+                        <Button type="button" variant="destructive">
+                          End
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogClose>
+                </div>
               </DialogDescription>
             </DialogContent>
           </Dialog>
