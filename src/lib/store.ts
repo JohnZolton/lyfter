@@ -7,7 +7,9 @@ export interface fullWorkout {
   workout:
     | Workout & {
         exercises: (Exercise & {
-          sets: exerciseSet[];
+          sets: (exerciseSet & {
+            priorSet?: exerciseSet | null;
+          })[];
           deloadDenied?: boolean;
         })[];
       };
