@@ -18,6 +18,7 @@ import {
   DialogTrigger,
   DialogClose,
 } from "~/components/ui/dialog";
+import { Textarea } from "~/components/ui/textarea";
 import SignedIn, { SignInButton, SignedOut } from "../components/auth";
 import useWorkoutStore, { fullWorkout } from "~/lib/store";
 import { format } from "path";
@@ -117,38 +118,6 @@ function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
   }
 
   function shareToNostr() {
-    let formattedString = `Workout Completed!\n\n${
-      todaysWorkout.workout.description
-    } - Week ${todaysWorkout.workout.workoutNumber ?? ""}\n\n`;
-    completedWorkout.forEach((exercise) => {
-      formattedString += `${exercise.description}\n`;
-      exercise.sets.forEach((set, index) => {
-        const goals = set.targetReps !== null && set.targetWeight !== null;
-        const metTarget =
-          set.reps !== null &&
-          set.targetReps !== null &&
-          set.targetWeight !== null &&
-          set.weight !== null &&
-          set.reps !== null &&
-          set.reps >= set.targetReps &&
-          set.weight >= set.targetWeight;
-        if (
-          todaysWorkout.workout.workoutNumber &&
-          todaysWorkout.workout.workoutNumber > 1
-        ) {
-          const emoji = metTarget ? "✅" : "❌";
-          formattedString += `${set.weight ?? ""} x ${
-            set.reps ?? ""
-          } ${emoji} (${set.targetWeight ?? ""} x ${set.targetReps ?? ""} 🎯)`;
-        } else {
-          formattedString += `${set.weight ?? ""} x ${set.reps ?? ""}`;
-        }
-        formattedString += "\n";
-      });
-      formattedString += "\n";
-    });
-    formattedString += "\nliftr.club";
-    console.log(formattedString);
     const isLiveMode = process.env.NODE_ENV === "production";
     const baseUrl = "https://www.liftr.club";
     const callbackUrl = `${
@@ -158,7 +127,7 @@ function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
     const event = {
       kind: 1,
       created_at: Math.floor(Date.now() / 1000),
-      content: formattedString,
+      content: sharedText,
     };
 
     const encodedJson = encodeURIComponent(JSON.stringify(event));
@@ -167,6 +136,7 @@ function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
     window.open(signerUrl, "_blank");
     void router.push("/home");
   }
+
   const completedWorkout = todaysWorkout.workout.exercises
     .filter((exercise) =>
       exercise.sets.some((set) => set.reps !== null && set.reps > 0)
@@ -175,6 +145,56 @@ function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
       ...exercise,
       sets: exercise.sets.filter((set) => set.reps !== null && set.reps > 0),
     }));
+
+  function formatWorkoutString() {
+    let formattedString = `Workout Completed!\n${
+      todaysWorkout.workout.description
+    } - Week ${
+      todaysWorkout.workout.workoutNumber
+        ? todaysWorkout.workout.workoutNumber + 1
+        : 1
+    }\n\n`;
+
+    completedWorkout.forEach((exercise) => {
+      formattedString += `${exercise.description}\n`;
+      exercise.sets.forEach((set) => {
+        const metTarget =
+          set.reps !== null &&
+          set.priorSet &&
+          set.priorSet.reps !== null &&
+          set.priorSet.weight !== null &&
+          set.weight !== null &&
+          set.reps !== null &&
+          set.reps >= set.priorSet.reps &&
+          set.weight >= set.priorSet.weight;
+
+        if (
+          todaysWorkout.workout.workoutNumber &&
+          todaysWorkout.workout.workoutNumber >= 1
+        ) {
+          const emoji = metTarget ? "✅" : "❌";
+          formattedString += `${set.weight ?? ""} x ${
+            set.reps ?? ""
+          } ${emoji} (${set.priorSet?.weight ?? ""} x ${
+            set.priorSet?.reps ?? ""
+          } 🎯)`;
+        } else {
+          formattedString += `${set.weight ?? ""} x ${set.reps ?? ""}`;
+        }
+        formattedString += "\n";
+      });
+      formattedString += "\n";
+    });
+
+    formattedString += "liftr.club";
+    return formattedString;
+  }
+
+  const [sharedText, setSharedText] = useState("");
+
+  useEffect(() => {
+    setSharedText(formatWorkoutString());
+  }, [todaysWorkout, completedWorkout]);
 
   return (
     <div className="flex flex-col items-center">
@@ -185,51 +205,31 @@ function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
             <DialogTrigger asChild>
               <Button variant={"destructive"}>End Workout</Button>
             </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Share to Nostr?</DialogTitle>
-              </DialogHeader>
-              <DialogDescription>
-                <div className="flex w-full flex-col items-center justify-center">
-                  <div>
-                    <div className="">
-                      <span className="font-semibold">
-                        {todaysWorkout.workout.description}
-                      </span>
-                      - Week {todaysWorkout.workout.workoutNumber}
-                    </div>
-                    {completedWorkout.map((exercise) => (
-                      <div
-                        key={`endDisplay-${exercise.exerciseId}`}
-                        className="my-2 flex flex-col"
-                      >
-                        <div className="font-semibold">
-                          {exercise.description}
+            <DialogContent className="min-h-full">
+              <div className="flex h-full flex-col">
+                <DialogHeader>
+                  <DialogTitle>Share to Nostr?</DialogTitle>
+                </DialogHeader>
+                <DialogDescription className="flex-grow overflow-hidden">
+                  <div className="flex h-full flex-col p-6">
+                    <Textarea
+                      readOnly
+                      className="mb-6 flex-grow overflow-auto"
+                      value={sharedText}
+                    />
+                    <DialogClose asChild>
+                      <div className="flex w-full flex-col items-center justify-center gap-y-4">
+                        <div className="flex w-full flex-row items-center justify-between px-10">
+                          <Button onClick={() => shareToNostr()}>Share</Button>
+                          <Button type="button" variant="destructive">
+                            Cancel
+                          </Button>
                         </div>
-                        <div>
-                          {exercise.sets.map((set) => (
-                            <div key={`endSet-${set.setId}`}>
-                              {set.weight} lbs x {set.reps} (target:{" "}
-                              {set.targetReps} x {set.targetWeight})
-                            </div>
-                          ))}
-                        </div>
-                        <div>liftr.club</div>
                       </div>
-                    ))}
+                    </DialogClose>
                   </div>
-                  <DialogClose asChild>
-                    <div className="flex w-full flex-col items-center justify-center gap-y-4">
-                      <div className="flex w-full flex-row items-center justify-between px-10">
-                        <Button onClick={() => shareToNostr()}>Share</Button>
-                        <Button type="button" variant="destructive">
-                          End
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogClose>
-                </div>
-              </DialogDescription>
+                </DialogDescription>
+              </div>
             </DialogContent>
           </Dialog>
         )}
