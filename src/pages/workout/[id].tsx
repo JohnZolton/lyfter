@@ -173,9 +173,9 @@ function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
           todaysWorkout.workout.workoutNumber >= 1
         ) {
           const emoji = metTarget ? "✅" : "❌";
-          formattedString += `${set.weight ?? ""} x ${
+          formattedString += `${set.weight ?? 0} x ${
             set.reps ?? ""
-          } ${emoji} (${set.priorSet?.weight ?? ""} x ${
+          } ${emoji} (${set.priorSet?.weight ?? 0} x ${
             set.priorSet?.reps ?? ""
           } 🎯)`;
         } else {
