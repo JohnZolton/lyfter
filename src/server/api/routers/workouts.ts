@@ -1200,7 +1200,7 @@ export const getAllWorkouts = createTRPCRouter({
           (set) => set.reps && set.reps > 0
         ).length;
         if (muscleGroupOverview[muscleGroup]) {
-          muscleGroupOverview[muscleGroup]![weekNumber - 1] += completedSets;
+          muscleGroupOverview[muscleGroup]![weekNumber - 1]! += completedSets;
         }
         if (exercise.muscleGroup === MuscleGroup.Cardio && exercise.duration) {
           const rpe = exercise.RPE as keyof typeof RPE;
