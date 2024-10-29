@@ -69,12 +69,12 @@ function SetDisplay({
   if (!currentSet) return <div></div>;
   return (
     <div
-      className={`m-1 flex flex-row items-center  justify-between rounded-lg bg-slate-800 p-1 px-2 shadow-md
+      className={`m-1 flex flex-row items-center  justify-between rounded-lg bg-[#262626] p-1 px-2 shadow-md
     `}
     >
       <div className="flex max-w-full flex-row items-center gap-x-1">
         <select
-          className="mr-2 rounded bg-gray-700 p-2 px-3 text-center text-sm text-white "
+          className="mr-2 rounded bg-[#333] p-2 px-3 text-center text-sm text-white "
           value={currentSet?.weight ?? 0}
           onChange={handleWeightChange}
         >
@@ -87,7 +87,7 @@ function SetDisplay({
       </div>
       <div>
         <select
-          className="rounded bg-gray-700 p-2 px-3 text-center text-sm text-white"
+          className="rounded bg-[#333] p-2 px-3 text-center text-sm text-white"
           onChange={handleRepsChange}
           value={currentSet?.reps ?? 0}
         >

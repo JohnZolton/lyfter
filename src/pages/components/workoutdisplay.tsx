@@ -21,7 +21,7 @@ function WorkoutDisplay3({ workoutPlan }: display3Props) {
   const [parent, enableAnimations] = useAutoAnimate({ duration: 800 });
 
   return (
-    <div className="flex w-11/12 max-w-sm flex-col items-center rounded-lg">
+    <div className="flex w-full flex-col items-center rounded-lg sm:max-w-sm">
       {workout && (
         <div
           key={"w" + workout.workout.workoutId.toString()}

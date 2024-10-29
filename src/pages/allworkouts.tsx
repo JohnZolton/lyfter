@@ -67,7 +67,7 @@ function Workouts() {
 
   if (workoutsLoading) {
     return (
-      <div className="flex w-full flex-col justify-center gap-y-4 bg-slate-800 p-4 shadow-md">
+      <div className="flex w-full flex-col justify-center gap-y-4 p-4 shadow-md">
         <Skeleton className="h-14 w-full" />
         <Skeleton className="h-14 w-full" />
         <Skeleton className="h-14 w-full" />
@@ -98,7 +98,7 @@ function Workouts() {
       {selectedPlan && <DisplayPlan plan={selectedPlan} />}
       <div className="w-full">
         {!selectedPlan && (
-          <MenuLayout>
+          <div>
             {!selectedPlan &&
               workoutPlans.map((plan) => (
                 <div
@@ -113,7 +113,7 @@ function Workouts() {
                   </Button>
                 </div>
               ))}
-          </MenuLayout>
+          </div>
         )}
 
         {selectedPlan && (
@@ -216,14 +216,14 @@ function DisplayPlan({ plan }: DisplayPlanProps) {
             {workoutList[day as keyof typeof workoutList][0]?.description && (
               <div
                 key={day}
-                className="mb-4 flex flex-col rounded-md bg-slate-800 py-2 shadow-md"
+                className="mb-4 flex flex-col rounded-md border border-[#333] bg-[#1a1a1a] py-2 shadow-md"
               >
                 <div className="mb-4 text-center text-3xl font-bold">{day}</div>
                 <div className="mb-4 px-4 text-2xl font-bold">
                   {workoutList[day as keyof typeof workoutList][0]?.description}
                 </div>
                 <div
-                  className="flex items-start overflow-x-auto bg-slate-900 align-top"
+                  className="flex items-start overflow-x-auto bg-[#262626] align-top"
                   style={{ maxWidth: "100vw" }}
                 >
                   <table className="table-fixed justify-start whitespace-nowrap">
