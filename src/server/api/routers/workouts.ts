@@ -113,12 +113,14 @@ export const getAllWorkouts = createTRPCRouter({
         },
       },
     });
+
     if (!workouts) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "No workout with that User",
       });
     }
+    console.log(workouts);
     return workouts;
   }),
 
