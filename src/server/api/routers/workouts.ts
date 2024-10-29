@@ -740,12 +740,6 @@ export const getAllWorkouts = createTRPCRouter({
           sets: true,
         },
       });
-      if (!exercise) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Failed to update exercise",
-        });
-      }
       await ctx.prisma.exercise.updateMany({
         where: {
           workoutId: input.workoutId,

@@ -400,7 +400,13 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
                         <SelectTrigger>
                           <SelectValue placeholder="Type" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent
+                          className="max-h-[30vh] overflow-y-auto"
+                          position="popper"
+                          side="bottom"
+                          align="start"
+                          sideOffset={5}
+                        >
                           <SelectGroup>
                             <SelectLabel>Muscle Group</SelectLabel>
                             <SelectItem value={MuscleGroup.Chest}>
@@ -440,15 +446,22 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
                           </SelectGroup>
                         </SelectContent>
                       </Select>
-                      <DialogClose asChild onBlur={() => setIsMenuOpen(false)}>
+                      <DialogClose asChild>
                         <div className="flex flex-row items-center justify-between">
                           <Button
                             disabled={!(newExDescription && newExMuscleGroup)}
-                            onClick={() => handleAddExercise()}
+                            onClick={() => {
+                              setIsMenuOpen(false);
+                              handleAddExercise();
+                            }}
                           >
                             Add Exercise
                           </Button>
-                          <Button type="button" variant="secondary">
+                          <Button
+                            type="button"
+                            onClick={() => setIsMenuOpen(false)}
+                            variant="secondary"
+                          >
                             Cancel
                           </Button>
                         </div>
@@ -469,7 +482,7 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
                     <DialogTitle>Delete Exercise</DialogTitle>
                   </DialogHeader>
                   <DialogDescription>
-                    <DialogClose asChild onBlur={() => setIsMenuOpen(false)}>
+                    <DialogClose asChild>
                       <div className="flex flex-row items-center justify-between">
                         <Button
                           variant={"destructive"}
@@ -662,7 +675,7 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
           }}
         />
       ) : (
-        <div className="mb-1 rounded bg-slate-800 px-3 text-sm font-light">
+        <div className="mb-1 rounded  px-3 text-sm font-light">
           {exercise?.note ?? ""}
         </div>
       )}
