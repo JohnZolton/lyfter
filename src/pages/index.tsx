@@ -2,7 +2,6 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect } from "react";
-
 import { buttonVariants } from "~/components/ui/button";
 import PageLayout from "./components/pagelayout";
 import SignedIn, {
@@ -21,11 +20,10 @@ const Home: NextPage = () => {
       </Head>
       <PageLayout>
         <div className="mx-auto mt-8 flex flex-col items-center justify-center gap-y-4 px-4 text-center">
-          <img src="/image4.png" alt="Jacked Ostrich" />
-          <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
+          <img src="/image.png" alt="Jacked Nostrich" />
+          <h1 className="my-4 text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
             <span className="">Liftr</span>
           </h1>
-          <h3 className="text-2xl text-white ">Your Workout Tracker</h3>
           <SignedOut>
             <SignInButton />
             <SignInButtonAmber />
@@ -43,13 +41,10 @@ const Home: NextPage = () => {
           <div className="flex flex-col items-center"></div>
           <div className="mt-4 flex flex-col  gap-y-4 px-4 pb-12 text-left text-xl">
             <div className="text-center text-2xl font-semibold">
-              What is this?
+              Bodybuilding &apos;Coach&apos;
             </div>
             <div>
-              Liftr is a 100% hypertrophy-focused workout &quot;coach&quot;.
-            </div>
-            <div>
-              It uses{" "}
+              This is a working programming and tracking app that uses{" "}
               <Link
                 className="text-yellow-600 hover:underline"
                 target="_blank"
@@ -71,10 +66,7 @@ const Home: NextPage = () => {
               long as you&apos;re recovering on time, if you&apos;re not
               recovered, it programs a muscle-specific deload for that day.
             </div>
-            <div>
-              It logs soreness, pump, and overall exertion with pre- and
-              post-exercise surveys and adjusts volume accordingly.
-            </div>
+            <div>It measures recovery and adjusts training accordingly.</div>
             <div>
               Premade plans follow current best-practices with starting volume
               around the typical minumum-effective volume for muscle growth and

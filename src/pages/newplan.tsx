@@ -66,7 +66,7 @@ function NewWorkoutMenu() {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center rounded-lg ">
-        <MenuLayout>
+        <div>
           <div className="my-1 w-full px-6">
             <PreBuiltPlans />
           </div>
@@ -79,14 +79,14 @@ function NewWorkoutMenu() {
               </Link>
             </div>
           </div>
-        </MenuLayout>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col items-center rounded-lg ">
-      <MenuLayout>
+      <div className="w-full">
         <div className="my-1 w-full px-6">
           <PreBuiltPlans />
         </div>
@@ -102,7 +102,7 @@ function NewWorkoutMenu() {
             </Link>
           </div>
         </div>
-      </MenuLayout>
+      </div>
     </div>
   );
 }

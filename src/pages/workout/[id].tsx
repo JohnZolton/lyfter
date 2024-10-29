@@ -213,8 +213,8 @@ function WorkoutUi({ todaysWorkout, setTodaysWorkout }: WorkoutUiProps) {
                 <DialogDescription className="flex-grow overflow-hidden">
                   <div className="flex h-full flex-col p-6">
                     <Textarea
-                      readOnly
                       className="mb-6 flex-grow overflow-auto"
+                      onChange={(e) => setSharedText(e.target.value)}
                       value={sharedText}
                     />
                     <DialogClose asChild>

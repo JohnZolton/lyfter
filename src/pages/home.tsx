@@ -91,12 +91,12 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
 
   if (isLoading) {
     return (
-      <div className="max-w-600 flex flex-col justify-center gap-y-4 bg-slate-800 p-4 shadow-md">
-        <Skeleton className="h-14 w-full" />
-        <Skeleton className="h-14 w-full" />
-        <Skeleton className="h-14 w-full" />
-        <Skeleton className="h-14 w-full" />
-        <Skeleton className="h-14 w-full" />
+      <div className="max-w-600 flex flex-col justify-center gap-y-4 bg-black p-4 shadow-md">
+        <Skeleton className="h-14 w-full animate-pulse rounded-md bg-gray-200 shadow-lg" />
+        <Skeleton className="h-14 w-full animate-pulse rounded-md bg-gray-200 shadow-lg" />
+        <Skeleton className="h-14 w-full animate-pulse rounded-md bg-gray-200 shadow-lg" />
+        <Skeleton className="h-14 w-full animate-pulse rounded-md bg-gray-200 shadow-lg" />
+        <Skeleton className="h-14 w-full animate-pulse rounded-md bg-gray-200 shadow-lg" />
       </div>
     );
   }
@@ -105,15 +105,15 @@ function WorkoutUiHandler({ setTitle }: UiHandlerProps) {
     return (
       <div
         style={{ maxWidth: "600px", margin: "0 auto" }}
-        className="w-full rounded-lg bg-slate-800 px-4 py-2"
+        className="w-full rounded-lg  px-4 py-2"
       >
         {workoutPlan &&
           workoutPlan.map((workout) => (
             <div
               key={workout.workoutId}
-              className="my-2 flex items-center justify-between bg-slate-800"
+              className="my-2 flex items-center justify-between"
             >
-              <div className="text-slate-100">
+              <div className="">
                 <div className="text-ls font-semibold">
                   {workout.description}
                 </div>

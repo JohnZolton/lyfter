@@ -56,6 +56,8 @@ export const getAllWorkouts = createTRPCRouter({
                       (_, index) => ({
                         setNumber: index,
                         rir: 3,
+                        weight: 0,
+                        reps: 0,
                       })
                     ),
                   },
@@ -575,11 +577,11 @@ export const getAllWorkouts = createTRPCRouter({
       if (priorWorkout) {
         const workoutDate = new Date(priorWorkout.date);
         const currentDate = new Date();
-        const fiveDaysAgo = new Date();
+        const sixDaysAgo = new Date();
         //testing
         const oneMinuteAgo = new Date(currentDate.getTime() - 60 * 1000);
-        fiveDaysAgo.setDate(currentDate.getDate() - 5);
-        if (workoutDate >= fiveDaysAgo) {
+        sixDaysAgo.setDate(currentDate.getDate() - 6);
+        if (workoutDate >= sixDaysAgo) {
           //if (workoutDate >= oneMinuteAgo) {
           return priorWorkout.workoutId;
         }

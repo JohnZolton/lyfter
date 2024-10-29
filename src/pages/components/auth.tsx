@@ -44,10 +44,12 @@ export function SignOutButton({ className }: SignOutButtonProps) {
 }
 
 export function SignInButton() {
+  const router = useRouter();
   const { authWithNostr } = useAuth();
   async function handleSignIn() {
     try {
       const token = await authWithNostr();
+      void router.push("/home");
     } catch (error) {
       console.error("Auth failed: ", error);
     }

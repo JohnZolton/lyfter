@@ -291,7 +291,7 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
   return (
     <div
       key={exercise?.description ?? "default-key"}
-      className="rounded-xl bg-slate-700  p-2 shadow-md"
+      className="rounded-xl border border-[#333] bg-[#lalala] p-2 shadow-md"
     >
       <div className="flex flex-row items-center pb-1">
         <div className="flex items-center justify-center">
@@ -667,7 +667,7 @@ function ExerciseDisplay({ exercise }: ExerciseDisplayProps) {
         </div>
       )}
       {currentExercise?.muscleGroup !== MuscleGroup.Cardio && (
-        <div className="rounded-md bg-slate-800 py-1">
+        <div className="rounded-md bg-[#262626]  py-1">
           <div
             key={`${currentExercise?.exerciseId ?? "error no header"}-header`}
             className="flex flex-row justify-between px-6 text-sm shadow-md"
