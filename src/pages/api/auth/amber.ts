@@ -2,7 +2,6 @@ import { NextApiRequest, NextApiResponse } from "next";
 import jwt from "jsonwebtoken";
 import { validateEvent } from "nostr-tools";
 import { NDKEvent } from "@nostr-dev-kit/ndk";
-import { encode } from "punycode";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
